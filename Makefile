@@ -1,9 +1,9 @@
 CC=arm-none-eabi-gcc
 MACH=cortex-m4
-# TODO: What are these flags?
+#
 # https://gcc.gnu.org/onlinedocs/gcc/index.html#toc-GCC-Command-Options
 # https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html
-
+#
 # -c 					compile or assemble the source files, but do not link.
 # -mcpu					target ARM processor
 # -mthumb				generate code that executes in thumb state (cortex M
@@ -16,27 +16,27 @@ MACH=cortex-m4
 # -nostartfiles			do not use the standard system startup files when linking
 # -nostdlib				no standard library
 # -Wall					enable all warnings
-# -O0
+# -O0					disables all optimizations
 # -Wno-unused-variable
-CFLAGS= -c -mcpu=$(MACH) -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=gnu11 -nostartfiles -nostdlib -Wall -O0 -Wno-unused-variable
+# -ggdb					produces debug information intended for gdb
+CFLAGS= -c -mcpu=$(MACH) -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=gnu11 -nostartfiles -nostdlib -Wall -O0 -Wno-unused-variable -ggdb
 
 # -nostartfiles			do not use the standard system startup files when linking
 # -T					path to linker script
 # -Wl,-Map=final.map	-Wl, linker specific arguments
 LDFLAGS= -mcpu=$(MACH) -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -nostartfiles -nostdlib -T nrf52.ld -Wl,-Map=final.map
 
-all: main.o leds.o startup.o final.elf
+objects= nrf52_startup.o main.o leds.o
 
-main.o: main.c
+all: $(objects) final.elf
+
+# Syntax - targets ...: target-pattern: prereq-patterns ... In the case of the
+# first target, foo.o, the target-pattern matches foo.o and sets the "stem" to
+# be "foo". It then replaces the '%' in prereq-patterns with that stem
+$(objects): %.o: %.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-leds.o: leds.c
-	$(CC) $(CFLAGS) -o $@ $^
-
-startup.o: nrf52_startup.c
-	$(CC) $(CFLAGS) -o $@ $^
-
-final.elf: main.o leds.o startup.o
+final.elf: $(objects)
 	$(CC) $(LDFLAGS) -o $@ $^
 
 clean:
@@ -45,3 +45,16 @@ clean:
 # TODO: how does jlink work??
 flash:
 	echo "r\nloadfile final.elf\nr\nq" | JLinkExe -device nRF52840_xxAA -if SWD -speed 4000
+
+load:
+	openocd -f /usr/share/openocd/scripts/board/nordic_nrf52_dk.cfg
+
+debug:
+	gdb-multiarch
+# -f final.elf
+
+# openocd commands always need to be prepended with monitor https://www.openocd.org/doc/html/General-Commands.html
+# target remote localhost:3333
+# monitor reset init
+# monitor flash write_image erase final.elf
+# monitor reset halt
