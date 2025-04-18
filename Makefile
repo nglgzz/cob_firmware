@@ -42,19 +42,14 @@ final.elf: $(objects)
 clean:
 	rm -f *.o *.elf *.map
 
-# TODO: how does jlink work??
-flash:
-	echo "r\nloadfile final.elf\nr\nq" | JLinkExe -device nRF52840_xxAA -if SWD -speed 4000
+flash: final.elf
+	nrfutil device program --firmware final.elf
+
+reset:
+	nrfutil device reset
 
 load:
 	openocd -f /usr/share/openocd/scripts/board/nordic_nrf52_dk.cfg
 
 debug:
-	gdb-multiarch
-# -f final.elf
-
-# openocd commands always need to be prepended with monitor https://www.openocd.org/doc/html/General-Commands.html
-# target remote localhost:3333
-# monitor reset init
-# monitor flash write_image erase final.elf
-# monitor reset halt
+	gdb-multiarch -tui
