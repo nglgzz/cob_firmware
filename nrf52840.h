@@ -42,10 +42,10 @@
 
 // Bit number when setting values to the above registers
 // Buttons
-#define SW_PIN_1 11
-#define SW_PIN_2 12
-#define SW_PIN_3 24
-#define SW_PIN_4 25
+#define SW_PIN_1 11  // 0x5000072C
+#define SW_PIN_2 12  // 0x50000730
+#define SW_PIN_3 24  // 0x50000760
+#define SW_PIN_4 25  // 0x50000764
 
 // Leds
 #define LED_PIN_1 13
@@ -69,13 +69,18 @@
 #define PIN_CNF(pin)                                       \
   (*(volatile unsigned int *)(GPIO_BASE + PIN_CNF_OFFSET + \
                               (pin * PIN_CNF_SIZE)))
-
 // Bit to set for configuration
+#define PIN_CNF_DIR 0
+#define PIN_CNF_INPUT 1
 #define PIN_CNF_PULL 2
 #define PIN_CNF_SENSE 16
 
-#define CNF_SENSE_HIGH (3 << PIN_CNF_PULL | 2 << PIN_CNF_SENSE)
-#define CNF_SENSE_LOW (3 << PIN_CNF_PULL | 3 << PIN_CNF_SENSE)
+#define CNF_SENSE_HIGH                                         \
+  (0 << PIN_CNF_DIR | 0 << PIN_CNF_INPUT | 3 << PIN_CNF_PULL | \
+   3 << PIN_CNF_SENSE)
+#define CNF_SENSE_LOW                                          \
+  (0 << PIN_CNF_DIR | 0 << PIN_CNF_INPUT | 3 << PIN_CNF_PULL | \
+   2 << PIN_CNF_SENSE)
 
 // -------
 // GPIOTE
@@ -96,7 +101,8 @@
 
 // Event generated from multiple input GPIO pins with SENSE mechanism enabled
 // (1 = event generated, 0 = event not generated, only one bit is used).
-#define EVENTS_PORT (*(volatile unsigned int *)(GPIOTE_BASE + 0x17C))
+#define EVENTS_PORT \
+  (*(volatile unsigned int *)(GPIOTE_BASE + 0x17C))  // 0x4000617C
 // Enable interrupt (set desired pin to 1 to enable)
 #define INTENSET (*(volatile unsigned int *)(GPIOTE_BASE + 0x304))
 // Disable interrupt (set desired pin to 1 to disable)

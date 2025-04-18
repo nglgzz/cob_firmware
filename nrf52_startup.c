@@ -43,9 +43,21 @@ void DebugMon_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void PendSV_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void SysTick_Handler(void) __attribute__((weak, alias("Default_Handler")));
 
+void POWER_CLOCK_IRQHandler(void)
+    __attribute__((weak, alias("Default_Handler")));
+void RADIO_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+void UARTE0_UART0_IRQHandler(void)
+    __attribute__((weak, alias("Default_Handler")));
+void SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQHandler(void)
+    __attribute__((weak, alias("Default_Handler")));
+void SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler(void)
+    __attribute__((weak, alias("Default_Handler")));
+void NFCT_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+void GPIOTE_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
+
 typedef void (*vector_table_t)(void);
-extern const vector_table_t _vectors[16];
-const vector_table_t _vectors[16]
+extern const vector_table_t _vectors[23];
+const vector_table_t _vectors[23]
     // The section attribute tells the compiler to create a new section in the
     // object file called ".isr_vector" that will contain this variable. This is
     // to be able to place this variable manually during linking, because the
@@ -64,21 +76,16 @@ const vector_table_t _vectors[16]
     __attribute__((used, section(".isr_vector"))) = {
         (vector_table_t)&_stack_top,
         /* Exceptions */
-        Reset_Handler,
-        NMI_Handler,
-        HardFault_Handler,
-        MemoryManagement_Handler,
-        BusFault_Handler,
-        UsageFault_Handler,
-        0,
-        0,
-        0,
-        0,
-        SVC_Handler,
-        DebugMon_Handler,
-        0,
-        PendSV_Handler,
-        SysTick_Handler,
+        Reset_Handler, NMI_Handler, HardFault_Handler, MemoryManagement_Handler,
+        BusFault_Handler, UsageFault_Handler, 0, 0, 0, 0, SVC_Handler,
+        DebugMon_Handler, 0, PendSV_Handler, SysTick_Handler,
+
+        /* External Interrupts */
+        POWER_CLOCK_IRQHandler, RADIO_IRQHandler, UARTE0_UART0_IRQHandler,
+        SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQHandler,
+        SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler, NFCT_IRQHandler,
+        GPIOTE_IRQHandler,
+        // ...
 };
 
 void Default_Handler(void) {

@@ -1,6 +1,6 @@
 # Apply split layout with registers and code
 tui new-layout splitv src 1 regs 1 status 0 cmd 1
-tui new-layout splith {-horizontal src 2 regs 1} 2 status 0 {-horizontal cmd 2 asm 1} 1
+tui new-layout splith {-horizontal src 2 regs 1} 2 status 0 {-horizontal cmd 1 asm 1} 1
 set tui compact-source on
 layout splith
 
