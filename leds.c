@@ -1,5 +1,7 @@
 #include "leds.h"
 
+#include "nrf52840.h"
+
 // uintn_t is a fixed width integer, the size of a regular int is implementation
 // dependent.
 static uint8_t led_pins[] = {LED_PIN_2, LED_PIN_4, LED_PIN_3, LED_PIN_1};
