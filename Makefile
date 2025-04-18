@@ -26,17 +26,17 @@ CFLAGS= -c -mcpu=$(MACH) -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=gnu11 -
 # -Wl,-Map=final.map	-Wl, linker specific arguments
 LDFLAGS= -mcpu=$(MACH) -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -nostartfiles -nostdlib -T nrf52.ld -Wl,-Map=final.map
 
-objects= nrf52_startup.o main.o leds.o
+OBJECTS= nrf52_startup.o main.o leds.o switches.o
 
-all: $(objects) final.elf
+all: $(OBJECTS) final.elf
 
 # Syntax - targets ...: target-pattern: prereq-patterns ... In the case of the
 # first target, foo.o, the target-pattern matches foo.o and sets the "stem" to
 # be "foo". It then replaces the '%' in prereq-patterns with that stem
-$(objects): %.o: %.c
+$(OBJECTS): %.o: %.c
 	$(CC) $(CFLAGS) -o $@ $^
 
-final.elf: $(objects)
+final.elf: $(OBJECTS)
 	$(CC) $(LDFLAGS) -o $@ $^
 
 clean:
