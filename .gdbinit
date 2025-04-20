@@ -30,7 +30,6 @@ end
 define .flash
     monitor reset init
     monitor flash write_image final.elf
-    monitor reset halt
 end
 
 define .funcs
@@ -42,3 +41,4 @@ define .vars
 end
 
 .reload
+monitor reset halt
