@@ -48,6 +48,9 @@ flash: final.elf
 reset:
 	nrfutil device reset
 
+recover:
+	nrfutil device recover
+
 load:
 	openocd -f /usr/share/openocd/scripts/board/nordic_nrf52_dk.cfg
 
