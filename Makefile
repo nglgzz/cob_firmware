@@ -41,11 +41,7 @@ CFLAGS= -c -mcpu=$(MACH) -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=gnu11 -
 # -nostartfiles			do not use the standard system startup files when linking
 # -T					path to linker script
 # -Wl,-Map=final.map	-Wl, linker specific arguments
-<<<<<<< HEAD
-LDFLAGS= -mcpu=$(MACH) -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -nostartfiles -nostdlib -T $(DIR_SRC)/nrf52.ld -Wl,-Map=$(DIR_BIN)/final.map
-=======
 LDFLAGS= -mcpu=$(MACH) -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -nostartfiles -nostdlib -T $(DIR_SCRIPTS)/nrf52.ld -Wl,-Map=$(DIR_BIN)/final.map
->>>>>>> 99ef47e (fixup! reorganize repo)
 
 
 ########################################
@@ -64,7 +60,7 @@ clean:
 	rm -f $(DIR_BUILD)/*.o $(DIR_BIN)/*.elf $(DIR_BIN)/*.map
 
 
- ########################################
+########################################
 #  MCU HELPERS
 ########################################
 

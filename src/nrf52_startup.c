@@ -76,14 +76,28 @@ const vector_table_t _vectors[23]
     __attribute__((used, section(".isr_vector"))) = {
         (vector_table_t)&_stack_top,
         /* Exceptions */
-        Reset_Handler, NMI_Handler, HardFault_Handler, MemoryManagement_Handler,
-        BusFault_Handler, UsageFault_Handler, 0, 0, 0, 0, SVC_Handler,
-        DebugMon_Handler, 0, PendSV_Handler, SysTick_Handler,
-
+        Reset_Handler,
+        NMI_Handler,
+        HardFault_Handler,
+        MemoryManagement_Handler,
+        BusFault_Handler,
+        UsageFault_Handler,
+        0,
+        0,
+        0,
+        0,
+        SVC_Handler,
+        DebugMon_Handler,
+        0,
+        PendSV_Handler,
+        SysTick_Handler,
         /* External Interrupts */
-        POWER_CLOCK_IRQHandler, RADIO_IRQHandler, UARTE0_UART0_IRQHandler,
+        POWER_CLOCK_IRQHandler,
+        RADIO_IRQHandler,
+        UARTE0_UART0_IRQHandler,
         SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQHandler,
-        SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler, NFCT_IRQHandler,
+        SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler,
+        NFCT_IRQHandler,
         GPIOTE_IRQHandler,
         // ...
 };
