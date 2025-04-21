@@ -1,6 +1,6 @@
 #include "leds.h"
 
-#include "nrf52840.h"
+#include "gpio.h"
 
 // uintn_t is a fixed width integer, the size of a regular int is implementation
 // dependent.
@@ -15,13 +15,13 @@ void init_leds() {
   for (int i = 0; i < led_pins_size; i++) {
     // toggling GPIO_DIR at pin number (led_pins[i]) to high
     // which makes all led_pins output pins.
-    GPIO_DIR |= (1 << led_pins[i]);
+    GPIO0->DIR |= (1 << led_pins[i]);
   }
 }
 
 static void clear_leds() {
   for (int i = 0; i < led_pins_size; i++) {
-    GPIO_OUTCLR = (1 << led_pins[i]);
+    GPIO0->OUTCLR = (1 << led_pins[i]);
   }
 }
 
@@ -33,19 +33,19 @@ void toggle_led(int index, int state) {
 
   if (state) {
     clear_leds();
-    GPIO_OUTSET = (1 << led_pins[index]);
+    GPIO0->OUTSET = (1 << led_pins[index]);
     return;
   }
 
-  GPIO_OUTCLR = (1 << led_pins[index]);
+  GPIO0->OUTCLR = (1 << led_pins[index]);
 }
 
 void blink_leds(uint32_t duration) {
   for (int i = 0; i < led_pins_size; i++) {
     // toggle GPIO pin (led_pins[i]) to low
-    GPIO_OUTCLR = (1 << led_pins[i]);
+    GPIO0->OUTCLR = (1 << led_pins[i]);
     delay(duration);
     // toggle GPIO pin (led_pins[i]) to high
-    GPIO_OUTSET = (1 << led_pins[i]);
+    GPIO0->OUTSET = (1 << led_pins[i]);
   }
 }
