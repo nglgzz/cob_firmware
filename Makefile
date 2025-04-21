@@ -1,3 +1,20 @@
+########################################
+#  SOURCE AND BUILD ARTIFACTS
+########################################
+
+DIR_SRC=src
+DIR_BUILD=build
+DIR_BIN=bin
+DIR_SCRIPTS=scripts
+
+FILES_SRC=$(wildcard $(DIR_SRC)/*.c)
+FILES_OBJ=$(patsubst $(DIR_SRC)/%.c,$(DIR_BUILD)/%.o,$(FILES_SRC))
+FILE_EXECUTABLE=$(DIR_BIN)/final.elf
+
+########################################
+#  COMPILER AND TARGET CONFIGURATION
+########################################
+
 CC=arm-none-eabi-gcc
 MACH=cortex-m4
 #
@@ -24,26 +41,35 @@ CFLAGS= -c -mcpu=$(MACH) -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=gnu11 -
 # -nostartfiles			do not use the standard system startup files when linking
 # -T					path to linker script
 # -Wl,-Map=final.map	-Wl, linker specific arguments
-LDFLAGS= -mcpu=$(MACH) -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -nostartfiles -nostdlib -T nrf52.ld -Wl,-Map=final.map
+<<<<<<< HEAD
+LDFLAGS= -mcpu=$(MACH) -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -nostartfiles -nostdlib -T $(DIR_SRC)/nrf52.ld -Wl,-Map=$(DIR_BIN)/final.map
+=======
+LDFLAGS= -mcpu=$(MACH) -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -nostartfiles -nostdlib -T $(DIR_SCRIPTS)/nrf52.ld -Wl,-Map=$(DIR_BIN)/final.map
+>>>>>>> 99ef47e (fixup! reorganize repo)
 
-OBJECTS= nrf52_startup.o main.o leds.o switches.o
 
-all: $(OBJECTS) final.elf
+########################################
+#  BUILD
+########################################
 
-# Syntax - targets ...: target-pattern: prereq-patterns ... In the case of the
-# first target, foo.o, the target-pattern matches foo.o and sets the "stem" to
-# be "foo". It then replaces the '%' in prereq-patterns with that stem
-$(OBJECTS): %.o: %.c
-	$(CC) $(CFLAGS) -o $@ $^
+all: $(FILES_OBJ) $(FILE_EXECUTABLE)
 
-final.elf: $(OBJECTS)
+$(DIR_BUILD)/%.o: $(DIR_SRC)/%.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+$(FILE_EXECUTABLE): $(FILES_OBJ)
 	$(CC) $(LDFLAGS) -o $@ $^
 
 clean:
-	rm -f *.o *.elf *.map
+	rm -f $(DIR_BUILD)/*.o $(DIR_BIN)/*.elf $(DIR_BIN)/*.map
 
-flash: final.elf
-	nrfutil device program --firmware final.elf
+
+ ########################################
+#  MCU HELPERS
+########################################
+
+flash: $(FILE_EXECUTABLE)
+	nrfutil device program --firmware $(FILE_EXECUTABLE)
 
 reset:
 	nrfutil device reset
@@ -55,4 +81,7 @@ load:
 	openocd -f /usr/share/openocd/scripts/board/nordic_nrf52_dk.cfg
 
 debug:
-	gdb-multiarch -tui
+	gdb-multiarch -tui --command $(DIR_SCRIPTS)/.gdbinit
+
+format:
+	clang-format -i src/*
