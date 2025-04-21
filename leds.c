@@ -9,7 +9,7 @@ static uint8_t led_pins[] = {LED_PIN_2, LED_PIN_4, LED_PIN_3, LED_PIN_1};
 // deal with sizes, expect or return this type.
 static size_t led_pins_size = sizeof(led_pins) / sizeof(led_pins[0]);
 
-static void delay(volatile uint32_t duration) { while (duration--); }
+void delay(volatile uint32_t duration) { while (duration--); }
 
 void init_leds() {
   for (int i = 0; i < led_pins_size; i++) {
@@ -17,6 +17,27 @@ void init_leds() {
     // which makes all led_pins output pins.
     GPIO_DIR |= (1 << led_pins[i]);
   }
+}
+
+static void clear_leds() {
+  for (int i = 0; i < led_pins_size; i++) {
+    GPIO_OUTCLR = (1 << led_pins[i]);
+  }
+}
+
+void toggle_led(int index, int state) {
+  if (index < 0 && index >= led_pins_size) {
+    // index out of bounds, do nothing
+    return;
+  }
+
+  if (state) {
+    clear_leds();
+    GPIO_OUTSET = (1 << led_pins[index]);
+    return;
+  }
+
+  GPIO_OUTCLR = (1 << led_pins[index]);
 }
 
 void blink_leds(uint32_t duration) {

@@ -3,7 +3,7 @@
 #include "leds.h"
 #include "nrf52840.h"
 
-static uint16_t switch_pins[] = {SW_PIN_1, SW_PIN_2, SW_PIN_3, SW_PIN_4};
+static uint16_t switch_pins[] = {SW_PIN_2, SW_PIN_4, SW_PIN_3, SW_PIN_1};
 static size_t switch_pins_size = sizeof(switch_pins) / sizeof(switch_pins[0]);
 
 void init_switches() {
@@ -24,16 +24,32 @@ void init_switches() {
     PIN_CNF(switch_pins[i]) = CNF_SENSE_HIGH;
   }
 
+  // Enable LDETECT mode to be able to read which pins triggered the PORT event
+  // from the LATCH register.
+  GPIO_DETECTMODE = 1;
+
+  // Clear the LATCH register
+  GPIO_LATCH = SW_MASK;
+
+  // Clear PORT events
   EVENTS_PORT = 0;
   INTENSET |= 1 << PORT_EVENT;
 }
 
 void GPIOTE_IRQHandler() {
   if (EVENTS_PORT) {
+    // Clear the LATCH register
+    GPIO_LATCH = SW_MASK;
+
+    // Clear PORT events
     EVENTS_PORT = 0;
 
-    for (int k = 0; k < 10; k++) {
-      blink_leds(50000);
+    uint32_t latch = GPIO_LATCH;
+    for (int i = 0; i < switch_pins_size; i++) {
+      if (latch & 1 << switch_pins[i]) {
+        toggle_led(i, 1);
+        delay(500000);
+      }
     }
   }
 }
