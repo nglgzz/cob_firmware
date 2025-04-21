@@ -23,7 +23,7 @@ layout splith
 # https://www.openocd.org/doc/html/General-Commands.html
 # https://cgi.cse.unsw.edu.au/~learn/debugging/modules/gdb_init_file/
 define .reload
-    file final.elf
+    file bin/final.elf
     target extended-remote localhost:3333
 end
 
