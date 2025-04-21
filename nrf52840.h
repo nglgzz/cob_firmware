@@ -90,6 +90,14 @@ typedef enum {
 // pin as output)
 #define GPIO_DIR (*(volatile unsigned int *)(GPIO_BASE + 0x514))
 
+// Latch register indicating what GPIO pins that have met the criteria set in
+// the PIN_CNF[n].SENSE registers. When reading 1 = criteria has been met, 0 =
+// criteria has not been met. When writing 1 = clear latch
+#define GPIO_LATCH (*(volatile unsigned int *)(GPIO_BASE + 0x520))
+
+// Select between the default DETECT signal behavior and LDETECT mode
+#define GPIO_DETECTMODE (*(volatile unsigned int *)(GPIO_BASE + 0x524))
+
 // Bit number when setting values to the above registers
 // Buttons
 #define SW_PIN_1 11  // 0x5000072C
@@ -97,6 +105,7 @@ typedef enum {
 #define SW_PIN_3 24  // 0x50000760
 #define SW_PIN_4 25  // 0x50000764
 
+#define SW_MASK (1 << SW_PIN_1 | 1 << SW_PIN_2 | 1 << SW_PIN_3 | 1 << SW_PIN_4)
 // Leds
 #define LED_PIN_1 13
 #define LED_PIN_2 14

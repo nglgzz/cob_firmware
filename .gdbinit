@@ -40,5 +40,7 @@ define .vars
     info variables
 end
 
+# set *((unsigned int)0x[address]) = [value]
+
 .reload
 monitor reset halt
