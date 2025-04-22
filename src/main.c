@@ -1,7 +1,7 @@
 #include <stdint.h>
 
 #include "leds.h"
-#include "nrf52840.h"
+#include "nvic.h"
 #include "switches.h"
 
 int main(void) {
