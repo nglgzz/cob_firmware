@@ -36,10 +36,6 @@ void init_switches() {
 
   for (int i = 0; i < switch_pins_size; i++) {
     GPIO0->DIR |= (0 << switch_pins[i]);
-    // GPIO0->PIN_CNF[i]->DIR_INPUT_PULL =
-    // 0 << PIN_CNF_DIR | 0 << PIN_CNF_INPUT | 3 << PIN_CNF_PULL;
-    // GPIO0->PIN_CNF[i]->SENSE = 3;
-    PIN_CNF(switch_pins[i]) = CNF_SENSE_HIGH;
 
     gpio_set_pin_cnf(GPIO0_BASE, switch_pins[i], &pin_sense_low);
   }
@@ -49,7 +45,7 @@ void init_switches() {
   GPIO0->DETECTMODE = 1;
 
   // Clear the LATCH register
-  GPIO0->LATCH = SW_MASK;
+  GPIO0->LATCH = ~0;
 
   // Clear PORT events
   EVENTS_PORT = 0;
@@ -58,13 +54,14 @@ void init_switches() {
 
 void GPIOTE_IRQHandler() {
   if (EVENTS_PORT) {
+    uint32_t latch = GPIO0->LATCH;
+
     // Clear the LATCH register
-    GPIO0->LATCH = SW_MASK;
+    GPIO0->LATCH = ~0;
 
     // Clear PORT events
     EVENTS_PORT = 0;
 
-    uint32_t latch = GPIO0->LATCH;
     for (int i = 0; i < switch_pins_size; i++) {
       if (latch & 1 << switch_pins[i]) {
         toggle_led(i, 1);
