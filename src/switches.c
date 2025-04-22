@@ -1,8 +1,9 @@
 #include "switches.h"
 
 #include "gpio.h"
+#include "gpiote.h"
 #include "leds.h"
-#include "nrf52840.h"
+#include "nvic.h"
 
 static uint16_t switch_pins[] = {SW_PIN_2, SW_PIN_4, SW_PIN_3, SW_PIN_1};
 static size_t switch_pins_size = sizeof(switch_pins) / sizeof(switch_pins[0]);
@@ -32,7 +33,7 @@ void init_switches() {
    * configuration (write '0' to EVENTS_PORT).
    *   4. Enable interrupts (through INTENSET.PORT).
    */
-  INTENCLR |= 1 << PORT_EVENT;
+  GPIOTE->INTENCLR |= 1 << PORT_EVENT;
 
   for (int i = 0; i < switch_pins_size; i++) {
     GPIO0->DIR |= (0 << switch_pins[i]);
@@ -48,19 +49,19 @@ void init_switches() {
   GPIO0->LATCH = ~0;
 
   // Clear PORT events
-  EVENTS_PORT = 0;
-  INTENSET |= 1 << PORT_EVENT;
+  GPIOTE->EVENTS_PORT = 0;
+  GPIOTE->INTENSET |= 1 << PORT_EVENT;
 }
 
 void GPIOTE_IRQHandler() {
-  if (EVENTS_PORT) {
+  if (GPIOTE->EVENTS_PORT) {
     uint32_t latch = GPIO0->LATCH;
 
     // Clear the LATCH register
     GPIO0->LATCH = ~0;
 
     // Clear PORT events
-    EVENTS_PORT = 0;
+    GPIOTE->EVENTS_PORT = 0;
 
     for (int i = 0; i < switch_pins_size; i++) {
       if (latch & 1 << switch_pins[i]) {
