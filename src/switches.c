@@ -18,7 +18,7 @@ struct gpio_pin_cnf pin_sense_low = {
 struct gpio_pin_cnf pin_sense_high = {
     GPIO_CNF_DIR_INPUT,
     GPIO_CNF_INPUT_CONNECT,
-    GPIO_CNF_PULL_PULLDOWN,
+    GPIO_CNF_PULL_PULLUP,
     GPIO_CNF_SENSE_HIGH,
 };
 
@@ -41,33 +41,32 @@ void init_switches() {
     gpio0_set_pin_cnf(switch_pins[i], &pin_sense_low);
   }
 
-  // Enable LDETECT mode to be able to read which pins triggered the PORT event
-  // from the LATCH register.
-  GPIO0->DETECTMODE = 1;
-
-  // Clear the LATCH register
-  GPIO0->LATCH = ~0;
-
   // Clear PORT events
   GPIOTE->EVENTS_PORT = 0;
+
+  // Enable interrupts
   GPIOTE->INTENSET |= 1 << PORT_EVENT;
 }
 
 void GPIOTE_IRQHandler() {
   if (GPIOTE->EVENTS_PORT) {
-    uint32_t latch = GPIO0->LATCH;
-
-    // Clear the LATCH register
-    GPIO0->LATCH = ~0;
-
     // Clear PORT events
     GPIOTE->EVENTS_PORT = 0;
 
     for (int i = 0; i < switch_pins_size; i++) {
-      if (latch & 1 << switch_pins[i]) {
+      uint16_t pin = switch_pins[i];
+      uint32_t pinValue = GPIO0->IN & (1 << pin);
+
+      if (pinValue) {
         toggle_led(i, 1);
-        delay(500000);
+        gpio0_set_pin_cnf(pin, &pin_sense_low);
+      } else {
+        toggle_led(i, 0);
+        gpio0_set_pin_cnf(pin, &pin_sense_high);
       }
     }
+
+    // Clear PORT events
+    GPIOTE->EVENTS_PORT = 0;
   }
 }

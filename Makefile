@@ -48,7 +48,7 @@ LDFLAGS= -mcpu=$(MACH) -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -nostartfiles 
 #  BUILD
 ########################################
 
-all: $(FILES_OBJ) $(FILE_EXECUTABLE)
+all: clean $(FILES_OBJ) $(FILE_EXECUTABLE)
 
 $(DIR_BUILD)/%.o: $(DIR_SRC)/%.c
 	$(CC) $(CFLAGS) -o $@ $<
@@ -64,8 +64,9 @@ clean:
 #  MCU HELPERS
 ########################################
 
-flash: $(FILE_EXECUTABLE)
+flash: clean $(FILE_EXECUTABLE)
 	nrfutil device program --firmware $(FILE_EXECUTABLE)
+	nrfutil device reset
 
 reset:
 	nrfutil device reset
