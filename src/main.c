@@ -10,7 +10,5 @@ int main(void) {
   init_switches();
   init_leds();
 
-  while (1) {
-    blink_leds(500000);
-  }
+  while (1);
 }
