@@ -25,6 +25,9 @@ layout splith
 define .reload
     file bin/final.elf
     target extended-remote localhost:3333
+    delete -y
+    break main
+    break GPIOTE_IRQHandler
 end
 
 define .flash

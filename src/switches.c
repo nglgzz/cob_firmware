@@ -1,9 +1,9 @@
 #include "switches.h"
 
+#include "core.h"
 #include "gpio.h"
 #include "gpiote.h"
 #include "leds.h"
-#include "nvic.h"
 
 static uint16_t switch_pins[] = {SW_PIN_2, SW_PIN_4, SW_PIN_3, SW_PIN_1};
 static size_t switch_pins_size = sizeof(switch_pins) / sizeof(switch_pins[0]);
@@ -58,10 +58,10 @@ void GPIOTE_IRQHandler() {
       uint32_t pinValue = GPIO0->IN & (1 << pin);
 
       if (pinValue) {
-        toggle_led(i, 1);
+        toggle_led(i, 0);
         gpio0_set_pin_cnf(pin, &pin_sense_low);
       } else {
-        toggle_led(i, 0);
+        toggle_led(i, 1);
         gpio0_set_pin_cnf(pin, &pin_sense_high);
       }
     }

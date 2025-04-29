@@ -20,6 +20,8 @@ void init_leds() {
     GPIO0->OUTSET |= (1 << led_pins[i]);
   }
 }
+
+// State is 1 = on, 0 = off
 void toggle_led(int index, int state) {
   if (state) {
     GPIO0->OUTCLR = (1 << led_pins[index % led_pins_size]);
