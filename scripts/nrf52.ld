@@ -10,6 +10,8 @@ MEMORY
     /* NOTE K = KiBi = 1024 bytes */
     FLASH(rx) : ORIGIN = 0x00000000, LENGTH = 256K
     RAM(rwx) : ORIGIN = 0x20000000, LENGTH = 64K
+    /* User information configuration registers */
+    UICR(rx) : ORIGIN = 0x10001200, LENGTH = 0x8
 }
 
 /**
@@ -96,4 +98,9 @@ SECTIONS
     } > RAM
 
     _stack_top = ORIGIN(RAM) + LENGTH(RAM);
+
+    .uicr :
+    {
+        *(.pselreset)
+    } > UICR
 }

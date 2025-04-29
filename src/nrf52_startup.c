@@ -102,6 +102,18 @@ const vector_table_t _vectors[23]
         // ...
 };
 
+/**
+ * [0-4] PIN       GPIO pin number onto which nRESET is exposed
+ * [5]   PORT      Port number onto which nRESET is exposed
+ * [31]  CONNECT   Connection (1 = Disconnect, 0 = Connect)
+ *
+ * All PSELRESET registers have to contain the same value for a pin mapping to
+ * be valid.
+ */
+const unsigned int _pselreset[2]
+    __attribute__((used, section(".pselreset"))) = {18 | 0 << 5 | 0 << 31,
+                                                    18 | 0 << 5 | 0 << 31};
+
 void Default_Handler(void) {
   // Copy .data section from FLASH to RAM.
   uint32_t size = (uint32_t)&_edata - (uint32_t)&_sdata;
