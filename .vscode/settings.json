@@ -10,5 +10,6 @@
     "plaintext": false,
     "markdown": false,
     "scminput": false
-  }
+  },
+  "cortex-debug.variableUseNaturalFormat": false
 }
