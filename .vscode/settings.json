@@ -1,6 +1,14 @@
 {
   "files.associations": {
+    ".env*": "toml",
     "stdint.h": "c",
-    "stddef.h": "c"
+    "stddef.h": "c",
+    "gpio.h": "c"
+  },
+  "github.copilot.enable": {
+    "*": false,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false
   }
 }

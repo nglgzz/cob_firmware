@@ -1,4 +1,4 @@
-#ifndef NVIC_H
+#ifndef CORE_H
 
 // Registers to enable and disable IRQ handlers. The bit position represents the
 // ID of the interrupt to enable, with 0 being the handler on position 16 in the
@@ -46,5 +46,17 @@ typedef enum {
   FPU_IRQn = 38
 } IRQn_Type;
 
-#define NVIC_H
-#endif  // NVIC_H
+/**
+ * System control register:
+ * [4] SEVONPEND    Send event on pending bit
+ * [3] -
+ * [2] SLEEPDEEP    Controls whether the processor uses sleep or deep sleep as
+ *                  it's low power mode
+ * [1] SLEEPONEXIT  Indicates sleep-on-exit when returning from handler mode to
+ *                  thread mode
+ * [0] -            Reserved
+ */
+#define SCR (*(volatile unsigned int *)0xE000ED10)
+
+#define CORE_H
+#endif  // CORE_H
