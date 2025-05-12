@@ -6,7 +6,7 @@
   "configurations": [
     {
       "cwd": "${workspaceRoot}",
-      "executable": "./bin/final.elf",
+      "executable": "./build/mmk_firmware.elf",
       "name": "Flash & Debug with OpenOCD",
       "request": "launch",
       "type": "cortex-debug",
