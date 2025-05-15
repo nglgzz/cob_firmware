@@ -3,14 +3,10 @@
 #include "core.h"
 #include "gpio.h"
 #include "leds.h"
+#include "radio.h"
 #include "switches.h"
 
 int main(void) {
-  // Enable the GPIOTE interrupt request handler. If this is not set, the
-  // peripheral can still generate interrupts, but they end up permanently
-  // pending as the handlers are not executed.
-  NVIC_SETENA = 1 << GPIOTE_IRQn;
-
   /**
    * [1] SLEEPONEXIT - When exiting a thread, for example an interrupt handler,
    * go into sleep instead of returning into the main function.
@@ -26,6 +22,15 @@ int main(void) {
 
   init_switches();
   init_leds();
+  init_radio();
+
+#ifdef RADIO_TX
+  init_radio_tx();
+#endif
+
+#ifdef RADIO_RX
+  init_radio_rx();
+#endif
 
   // Blink LEDs to signal we're executing the main function and the
   // initialization is done.

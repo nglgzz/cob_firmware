@@ -5,8 +5,7 @@
 // debug mode).
 struct gpio *GPIO0 = (struct gpio *)(GPIO0_BASE + 0x504U);
 
-volatile uint32_t *pin_cnf =
-    (volatile uint32_t *)(GPIO0_BASE + GPIO_PIN_CNF_OFFSET);
+volatile uint32_t *pin_cnf = (volatile uint32_t *)(GPIO0_BASE + GPIO_PIN_CNF_OFFSET);
 
 /**
  * Set configuration for the specified GPIO pin in port 0.
