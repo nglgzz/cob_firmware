@@ -23,6 +23,11 @@ struct gpio_pin_cnf pin_sense_high = {
 };
 
 void init_switches() {
+  // Enable the GPIOTE interrupt request handler. If this is not set, the
+  // peripheral can still generate interrupts, but they end up permanently
+  // pending as the handlers are not executed.
+  NVIC_SETENA |= 1 << GPIOTE_IRQn;
+
   /**
    * In order to prevent spurious interrupts from the PORT event while
    * configuring the sources, the following must be performed:

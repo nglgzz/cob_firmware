@@ -34,8 +34,7 @@ int main(void);
 void Reset_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void NMI_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void HardFault_Handler(void) __attribute__((weak, alias("Default_Handler")));
-void MemoryManagement_Handler(void)
-    __attribute__((weak, alias("Default_Handler")));
+void MemoryManagement_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void BusFault_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void UsageFault_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void SVC_Handler(void) __attribute__((weak, alias("Default_Handler")));
@@ -43,11 +42,9 @@ void DebugMon_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void PendSV_Handler(void) __attribute__((weak, alias("Default_Handler")));
 void SysTick_Handler(void) __attribute__((weak, alias("Default_Handler")));
 
-void POWER_CLOCK_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
+void POWER_CLOCK_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
 void RADIO_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
-void UARTE0_UART0_IRQHandler(void)
-    __attribute__((weak, alias("Default_Handler")));
+void UARTE0_UART0_IRQHandler(void) __attribute__((weak, alias("Default_Handler")));
 void SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQHandler(void)
     __attribute__((weak, alias("Default_Handler")));
 void SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler(void)
@@ -110,9 +107,8 @@ const vector_table_t _vectors[23]
  * All PSELRESET registers have to contain the same value for a pin mapping to
  * be valid.
  */
-const unsigned int _pselreset[2]
-    __attribute__((used, section(".pselreset"))) = {18 | 0 << 5 | 0 << 31,
-                                                    18 | 0 << 5 | 0 << 31};
+const unsigned int _pselreset[2] __attribute__((used, section(".pselreset"))) = {
+    18 | 0 << 5 | 0 << 31, 18 | 0 << 5 | 0 << 31};
 
 void Default_Handler(void) {
   // Copy .data section from FLASH to RAM.
