@@ -2,4 +2,4 @@
 *.elf
 *.map
 *_log
-build
+build*

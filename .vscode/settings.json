@@ -5,7 +5,8 @@
     "stddef.h": "c",
     "gpio.h": "c",
     "switches.h": "c",
-    "core.h": "c"
+    "core.h": "c",
+    "string_view": "c"
   },
   "github.copilot.enable": {
     "*": false,
