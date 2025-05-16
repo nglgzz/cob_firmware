@@ -37,6 +37,10 @@ int main(void) {
   blink_leds(500000);
   blink_leds(500000);
 
+#ifdef RADIO_TX
+  start_tx_loop();
+#endif
+
   while (1) {
     // LED 2 will stay off unless SWITCH 2 is being pressed or unless we return
     // to the main function after completing the execution of an interrupt

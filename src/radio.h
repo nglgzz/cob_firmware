@@ -6,8 +6,7 @@
 
 void init_radio();
 void init_radio_rx();
-void init_radio_tx();
-void radio_send_loop();
+void start_tx_loop();
 
 struct radio {
   volatile uint32_t TASKS_TXEN;       // (0x000) Enable RADIO in TX mode
