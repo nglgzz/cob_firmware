@@ -29,6 +29,14 @@ include_directories(
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES})
 
+if(DEFINED ENV{RADIO_TX})
+    add_definitions(-DRADIO_TX)
+endif()
+
+if(DEFINED ENV{RADIO_RX})
+    add_definitions(-DRADIO_RX)
+endif()
+
 #
 # https://gcc.gnu.org/onlinedocs/gcc/index.html#toc-GCC-Command-Options
 # https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html

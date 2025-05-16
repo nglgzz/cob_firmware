@@ -6,12 +6,22 @@
     {
       "label": "flash",
       "type": "shell",
+      "group": "build",
       "command": "make flash"
     },
     {
-      "label": "build",
+      "label": "flash-rx",
+      "detail": "Build & Flash (Receiver 1)",
       "type": "shell",
-      "command": "make all"
+      "group": "build",
+      "command": "make flash-rx"
+    },
+    {
+      "label": "flash-tx",
+      "detail": "Build & Flash (Transmitter 2)",
+      "type": "shell",
+      "group": "build",
+      "command": "make flash-tx"
     }
   ]
 }
