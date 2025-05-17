@@ -26,13 +26,14 @@ void init_radio() {
   // including the CRC length), no S0 and S1 fields, 8 bit long preamble ...
   RADIO->PCNF0 = (RADIO_PCNF0_PLEN_8bit << RADIO_PCNF0_PLEN_Pos) |
                  (8 << RADIO_PCNF0_LFLEN_Pos) |
-                 (RADIO_PCNF0_CRCINC_Exclude << RADIO_PCNF0_CRCINC_Pos) |
+                 (RADIO_PCNF0_CRCINC_Include << RADIO_PCNF0_CRCINC_Pos) |
                  (0 << RADIO_PCNF0_S0LEN_Pos) | (0 << RADIO_PCNF0_S1LEN_Pos);
   // ... the base address is 2 bytes long (4 hex digits), the payload has a max
   // length of 255 bytes, static length of 32 bytes, and whitening is enabled
   RADIO->PCNF1 = (2 << RADIO_PCNF1_BALEN_Pos) | (PBUF_LEN << RADIO_PCNF1_MAXLEN_Pos) |
-                 (32 << RADIO_PCNF1_STATLEN_Pos) |
-                 RADIO_PCNF1_WHITEEN_Enabled << RADIO_PCNF1_WHITEEN_Pos;
+                 (0 << RADIO_PCNF1_STATLEN_Pos) |
+                 (RADIO_PCNF1_WHITEEN_Enabled << RADIO_PCNF1_WHITEEN_Pos) |
+                 (RADIO_PCNF1_ENDIAN_Little << RADIO_PCNF1_ENDIAN_Pos);
 
   // CRC is enabled and has length of 2 bytes
   RADIO->CRCCNF = RADIO_CRCCNF_LEN_Two << RADIO_CRCCNF_LEN_Pos;
@@ -46,7 +47,13 @@ void init_radio() {
   // transmitting, the packet pointed to by this address will be transmitted and
   // when receiving, the received packet will be written to this address. This
   // address is a byte aligned RAM address.
-  RADIO->PACKETPTR = &payload_buffer;
+#ifdef RADIO_RX
+  RADIO->PACKETPTR = (uint32_t)&rx_packet;
+#endif
+
+#ifdef RADIO_TX
+  RADIO->PACKETPTR = (uint32_t)&tx_packet;
+#endif
 
   // Enable generating interrupts for END events
   // RADIO->INTENSET = RADIO_INTENSET_END_Msk | RADIO_INTENSET_READY_Msk |
@@ -92,9 +99,9 @@ void init_radio_tx() {
 }
 
 void start_tx_loop() {
-  payload_buffer[0] = 32;
-  for (int i = 1; i < PBUF_LEN; i++) {
-    payload_buffer[i] = i;
+  tx_packet.len = 16;
+  for (int i = 0; i < tx_packet.len; i++) {
+    tx_packet.data[i] = i;
   }
 
   // Clear events
