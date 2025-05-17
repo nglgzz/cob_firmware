@@ -296,6 +296,23 @@ extern struct radio *RADIO;
 #define RADIO_CRCINIT_CRCINIT_Msk \
   (0xFFFFFFUL << RADIO_CRCINIT_CRCINIT_Pos) /*!< Bit mask of CRCINIT field. */
 
+/* Register: RADIO_STATE */
+/* Description: Current radio state */
+
+/* Bits 3..0 : Current radio state */
+#define RADIO_STATE_STATE_Pos (0UL)                            /*!< Position of STATE field. */
+#define RADIO_STATE_STATE_Msk (0xFUL << RADIO_STATE_STATE_Pos) /*!< Bit mask of STATE field. \
+                                                                */
+#define RADIO_STATE_STATE_Disabled (0x0UL)  /*!< RADIO is in the Disabled state */
+#define RADIO_STATE_STATE_RxRu (0x1UL)      /*!< RADIO is in the RXRU state */
+#define RADIO_STATE_STATE_RxIdle (0x2UL)    /*!< RADIO is in the RXIDLE state */
+#define RADIO_STATE_STATE_Rx (0x3UL)        /*!< RADIO is in the RX state */
+#define RADIO_STATE_STATE_RxDisable (0x4UL) /*!< RADIO is in the RXDISABLED state */
+#define RADIO_STATE_STATE_TxRu (0x9UL)      /*!< RADIO is in the TXRU state */
+#define RADIO_STATE_STATE_TxIdle (0xAUL)    /*!< RADIO is in the TXIDLE state */
+#define RADIO_STATE_STATE_Tx (0xBUL)        /*!< RADIO is in the TX state */
+#define RADIO_STATE_STATE_TxDisable (0xCUL) /*!< RADIO is in the TXDISABLED state */
+
 /* Register: RADIO_SHORTS */
 /* Description: Shortcuts between local events and tasks */
 
