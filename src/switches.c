@@ -8,19 +8,15 @@
 static uint16_t switch_pins[] = {SW_PIN_2, SW_PIN_4, SW_PIN_3, SW_PIN_1};
 static size_t switch_pins_size = sizeof(switch_pins) / sizeof(switch_pins[0]);
 
-struct gpio_pin_cnf pin_sense_low = {
-    GPIO_CNF_DIR_INPUT,
-    GPIO_CNF_INPUT_CONNECT,
-    GPIO_CNF_PULL_PULLUP,
-    GPIO_CNF_SENSE_LOW,
-};
+static uint32_t sense_low = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos) |
+                            (GPIO_PIN_CNF_INPUT_Connect << GPIO_PIN_CNF_INPUT_Pos) |
+                            (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos) |
+                            (GPIO_PIN_CNF_SENSE_Low << GPIO_PIN_CNF_SENSE_Pos);
 
-struct gpio_pin_cnf pin_sense_high = {
-    GPIO_CNF_DIR_INPUT,
-    GPIO_CNF_INPUT_CONNECT,
-    GPIO_CNF_PULL_PULLUP,
-    GPIO_CNF_SENSE_HIGH,
-};
+static uint32_t sense_high = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos) |
+                             (GPIO_PIN_CNF_INPUT_Connect << GPIO_PIN_CNF_INPUT_Pos) |
+                             (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos) |
+                             (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
 
 void init_switches() {
   // Enable the GPIOTE interrupt request handler. If this is not set, the
@@ -41,9 +37,8 @@ void init_switches() {
   GPIOTE->INTENCLR |= 1 << PORT_EVENT;
 
   for (int i = 0; i < switch_pins_size; i++) {
-    GPIO0->DIR |= (0 << switch_pins[i]);
-
-    gpio0_set_pin_cnf(switch_pins[i], &pin_sense_low);
+    GPIO0->DIRCLR = (GPIO_DIRCLR_Clear << switch_pins[i]);
+    GPIO0->PIN_CNF[switch_pins[i]] = sense_low;
   }
 
   // Clear PORT events
@@ -60,14 +55,14 @@ void GPIOTE_IRQHandler() {
 
     for (int i = 0; i < switch_pins_size; i++) {
       uint16_t pin = switch_pins[i];
-      uint32_t pinValue = GPIO0->IN & (1 << pin);
+      uint32_t pinValue = GPIO0->IN & (GPIO_IN_High << pin);
 
       if (pinValue) {
         toggle_led(i, 0);
-        gpio0_set_pin_cnf(pin, &pin_sense_low);
+        GPIO0->PIN_CNF[switch_pins[i]] = sense_low;
       } else {
         toggle_led(i, 1);
-        gpio0_set_pin_cnf(pin, &pin_sense_high);
+        GPIO0->PIN_CNF[switch_pins[i]] = sense_high;
       }
     }
 

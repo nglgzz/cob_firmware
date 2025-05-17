@@ -6,6 +6,7 @@
 
 void init_radio();
 void init_radio_rx();
+void init_radio_tx();
 void start_tx_loop();
 
 struct radio {
