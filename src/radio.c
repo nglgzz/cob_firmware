@@ -5,7 +5,7 @@
 
 struct radio *RADIO = ((struct radio *)RADIO_BASE);
 
-#define PBUF_LEN 255
+#define PBUF_LEN 64
 __attribute__((aligned(4))) uint8_t payload_buffer[PBUF_LEN] = {0};
 
 void init_radio() {
@@ -13,7 +13,7 @@ void init_radio() {
   RADIO->POWER = 1;
   // Fixed on channel 8 for now, so 2408 MHz
   // TODO: figure out channel hopping
-  RADIO->FREQUENCY = 8;
+  RADIO->FREQUENCY = 80;
   // https://en.wikipedia.org/wiki/DBm
   // 4dBm - 2.5mW - Bluetooth Class 2 radio, 10 m range
   // 0dBm - 1.0mW - Bluetooth standard (Class 3) radio, 1 m range
@@ -46,7 +46,7 @@ void init_radio() {
   // transmitting, the packet pointed to by this address will be transmitted and
   // when receiving, the received packet will be written to this address. This
   // address is a byte aligned RAM address.
-  RADIO->PACKETPTR = *payload_buffer;
+  RADIO->PACKETPTR = &payload_buffer;
 
   // Enable generating interrupts for END events
   // RADIO->INTENSET = RADIO_INTENSET_END_Msk | RADIO_INTENSET_READY_Msk |
@@ -92,7 +92,8 @@ void init_radio_tx() {
 }
 
 void start_tx_loop() {
-  for (int i = 0; i < PBUF_LEN; i++) {
+  payload_buffer[0] = 32;
+  for (int i = 1; i < PBUF_LEN; i++) {
     payload_buffer[i] = i;
   }
 
@@ -104,8 +105,17 @@ void start_tx_loop() {
   RADIO->TASKS_TXEN = 1;
 }
 
-#ifdef RADIO_RX
-void RADIO_IRQHandler() {
+void handle_receive_events() {
+  if (RADIO->EVENTS_RSSIEND) {
+    while (RADIO->EVENTS_RSSIEND == 0);
+    int8_t rssi = RADIO->RSSISAMPLE;
+    RADIO->EVENTS_RSSIEND = 0;
+    RADIO->TASKS_RSSISTART = 1;
+  }
+  if (RADIO->EVENTS_READY) {
+    RADIO->EVENTS_READY = 0;
+    RADIO->TASKS_RSSISTART = 1;
+  }
   if (RADIO->EVENTS_ADDRESS) {
     RADIO->EVENTS_ADDRESS = 0;
   }
@@ -117,9 +127,9 @@ void RADIO_IRQHandler() {
 
     if (RADIO->CRCSTATUS == 1) {
       // CRC succeeded
-      toggle_led(payload_buffer[0], 1);
+      toggle_led(payload_buffer[1], 1);
       delay(50000);
-      toggle_led(payload_buffer[0], 0);
+      toggle_led(payload_buffer[1], 0);
       // Can read payload_buffer here
     } else {
       // CRC failed
@@ -130,17 +140,18 @@ void RADIO_IRQHandler() {
     RADIO->TASKS_RXEN = 1;
   }
 }
-#endif
 
-#ifdef RADIO_TX
-void RADIO_IRQHandler() {
+void handle_send_events() {
+  if (RADIO->EVENTS_READY) {
+    RADIO->EVENTS_READY = 0;
+  }
   if (RADIO->EVENTS_END) {
     RADIO->EVENTS_END = 0;
 
-    payload_buffer[0]++;
-    toggle_led(payload_buffer[0], 1);
+    payload_buffer[1]++;
+    toggle_led(payload_buffer[1], 1);
     delay(500000);
-    toggle_led(payload_buffer[0], 0);
+    toggle_led(payload_buffer[1], 0);
 
     // Clear events
     RADIO->EVENTS_READY = 0;
@@ -150,4 +161,13 @@ void RADIO_IRQHandler() {
     RADIO->TASKS_TXEN = 1;
   }
 }
+
+void RADIO_IRQHandler() {
+#ifdef RADIO_RX
+  handle_receive_events();
 #endif
+
+#ifdef RADIO_TX
+  handle_send_events();
+#endif
+}
