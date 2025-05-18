@@ -14,12 +14,13 @@ set(CMAKE_LINKER arm-none-eabi-gcc)
 
 
 set(SOURCES
-    src/radio.c
     src/gpio.c
     src/gpiote.c
     src/leds.c
     src/main.c
     src/nrf52_startup.c
+    src/probe.c
+    src/radio.c
     src/switches.c
 )
 

@@ -14,8 +14,8 @@ void gpio_dir_pin_output(struct gpio *port, uint8_t pin) {
 
 void gpio_out_pin(struct gpio *port, uint8_t pin, bool value) {
   if (value) {
-    port->OUTSET |= (1 << pin);
+    port->OUTSET = (1 << pin);
   } else {
-    port->OUTCLR |= (1 << pin);
+    port->OUTCLR = (1 << pin);
   }
 }
