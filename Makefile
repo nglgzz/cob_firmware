@@ -2,6 +2,14 @@ DIR_BUILD=build
 DIR_SCRIPTS=scripts
 FILE_EXECUTABLE=$(DIR_BUILD)/mmk_firmware.elf
 
+# Need to update this on launch.json too
+BOARD_1=1050232668
+BOARD_2=1050276985
+
+RX_BOARD=$(BOARD_2)
+TX_BOARD=$(BOARD_1)
+
+
 .PHONY: build build-rx build-tx flash flash-rx flash-tx reset recover load debug format
 
 all: build
@@ -20,25 +28,25 @@ flash: build
 	nrfutil device program --firmware $(FILE_EXECUTABLE)
 	nrfutil device reset
 flash-rx: build-rx
-	nrfutil device program  --serial-number 1050232668 --firmware build-rx/mmk_firmware.elf
-	nrfutil device reset --serial-number 1050232668
+	nrfutil device program  --serial-number $(RX_BOARD) --firmware build-rx/mmk_firmware.elf
+	nrfutil device reset --serial-number $(RX_BOARD)
 flash-tx: build-tx
-	nrfutil device program  --serial-number 1050276985 --firmware build-tx/mmk_firmware.elf
-	nrfutil device reset --serial-number 1050276985
+	nrfutil device program  --serial-number $(TX_BOARD) --firmware build-tx/mmk_firmware.elf
+	nrfutil device reset --serial-number $(TX_BOARD)
 
 reset:
 	nrfutil device reset
 reset-rx:
-	nrfutil device reset  --serial-number 1050232668
+	nrfutil device reset  --serial-number $(RX_BOARD)
 reset-tx:
-	nrfutil device reset  --serial-number 1050276985
+	nrfutil device reset  --serial-number $(TX_BOARD)
 
 recover:
 	nrfutil device recover
 recover-rx:
-	nrfutil device recover  --serial-number 1050232668
+	nrfutil device recover  --serial-number $(RX_BOARD)
 recover-tx:
-	nrfutil device recover  --serial-number 1050276985
+	nrfutil device recover  --serial-number $(TX_BOARD)
 
 
 load:

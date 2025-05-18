@@ -94,6 +94,42 @@ void init_radio_rx() {
   RADIO->TASKS_RXEN = 1;
 }
 
+void handle_receive_events() {
+  if (RADIO->EVENTS_RSSIEND) {
+    while (RADIO->EVENTS_RSSIEND == 0);
+    int8_t rssi = RADIO->RSSISAMPLE;
+    RADIO->EVENTS_RSSIEND = 0;
+    // RADIO->TASKS_RSSISTART = 1;
+  }
+  if (RADIO->EVENTS_READY) {
+    RADIO->EVENTS_READY = 0;
+    // RADIO->TASKS_RSSISTART = 1;
+  }
+  if (RADIO->EVENTS_ADDRESS) {
+    RADIO->EVENTS_ADDRESS = 0;
+  }
+  if (RADIO->EVENTS_PAYLOAD) {
+    RADIO->EVENTS_PAYLOAD = 0;
+  }
+  if (RADIO->EVENTS_END) {
+    RADIO->EVENTS_END = 0;
+
+    if (RADIO->CRCSTATUS == 1) {
+      // CRC succeeded
+      toggle_led(rx_packet.data[0], 1);
+      delay(50000);
+      toggle_led(rx_packet.data[0], 0);
+      // Can read rx_packet here
+    } else {
+      // CRC failed
+    }
+
+    // Restart RX
+    // TODO - not sure if I need this
+    RADIO->TASKS_RXEN = 1;
+  }
+}
+
 void init_radio_tx() {
   // Set base address to something neutral
   RADIO->BASE0 = 0XE7E7E7E7;
@@ -122,42 +158,6 @@ void start_tx_loop() {
   probe_on(PP_D0);  // start overall transmission
   probe_on(PP_D1);  // ramp-up start
   RADIO->TASKS_TXEN = 1;
-}
-
-void handle_receive_events() {
-  if (RADIO->EVENTS_RSSIEND) {
-    while (RADIO->EVENTS_RSSIEND == 0);
-    int8_t rssi = RADIO->RSSISAMPLE;
-    RADIO->EVENTS_RSSIEND = 0;
-    RADIO->TASKS_RSSISTART = 1;
-  }
-  if (RADIO->EVENTS_READY) {
-    RADIO->EVENTS_READY = 0;
-    RADIO->TASKS_RSSISTART = 1;
-  }
-  if (RADIO->EVENTS_ADDRESS) {
-    RADIO->EVENTS_ADDRESS = 0;
-  }
-  if (RADIO->EVENTS_PAYLOAD) {
-    RADIO->EVENTS_PAYLOAD = 0;
-  }
-  if (RADIO->EVENTS_END) {
-    RADIO->EVENTS_END = 0;
-
-    if (RADIO->CRCSTATUS == 1) {
-      // CRC succeeded
-      toggle_led(rx_packet.data[0], 1);
-      delay(50000);
-      toggle_led(rx_packet.data[0], 0);
-      // Can read rx_packet here
-    } else {
-      // CRC failed
-    }
-
-    // Restart RX
-    // TODO - not sure if I need this
-    RADIO->TASKS_RXEN = 1;
-  }
 }
 
 // PP_D0 TXEN -> END: Overall ramp-up and transmission
