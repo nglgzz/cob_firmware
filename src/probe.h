@@ -13,7 +13,7 @@
 
 void init_probes();
 
-void probe(uint8_t pin);
+void probe_pulse(uint8_t pin);
 void probe_on(uint8_t pin);
 void probe_off(uint8_t pin);
 

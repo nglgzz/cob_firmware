@@ -14,6 +14,7 @@ set(CMAKE_LINKER arm-none-eabi-gcc)
 
 
 set(SOURCES
+    src/clock.c
     src/gpio.c
     src/gpiote.c
     src/leds.c
