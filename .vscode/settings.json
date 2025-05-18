@@ -16,5 +16,5 @@
     "markdown": false,
     "scminput": false
   },
-  "cortex-debug.variableUseNaturalFormat": true
+  "cortex-debug.variableUseNaturalFormat": false
 }

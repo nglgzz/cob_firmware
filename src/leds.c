@@ -25,10 +25,9 @@ void init_leds() {
 void toggle_led(int index, int state) {
   if (state) {
     GPIO0->OUTCLR = (GPIO_OUTCLR_Clear << led_pins[index % led_pins_size]);
-    return;
+  } else {
+    GPIO0->OUTSET = (GPIO_OUTSET_Set << led_pins[index % led_pins_size]);
   }
-
-  GPIO0->OUTSET = (GPIO_OUTSET_Set << led_pins[index % led_pins_size]);
 }
 
 void blink_leds(uint32_t duration) {

@@ -1,6 +1,7 @@
 #include "probe.h"
 
 #include "gpio.h"
+#include "leds.h"
 
 static uint8_t profiler_pins[] = {PP_D0, PP_D1, PP_D2, PP_D3, PP_D4, PP_D5};
 static uint8_t profiler_pins_len = sizeof(profiler_pins) / sizeof(profiler_pins[0]);
@@ -12,7 +13,7 @@ void init_probes() {
   }
 }
 
-void probe(uint8_t pin) {
+void probe_pulse(uint8_t pin) {
   gpio_out_pin(GPIO1, pin, true);
   delay(60);  // Add a small delay
   gpio_out_pin(GPIO1, pin, false);
