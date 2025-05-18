@@ -11,14 +11,14 @@
     },
     {
       "label": "flash-rx",
-      "detail": "Build & Flash (Receiver 1)",
+      "detail": "Build & Flash (Receiver)",
       "type": "shell",
       "group": "build",
       "command": "make flash-rx"
     },
     {
       "label": "flash-tx",
-      "detail": "Build & Flash (Transmitter 2)",
+      "detail": "Build & Flash (Transmitter)",
       "type": "shell",
       "group": "build",
       "command": "make flash-tx"
