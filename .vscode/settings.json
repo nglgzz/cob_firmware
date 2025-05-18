@@ -6,7 +6,9 @@
     "gpio.h": "c",
     "switches.h": "c",
     "core.h": "c",
-    "string_view": "c"
+    "string_view": "c",
+    "stdbool.h": "c",
+    "probe.h": "c"
   },
   "github.copilot.enable": {
     "*": false,
@@ -14,5 +16,5 @@
     "markdown": false,
     "scminput": false
   },
-  "cortex-debug.variableUseNaturalFormat": false
+  "cortex-debug.variableUseNaturalFormat": true
 }

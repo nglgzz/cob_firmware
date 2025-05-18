@@ -3,6 +3,7 @@
 #include "core.h"
 #include "gpio.h"
 #include "leds.h"
+#include "probe.h"
 #include "radio.h"
 #include "switches.h"
 
@@ -20,6 +21,7 @@ int main(void) {
    */
   SCR = 1 << 1 | 1 << 2;
 
+  init_probes();
   init_switches();
   init_leds();
   init_radio();
