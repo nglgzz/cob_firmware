@@ -300,9 +300,10 @@ extern struct radio *RADIO;
 /* Description: Current radio state */
 
 /* Bits 3..0 : Current radio state */
-#define RADIO_STATE_STATE_Pos (0UL)                            /*!< Position of STATE field. */
-#define RADIO_STATE_STATE_Msk (0xFUL << RADIO_STATE_STATE_Pos) /*!< Bit mask of STATE field. \
-                                                                */
+#define RADIO_STATE_STATE_Pos (0UL) /*!< Position of STATE field. */
+#define RADIO_STATE_STATE_Msk                                             \
+  (0xFUL << RADIO_STATE_STATE_Pos)          /*!< Bit mask of STATE field. \
+                                             */
 #define RADIO_STATE_STATE_Disabled (0x0UL)  /*!< RADIO is in the Disabled state */
 #define RADIO_STATE_STATE_RxRu (0x1UL)      /*!< RADIO is in the RXRU state */
 #define RADIO_STATE_STATE_RxIdle (0x2UL)    /*!< RADIO is in the RXIDLE state */

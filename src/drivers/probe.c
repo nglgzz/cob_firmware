@@ -15,8 +15,9 @@ void init_probes() {
 
 void probe_pulse(uint8_t pin) {
   gpio_out_pin(GPIO1, pin, true);
-  delay(60);  // Add a small delay
+  delay(60);
   gpio_out_pin(GPIO1, pin, false);
 }
+
 void probe_on(uint8_t pin) { gpio_out_pin(GPIO1, pin, true); }
 void probe_off(uint8_t pin) { gpio_out_pin(GPIO1, pin, false); }

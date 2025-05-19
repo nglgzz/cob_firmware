@@ -13,20 +13,13 @@ set(CMAKE_LINKER arm-none-eabi-gcc)
 # END - Toolchain
 
 
-set(SOURCES
-    src/clock.c
-    src/gpio.c
-    src/gpiote.c
-    src/leds.c
-    src/main.c
-    src/nrf52_startup.c
-    src/probe.c
-    src/radio.c
-    src/switches.c
-)
+# Set source files
+file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.c")
 
+# Set directories that contain header files
 include_directories(
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/drivers
 )
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES})
