@@ -8,7 +8,9 @@
     "core.h": "c",
     "string_view": "c",
     "stdbool.h": "c",
-    "probe.h": "c"
+    "probe.h": "c",
+    "leds.h": "c",
+    "radio.h": "c"
   },
   "github.copilot.enable": {
     "*": false,
