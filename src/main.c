@@ -5,6 +5,7 @@
 #include "leds.h"
 #include "probe.h"
 #include "radio.h"
+#include "radio_app.h"
 #include "switches.h"
 
 int main(void) {
@@ -26,14 +27,6 @@ int main(void) {
   init_leds();
   init_radio();
 
-#ifdef RADIO_TX
-  init_radio_tx();
-#endif
-
-#ifdef RADIO_RX
-  init_radio_rx();
-#endif
-
   // Blink LEDs to signal we're executing the main function and the
   // initialization is done.
   blink_leds(500000);
@@ -41,6 +34,10 @@ int main(void) {
 
 #ifdef RADIO_TX
   start_tx_loop();
+#endif
+
+#ifdef RADIO_RX
+  start_rx_loop();
 #endif
 
   while (1) {

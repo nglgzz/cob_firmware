@@ -4,10 +4,15 @@
 
 #define RADIO_BASE 0x40001000U
 
+#define RADIO_PAYLOAD_MAXLEN 128
+typedef struct {
+  uint8_t len;
+  uint8_t data[RADIO_PAYLOAD_MAXLEN];
+} radio_packet_t;
+
 void init_radio();
-void init_radio_rx();
-void init_radio_tx();
-void start_tx_loop();
+void radio_receive();
+void radio_send(volatile radio_packet_t *payload);
 
 struct radio {
   volatile uint32_t TASKS_TXEN;       // (0x000) Enable RADIO in TX mode
