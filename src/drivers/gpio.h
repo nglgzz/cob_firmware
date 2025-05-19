@@ -38,6 +38,9 @@ struct gpio {
 extern struct gpio *GPIO0;
 extern struct gpio *GPIO1;
 
+void gpio_dir_pin_output(struct gpio *port, uint8_t pin);
+void gpio_out_pin(struct gpio *port, uint8_t pin, bool value);
+
 /* Register: GPIO_OUT */
 /* Description: Write GPIO port */
 
@@ -80,10 +83,11 @@ extern struct gpio *GPIO1;
 /* Register: GPIO_DIRCLR */
 /* Description: Clear individual bits in GPIO port */
 
-#define GPIO_DIRCLR_Low (0x0UL)   /*!< Read: pin set as input */
-#define GPIO_DIRCLR_High (0x1UL)  /*!< Read: pin set as output */
-#define GPIO_DIRCLR_Clear (0x1UL) /*!< Write: a '1' sets the pin input; a '0' has no effect \
-                                   */
+#define GPIO_DIRCLR_Low (0x0UL)  /*!< Read: pin set as input */
+#define GPIO_DIRCLR_High (0x1UL) /*!< Read: pin set as output */
+#define GPIO_DIRCLR_Clear                                           \
+  (0x1UL) /*!< Write: a '1' sets the pin input; a '0' has no effect \
+           */
 
 /* Register: GPIO_PIN_CNF */
 /* Description: Description collection: Configuration of GPIO pins */
@@ -134,20 +138,6 @@ extern struct gpio *GPIO1;
 #define GPIO_PIN_CNF_DIR_Msk (0x1UL << GPIO_PIN_CNF_DIR_Pos) /*!< Bit mask of DIR field. */
 #define GPIO_PIN_CNF_DIR_Input (0x0UL)  /*!< Configure pin as an input pin */
 #define GPIO_PIN_CNF_DIR_Output (0x1UL) /*!< Configure pin as an output pin */
-
-// ---------------------
-// GPIO_CNF[n]
-// ---------------------
-
-struct gpio_pin_cnf {
-  uint8_t DIR;    // Pin direction. Same physical register as DIR register
-  uint8_t INPUT;  // Connect or disconnect input buffer
-  uint8_t PULL;   // Pull configuration
-  uint8_t SENSE;  // Pin sensing mechanism
-};
-
-void gpio_dir_pin_output(struct gpio *port, uint8_t pin);
-void gpio_out_pin(struct gpio *port, uint8_t pin, bool value);
 
 #define GPIO_H
 #endif  // GPIO_H

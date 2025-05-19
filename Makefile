@@ -56,4 +56,4 @@ debug:
 	gdb-multiarch -tui --command $(DIR_SCRIPTS)/.gdbinit
 
 format:
-	clang-format -i src/*
+	clang-format -i $$(find ./src -type f)
