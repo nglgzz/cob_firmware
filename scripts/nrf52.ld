@@ -49,7 +49,7 @@ SECTIONS
          */
         *(.isr_vector) /* Vector table */
         *(.text)
-        /* *(.rodata) */
+        *(.rodata)
 
     /**
      * Defines where this section is stored.
