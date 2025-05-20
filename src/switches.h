@@ -2,7 +2,6 @@
 #define SWITCH_H
 
 void init_switches();
-void GPIOTE_IRQHandler();
 
 // All of these pins are on port 0
 #define SW_PIN_1 11  // 0x5000072C

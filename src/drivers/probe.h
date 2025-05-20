@@ -3,6 +3,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "utils.h"
+
 // These are GPIO pins used for debugging through the power profiler.
 #define PP_D0 02
 #define PP_D1 03

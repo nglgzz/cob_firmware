@@ -6,7 +6,7 @@
 #include "radio.h"
 #include "utils.h"
 
-static volatile radio_packet_t packet = {.len = 48, .data = {0}};
+static radio_packet_t packet = {.len = 48, .data = {0}};
 
 typedef struct __attribute__((packed)) {
   // 7 6 5 4 3 2 1 0

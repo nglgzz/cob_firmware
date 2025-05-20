@@ -1,5 +1,7 @@
 #include "switches.h"
 
+#include <stddef.h>
+
 #include "core.h"
 #include "gpio.h"
 #include "gpiote.h"
@@ -35,7 +37,7 @@ void init_switches() {
    * configuration (write '0' to EVENTS_PORT).
    *   4. Enable interrupts (through INTENSET.PORT).
    */
-  GPIOTE->INTENCLR |= 1 << PORT_EVENT;
+  GPIOTE->INTENCLR |= 1 << GPIOTE_INTENCLR_PORT_EVENT_Pos;
 
   for (int i = 0; i < switch_pins_size; i++) {
     GPIO0->DIRCLR = (GPIO_DIRCLR_Clear << switch_pins[i]);
@@ -46,7 +48,7 @@ void init_switches() {
   GPIOTE->EVENTS_PORT = 0;
 
   // Enable interrupts
-  GPIOTE->INTENSET |= 1 << PORT_EVENT;
+  GPIOTE->INTENSET |= 1 << GPIOTE_INTENSET_PORT_EVENT_Pos;
 }
 
 void GPIOTE_IRQHandler() {
@@ -71,7 +73,7 @@ void GPIOTE_IRQHandler() {
     }
     send(switches);
 
-    // Clear PORT events
+    // Clear potential PORT events that could have occurred during configuration.
     GPIOTE->EVENTS_PORT = 0;
   }
 }

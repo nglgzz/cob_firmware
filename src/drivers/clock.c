@@ -1,3 +1,3 @@
 #include "clock.h"
 
-struct clock *CLOCK = ((struct clock *)CLOCK_BASE);
+clock_t *CLOCK = ((clock_t *)CLOCK_BASE);

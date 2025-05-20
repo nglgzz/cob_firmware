@@ -6,15 +6,15 @@
 
 #define RADIO_PAYLOAD_MAXLEN 128
 typedef struct {
-  uint8_t len;
-  uint8_t data[RADIO_PAYLOAD_MAXLEN];
+  volatile uint8_t len;
+  volatile uint8_t data[RADIO_PAYLOAD_MAXLEN];
 } radio_packet_t;
 
 void init_radio();
 void radio_receive();
-void radio_send(volatile radio_packet_t *payload);
+void radio_send(radio_packet_t *payload);
 
-struct radio {
+typedef struct {
   volatile uint32_t TASKS_TXEN;       // (0x000) Enable RADIO in TX mode
   volatile uint32_t TASKS_RXEN;       // (0x004) Enable RADIO in RX mode
   volatile uint32_t TASKS_START;      // (0x008) Start RADIO
@@ -122,9 +122,9 @@ struct radio {
   volatile uint32_t CCACTRL;   // (0x66C) IEEE 802.15.4 clear channel assessment control
   volatile uint32_t __RESERVED15[611];
   volatile uint32_t POWER;  // (0xFFC) Peripheral power control
-};
+} radio_t;
 
-extern struct radio *RADIO;
+extern radio_t *RADIO;
 
 /* Register: RADIO_TXPOWER */
 /* Description: Output power */

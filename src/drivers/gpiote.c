@@ -1,3 +1,3 @@
 #include "gpiote.h"
 
-struct gpiote *GPIOTE = (struct gpiote *)(GPIOTE_BASE + 0x17CU);
+gpiote_t *GPIOTE = (gpiote_t *)(GPIOTE_BASE + 0x17CU);

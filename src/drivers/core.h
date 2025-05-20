@@ -44,7 +44,7 @@ typedef enum {
   RTC2_IRQn = 36,
   I2S_IRQn = 37,
   FPU_IRQn = 38
-} IRQn_Type;
+} IRQn_t;
 
 /**
  * System control register:

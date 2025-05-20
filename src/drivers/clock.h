@@ -4,7 +4,7 @@
 
 #define CLOCK_BASE 0x40000000U
 
-struct clock {
+typedef struct {
   volatile uint32_t TASKS_HFCLKSTART;  // (0x000) Start HFXO crystal oscillator
   volatile uint32_t TASKS_HFCLKSTOP;   // (0x004) Stop HFXO crystal oscillator
   volatile uint32_t TASKS_LFCLKSTART;  // (0x008) Start LFCLK
@@ -51,9 +51,9 @@ struct clock {
       TRACECONFIG;  // (0x55C) Clocking options for the trace port debug interface
   volatile uint32_t __RESERVED10[21];
   volatile uint32_t LFRCMODE;  // (0x5B4) LFRC mode configuration
-};
+} clock_t;
 
-extern struct clock *CLOCK;
+extern clock_t *CLOCK;
 
 /* Peripheral: CLOCK */
 /* Description: Clock control */
