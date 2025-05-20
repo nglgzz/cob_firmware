@@ -4,10 +4,11 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "flash",
+      "label": "all",
+      "detail": "Build & Flash (Receiver & Transmitter)",
       "type": "shell",
       "group": "build",
-      "command": "make flash"
+      "command": "make all"
     },
     {
       "label": "flash-rx",
@@ -22,6 +23,27 @@
       "type": "shell",
       "group": "build",
       "command": "make flash-tx"
+    },
+    {
+      "label": "recover-rx",
+      "detail": "Recover (Receiver)",
+      "type": "shell",
+      "group": "build",
+      "command": "make recover-rx"
+    },
+    {
+      "label": "recover-tx",
+      "detail": "Recover (Transmitter)",
+      "type": "shell",
+      "group": "build",
+      "command": "make recover-tx"
+    },
+    {
+      "label": "recover",
+      "detail": "Recover (Receiver & Transmitter)",
+      "type": "shell",
+      "group": "build",
+      "command": "make recover-rx & make recover-tx"
     }
   ]
 }
