@@ -7,7 +7,7 @@
 #define GPIO0_BASE 0x50000000U
 #define GPIO1_BASE 0x50000300U
 
-struct gpio {
+typedef struct {
   //  (0x504) GPIO output register (1 sets pin to high, 0 to low)
   volatile uint32_t OUT;
   //  (0x508) GPIO output set register: set individual bits in GPIO port (1 sets
@@ -33,13 +33,13 @@ struct gpio {
   volatile uint32_t __RESERVED[118];
   // (0x700) Configuration of GPIO pins
   volatile uint32_t PIN_CNF[32];
-};
+} gpio_t;
 
-extern struct gpio *GPIO0;
-extern struct gpio *GPIO1;
+extern gpio_t *GPIO0;
+extern gpio_t *GPIO1;
 
-void gpio_dir_pin_output(struct gpio *port, uint8_t pin);
-void gpio_out_pin(struct gpio *port, uint8_t pin, bool value);
+void gpio_dir_pin_output(gpio_t *port, uint8_t pin);
+void gpio_out_pin(gpio_t *port, uint8_t pin, bool value);
 
 /* Register: GPIO_OUT */
 /* Description: Write GPIO port */

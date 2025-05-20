@@ -5,9 +5,12 @@
 #include "leds.h"
 #include "probe.h"
 
-struct radio *RADIO = ((struct radio *)RADIO_BASE);
+radio_t *RADIO = ((radio_t *)RADIO_BASE);
 
 #define PAYLOAD_LEN 100
+#define RADIO_FREQUENCY_CHANNEL 80  // 2480 MHz
+#define RADIO_BASE_ADDRESS 0XE7E7E7E7
+#define RADIO_DATA_WHITENING_IV 0x55
 
 // Packet addresses to be used for the next transmission or reception. When
 // transmitting, the packet pointed to by this address will be transmitted and
@@ -22,9 +25,9 @@ void init_radio() {
 
   // The radio is on by default, but doesn't hurt to be explicit.
   RADIO->POWER = 1;
-  // Fixed on channel 8 for now, so 2408 MHz
+  // Fixed on channel 80 for now, so 2480 MHz
   // TODO: figure out channel hopping
-  RADIO->FREQUENCY = 80;
+  RADIO->FREQUENCY = RADIO_FREQUENCY_CHANNEL;
   // https://en.wikipedia.org/wiki/DBm
   // 4dBm - 2.5mW - Bluetooth Class 2 radio, 10 m range
   // 0dBm - 1.0mW - Bluetooth standard (Class 3) radio, 1 m range
@@ -51,7 +54,7 @@ void init_radio() {
                  (RADIO_PCNF1_ENDIAN_Little << RADIO_PCNF1_ENDIAN_Pos);
 
   // Data whitening initial value
-  RADIO->DATAWHITEIV = 0x55;
+  RADIO->DATAWHITEIV = RADIO_DATA_WHITENING_IV;
 
   // CRC is enabled and has length of 2 bytes
   RADIO->CRCCNF = RADIO_CRCCNF_LEN_Disabled << RADIO_CRCCNF_LEN_Pos;
@@ -60,7 +63,7 @@ void init_radio() {
   // RADIO->CRCPOLY = 0x11021;
 
   // TX & RX: use logical address 0
-  RADIO->BASE0 = 0XE7E7E7E7;
+  RADIO->BASE0 = RADIO_BASE_ADDRESS;
   RADIO->PREFIX0 = 0x00;
   RADIO->TXADDRESS = 0;
   RADIO->RXADDRESSES = 0x01;
@@ -88,7 +91,7 @@ void radio_receive() {
   RADIO->TASKS_RXEN = 1;
 }
 
-void radio_send(volatile radio_packet_t *payload) {
+void radio_send(radio_packet_t *payload) {
   RADIO->PACKETPTR = (uint32_t)payload;
 
   // Clear events

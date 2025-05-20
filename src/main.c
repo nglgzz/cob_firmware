@@ -1,12 +1,12 @@
 #include <stdint.h>
 
 #include "core.h"
-#include "gpio.h"
 #include "leds.h"
 #include "matrix_scan.h"
 #include "probe.h"
 #include "radio.h"
 #include "switches.h"
+#include "utils.h"
 
 int main(void) {
   /**

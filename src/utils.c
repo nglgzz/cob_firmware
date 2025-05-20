@@ -11,3 +11,5 @@ void* memcpy(void* dest, const void* src, size_t n) {
 
   return dest;
 }
+
+void delay(volatile uint32_t duration) { while (duration--); }

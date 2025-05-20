@@ -3,12 +3,6 @@
 #ifndef LED_H
 #define LED_H
 
-// stddef is defining size_t, while stdint is defining fixed width integer
-// types, both are used in the "leds.c" file.
-#include <stddef.h>
-#include <stdint.h>
-
-void delay(volatile uint32_t duration);
 void init_leds();
 void toggle_led(int index, int state);
 void blink_leds();
