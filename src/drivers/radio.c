@@ -5,19 +5,26 @@
 #include "leds.h"
 #include "probe.h"
 
-radio_t *RADIO = ((radio_t *)RADIO_BASE);
+radio_t *const RADIO = ((radio_t *)RADIO_BASE);
 
 #define PAYLOAD_LEN 100
 #define RADIO_FREQUENCY_CHANNEL 80  // 2480 MHz
-#define RADIO_BASE_ADDRESS 0XE7E7E7E7
+#define RADIO_BASE_ADDRESS 0xE7E7E7E7
+
 #define RADIO_DATA_WHITENING_IV 0x55
+#define RADIO_CRC_INIT 0x0000AAAA
+#define RADIO_CRC_POLY 0X12345678
+
+#define RADIO_TXPOWER RADIO_TXPOWER_TXPOWER_0dBm
+// Higher power is easier to notice in the power profiler
+// #define RADIO_TXPOWER RADIO_TXPOWER_TXPOWER_Pos4dBm
 
 // Packet addresses to be used for the next transmission or reception. When
 // transmitting, the packet pointed to by this address will be transmitted and
 // when receiving, the received packet will be written to this address. This
 // address is a byte aligned RAM address.
-static volatile radio_packet_t tx_packet = {.len = PAYLOAD_LEN, .data = {0}};
-static volatile radio_packet_t rx_packet = {.len = PAYLOAD_LEN, .data = {0}};
+static radio_packet_t tx_packet = {.len = PAYLOAD_LEN, .data = {0}};
+static radio_packet_t rx_packet = {.len = PAYLOAD_LEN, .data = {0}};
 
 void init_radio() {
   CLOCK->TASKS_HFCLKSTART = 1;
@@ -31,9 +38,7 @@ void init_radio() {
   // https://en.wikipedia.org/wiki/DBm
   // 4dBm - 2.5mW - Bluetooth Class 2 radio, 10 m range
   // 0dBm - 1.0mW - Bluetooth standard (Class 3) radio, 1 m range
-  RADIO->TXPOWER = RADIO_TXPOWER_TXPOWER_0dBm;
-  // Higher power is easier to notice in the power profiler
-  // RADIO->TXPOWER = RADIO_TXPOWER_TXPOWER_Pos4dBm;
+  RADIO->TXPOWER = RADIO_TXPOWER;
 
   // Going for 1Mbps mode for now as I assume has the lowest power consumption
   // and delay
@@ -47,7 +52,7 @@ void init_radio() {
                  (0 << RADIO_PCNF0_S0LEN_Pos) | (0 << RADIO_PCNF0_S1LEN_Pos);
   // ... the base address is 2 bytes long (4 hex digits), the payload has a max
   // length of 255 bytes, static length of 32 bytes, and whitening is enabled
-  RADIO->PCNF1 = (3 << RADIO_PCNF1_BALEN_Pos) |
+  RADIO->PCNF1 = (2 << RADIO_PCNF1_BALEN_Pos) |
                  (RADIO_PAYLOAD_MAXLEN << RADIO_PCNF1_MAXLEN_Pos) |
                  (0 << RADIO_PCNF1_STATLEN_Pos) |
                  (RADIO_PCNF1_WHITEEN_Enabled << RADIO_PCNF1_WHITEEN_Pos) |
@@ -57,10 +62,9 @@ void init_radio() {
   RADIO->DATAWHITEIV = RADIO_DATA_WHITENING_IV;
 
   // CRC is enabled and has length of 2 bytes
-  RADIO->CRCCNF = RADIO_CRCCNF_LEN_Disabled << RADIO_CRCCNF_LEN_Pos;
-  // RADIO->CRCCNF = RADIO_CRCCNF_LEN_Two << RADIO_CRCCNF_LEN_Pos;
-  // RADIO->CRCINIT = 0xFFFF;
-  // RADIO->CRCPOLY = 0x11021;
+  RADIO->CRCCNF = RADIO_CRCCNF_LEN_Two << RADIO_CRCCNF_LEN_Pos;
+  RADIO->CRCINIT = RADIO_CRC_INIT;
+  RADIO->CRCPOLY = RADIO_CRC_POLY;
 
   // TX & RX: use logical address 0
   RADIO->BASE0 = RADIO_BASE_ADDRESS;
@@ -102,7 +106,6 @@ void radio_send(radio_packet_t *payload) {
   probe_pulse(PP_D3);  // TXEN triggered
   probe_on(PP_D0);     // start overall transmission
   probe_on(PP_D1);     // ramp-up start
-
   RADIO->TASKS_TXEN = 1;
 }
 

@@ -53,7 +53,7 @@ typedef struct {
   volatile uint32_t LFRCMODE;  // (0x5B4) LFRC mode configuration
 } clock_t;
 
-extern clock_t *CLOCK;
+extern clock_t *const CLOCK;
 
 /* Peripheral: CLOCK */
 /* Description: Clock control */
