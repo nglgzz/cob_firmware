@@ -4,19 +4,20 @@
 #include "gpio.h"
 #include "gpiote.h"
 #include "leds.h"
+#include "matrix_scan.h"
 
 static uint16_t switch_pins[] = {SW_PIN_2, SW_PIN_4, SW_PIN_3, SW_PIN_1};
 static size_t switch_pins_size = sizeof(switch_pins) / sizeof(switch_pins[0]);
 
-static uint32_t sense_low = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos) |
-                            (GPIO_PIN_CNF_INPUT_Connect << GPIO_PIN_CNF_INPUT_Pos) |
-                            (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos) |
-                            (GPIO_PIN_CNF_SENSE_Low << GPIO_PIN_CNF_SENSE_Pos);
+static const uint32_t sense_low = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos) |
+                                  (GPIO_PIN_CNF_INPUT_Connect << GPIO_PIN_CNF_INPUT_Pos) |
+                                  (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos) |
+                                  (GPIO_PIN_CNF_SENSE_Low << GPIO_PIN_CNF_SENSE_Pos);
 
-static uint32_t sense_high = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos) |
-                             (GPIO_PIN_CNF_INPUT_Connect << GPIO_PIN_CNF_INPUT_Pos) |
-                             (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos) |
-                             (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
+static const uint32_t sense_high = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos) |
+                                   (GPIO_PIN_CNF_INPUT_Connect << GPIO_PIN_CNF_INPUT_Pos) |
+                                   (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos) |
+                                   (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
 
 void init_switches() {
   // Enable the GPIOTE interrupt request handler. If this is not set, the
@@ -52,19 +53,23 @@ void GPIOTE_IRQHandler() {
   if (GPIOTE->EVENTS_PORT) {
     // Clear PORT events
     GPIOTE->EVENTS_PORT = 0;
+    uint32_t switches = 0x00;
 
     for (int i = 0; i < switch_pins_size; i++) {
       uint16_t pin = switch_pins[i];
       uint32_t pinValue = GPIO0->IN & (GPIO_IN_High << pin);
 
+      // The values are flipped because the switches are pulled up (i.e. 1 is low and 0 is
+      // high).
+      switches |= (pinValue ? 0U : 1U) << i;
+
       if (pinValue) {
-        toggle_led(i, 0);
         GPIO0->PIN_CNF[switch_pins[i]] = sense_low;
       } else {
-        toggle_led(i, 1);
         GPIO0->PIN_CNF[switch_pins[i]] = sense_high;
       }
     }
+    send(switches);
 
     // Clear PORT events
     GPIOTE->EVENTS_PORT = 0;

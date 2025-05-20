@@ -3,9 +3,9 @@
 #include "core.h"
 #include "gpio.h"
 #include "leds.h"
+#include "matrix_scan.h"
 #include "probe.h"
 #include "radio.h"
-#include "radio_app.h"
 #include "switches.h"
 
 int main(void) {
@@ -32,12 +32,8 @@ int main(void) {
   blink_leds(500000);
   blink_leds(500000);
 
-#ifdef RADIO_TX
-  start_tx_loop();
-#endif
-
 #ifdef RADIO_RX
-  start_rx_loop();
+  receive();
 #endif
 
   while (1) {
