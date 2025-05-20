@@ -124,7 +124,7 @@ typedef struct {
   volatile uint32_t POWER;  // (0xFFC) Peripheral power control
 } radio_t;
 
-extern radio_t *RADIO;
+extern radio_t *const RADIO;
 
 /* Register: RADIO_TXPOWER */
 /* Description: Output power */

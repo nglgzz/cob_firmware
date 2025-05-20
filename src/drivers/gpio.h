@@ -35,8 +35,8 @@ typedef struct {
   volatile uint32_t PIN_CNF[32];
 } gpio_t;
 
-extern gpio_t *GPIO0;
-extern gpio_t *GPIO1;
+extern gpio_t *const GPIO0;
+extern gpio_t *const GPIO1;
 
 void gpio_dir_pin_output(gpio_t *port, uint8_t pin);
 void gpio_out_pin(gpio_t *port, uint8_t pin, bool value);

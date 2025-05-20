@@ -20,7 +20,7 @@ typedef struct {
   volatile uint32_t INTENCLR;
 } gpiote_t;
 
-extern gpiote_t *GPIOTE;
+extern gpiote_t *const GPIOTE;
 
 // Bit number representing the PORT event when setting INTEN* values.
 #define GPIOTE_INTENSET_PORT_EVENT_Pos 31
