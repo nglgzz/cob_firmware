@@ -18,7 +18,7 @@
   "Define header file": {
     "scope": "c,cpp",
     "prefix": "pragma",
-    "body": ["#ifndef $1_H", "$0", "#define $1_H", "#endif  // $1_H"],
+    "body": ["#ifndef $1_H", "#define $1_H", "$0", "#endif  // $1_H"],
     "description": "Ensure this header is defined only once"
   }
 }
