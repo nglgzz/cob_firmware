@@ -1,10 +1,13 @@
 #ifndef CORE_H
+#define CORE_H
 
 // Registers to enable and disable IRQ handlers. The bit position represents the
 // ID of the interrupt to enable, with 0 being the handler on position 16 in the
 // vector table (i.e. the first external IRQ handler).
 #define NVIC_SETENA (*(volatile unsigned int *)0xE000E100)
 #define NVIC_CLRENA (*(volatile unsigned int *)0xE000E180)
+// Priority goes from 0 (highest) to 7 (lowest)
+#define NVIC_PRIORITY (*(volatile unsigned int *)0xE000E400)
 
 typedef enum {
   POWER_CLOCK_IRQn = 0,
@@ -43,7 +46,13 @@ typedef enum {
   SPIM2_SPIS2_SPI2_IRQn = 35,
   RTC2_IRQn = 36,
   I2S_IRQn = 37,
-  FPU_IRQn = 38
+  FPU_IRQn = 38,
+  USBD_IRQn = 39,
+  UARTE1_IRQn = 40,
+  QSPI_IRQn = 41,
+  CRYPTOCELL_IRQn = 42,
+  PWM3_IRQn = 45,
+  SPIM3_IRQn = 47
 } IRQn_t;
 
 /**
@@ -58,5 +67,4 @@ typedef enum {
  */
 #define SCR (*(volatile unsigned int *)0xE000ED10)
 
-#define CORE_H
 #endif  // CORE_H

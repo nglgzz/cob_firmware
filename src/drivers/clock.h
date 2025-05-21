@@ -1,4 +1,5 @@
 #ifndef CLOCK_H
+#define CLOCK_H
 
 #include <stdint.h>
 
@@ -80,5 +81,72 @@ extern clock_t *const CLOCK;
    << CLOCK_TASKS_HFCLKSTOP_TASKS_HFCLKSTOP_Pos) /*!< Bit mask of TASKS_HFCLKSTOP field. */
 #define CLOCK_TASKS_HFCLKSTOP_TASKS_HFCLKSTOP_Trigger (0x1UL) /*!< Trigger task */
 
-#define CLOCK_H
+/* Register: CLOCK_HFCLKSTAT */
+/* Description: HFCLK status */
+
+/* Bit 16 : HFCLK state */
+#define CLOCK_HFCLKSTAT_STATE_Pos (16UL) /*!< Position of STATE field. */
+#define CLOCK_HFCLKSTAT_STATE_Msk \
+  (0x1UL << CLOCK_HFCLKSTAT_STATE_Pos)           /*!< Bit mask of STATE field. */
+#define CLOCK_HFCLKSTAT_STATE_NotRunning (0x0UL) /*!< HFCLK not running */
+#define CLOCK_HFCLKSTAT_STATE_Running (0x1UL)    /*!< HFCLK running */
+
+/* Bit 0 : Source of HFCLK */
+#define CLOCK_HFCLKSTAT_SRC_Pos (0UL) /*!< Position of SRC field. */
+#define CLOCK_HFCLKSTAT_SRC_Msk \
+  (0x1UL << CLOCK_HFCLKSTAT_SRC_Pos)     /*!< Bit mask of SRC field. */
+#define CLOCK_HFCLKSTAT_SRC_RC (0x0UL)   /*!< 64 MHz internal oscillator (HFINT) */
+#define CLOCK_HFCLKSTAT_SRC_Xtal (0x1UL) /*!< 64 MHz crystal oscillator (HFXO) */
+
+/* Register: CLOCK_INTENSET */
+/* Description: Enable interrupt */
+
+/* Bit 11 : Write '1' to enable interrupt for event CTSTOPPED */
+#define CLOCK_INTENSET_CTSTOPPED_Pos (11UL) /*!< Position of CTSTOPPED field. */
+#define CLOCK_INTENSET_CTSTOPPED_Msk \
+  (0x1UL << CLOCK_INTENSET_CTSTOPPED_Pos)         /*!< Bit mask of CTSTOPPED field. */
+#define CLOCK_INTENSET_CTSTOPPED_Disabled (0x0UL) /*!< Read: Disabled */
+#define CLOCK_INTENSET_CTSTOPPED_Enabled (0x1UL)  /*!< Read: Enabled */
+#define CLOCK_INTENSET_CTSTOPPED_Set (0x1UL)      /*!< Enable */
+
+/* Bit 10 : Write '1' to enable interrupt for event CTSTARTED */
+#define CLOCK_INTENSET_CTSTARTED_Pos (10UL) /*!< Position of CTSTARTED field. */
+#define CLOCK_INTENSET_CTSTARTED_Msk \
+  (0x1UL << CLOCK_INTENSET_CTSTARTED_Pos)         /*!< Bit mask of CTSTARTED field. */
+#define CLOCK_INTENSET_CTSTARTED_Disabled (0x0UL) /*!< Read: Disabled */
+#define CLOCK_INTENSET_CTSTARTED_Enabled (0x1UL)  /*!< Read: Enabled */
+#define CLOCK_INTENSET_CTSTARTED_Set (0x1UL)      /*!< Enable */
+
+/* Bit 4 : Write '1' to enable interrupt for event CTTO */
+#define CLOCK_INTENSET_CTTO_Pos (4UL) /*!< Position of CTTO field. */
+#define CLOCK_INTENSET_CTTO_Msk \
+  (0x1UL << CLOCK_INTENSET_CTTO_Pos)         /*!< Bit mask of CTTO field. */
+#define CLOCK_INTENSET_CTTO_Disabled (0x0UL) /*!< Read: Disabled */
+#define CLOCK_INTENSET_CTTO_Enabled (0x1UL)  /*!< Read: Enabled */
+#define CLOCK_INTENSET_CTTO_Set (0x1UL)      /*!< Enable */
+
+/* Bit 3 : Write '1' to enable interrupt for event DONE */
+#define CLOCK_INTENSET_DONE_Pos (3UL) /*!< Position of DONE field. */
+#define CLOCK_INTENSET_DONE_Msk \
+  (0x1UL << CLOCK_INTENSET_DONE_Pos)         /*!< Bit mask of DONE field. */
+#define CLOCK_INTENSET_DONE_Disabled (0x0UL) /*!< Read: Disabled */
+#define CLOCK_INTENSET_DONE_Enabled (0x1UL)  /*!< Read: Enabled */
+#define CLOCK_INTENSET_DONE_Set (0x1UL)      /*!< Enable */
+
+/* Bit 1 : Write '1' to enable interrupt for event LFCLKSTARTED */
+#define CLOCK_INTENSET_LFCLKSTARTED_Pos (1UL) /*!< Position of LFCLKSTARTED field. */
+#define CLOCK_INTENSET_LFCLKSTARTED_Msk \
+  (0x1UL << CLOCK_INTENSET_LFCLKSTARTED_Pos)         /*!< Bit mask of LFCLKSTARTED field. */
+#define CLOCK_INTENSET_LFCLKSTARTED_Disabled (0x0UL) /*!< Read: Disabled */
+#define CLOCK_INTENSET_LFCLKSTARTED_Enabled (0x1UL)  /*!< Read: Enabled */
+#define CLOCK_INTENSET_LFCLKSTARTED_Set (0x1UL)      /*!< Enable */
+
+/* Bit 0 : Write '1' to enable interrupt for event HFCLKSTARTED */
+#define CLOCK_INTENSET_HFCLKSTARTED_Pos (0UL) /*!< Position of HFCLKSTARTED field. */
+#define CLOCK_INTENSET_HFCLKSTARTED_Msk \
+  (0x1UL << CLOCK_INTENSET_HFCLKSTARTED_Pos)         /*!< Bit mask of HFCLKSTARTED field. */
+#define CLOCK_INTENSET_HFCLKSTARTED_Disabled (0x0UL) /*!< Read: Disabled */
+#define CLOCK_INTENSET_HFCLKSTARTED_Enabled (0x1UL)  /*!< Read: Enabled */
+#define CLOCK_INTENSET_HFCLKSTARTED_Set (0x1UL)      /*!< Enable */
+
 #endif  // CLOCK_H
