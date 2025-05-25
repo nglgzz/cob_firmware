@@ -6,6 +6,7 @@
 #include "probe.h"
 #include "radio.h"
 #include "switches.h"
+#include "usbd.h"
 #include "utils.h"
 
 int main(void) {
@@ -22,6 +23,7 @@ int main(void) {
    */
   SCR = 1 << 1 | 1 << 2;
 
+  init_usbd();
   init_probes();
   init_switches();
   init_leds();
