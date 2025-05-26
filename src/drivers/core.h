@@ -1,13 +1,34 @@
 #ifndef CORE_H
 #define CORE_H
 
-// Registers to enable and disable IRQ handlers. The bit position represents the
-// ID of the interrupt to enable, with 0 being the handler on position 16 in the
-// vector table (i.e. the first external IRQ handler).
-#define NVIC_SETENA (*(volatile unsigned int *)0xE000E100)
-#define NVIC_CLRENA (*(volatile unsigned int *)0xE000E180)
-// Priority goes from 0 (highest) to 7 (lowest)
-#define NVIC_PRIORITY (*(volatile unsigned int *)0xE000E400)
+#include <stdint.h>
+
+#define NVIC_BASE 0xE000E100U
+
+typedef struct {
+  // Interrupt set enabled register
+  // The bit position represents the ID of the interrupt to enable, with 0 being the handler on
+  // position 16 in the vector table (i.e. the first external IRQ handler).
+  volatile uint32_t ISER[8];
+  volatile uint32_t __RESERVED[24];
+  // Interrupt clear enabled register
+  volatile uint32_t ICER[8];
+  volatile uint32_t __RESERVED1[24];
+  // Interrupt set pending register
+  volatile uint32_t ISPR[8];
+  volatile uint32_t __RESERVED2[24];
+  // Interrupt clear pending register
+  volatile uint32_t ICPR[8];
+  volatile uint32_t __RESERVED3[24];
+  // Interrupt active bit register
+  volatile uint32_t IABR[8];
+  volatile uint32_t __RESERVED4[56];
+  // Interrupt priority register
+  // Priority goes from 0 (highest) to 7 (lowest)
+  volatile uint32_t IPR[8];
+} nvic_t;
+
+extern nvic_t *const NVIC;
 
 typedef enum {
   POWER_CLOCK_IRQn = 0,
@@ -66,5 +87,9 @@ typedef enum {
  * [0] -            Reserved
  */
 #define SCR (*(volatile unsigned int *)0xE000ED10)
+
+static inline void NVIC_EnableIRQ(IRQn_t IRQn) {
+  NVIC->ISER[IRQn >> 5U] |= (1 << (IRQn % 32U));
+}
 
 #endif  // CORE_H

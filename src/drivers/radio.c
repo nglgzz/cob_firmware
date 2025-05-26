@@ -81,7 +81,7 @@ void init_radio() {
   // Enable the RADIO interrupt request handler. If this is not set, the
   // peripheral can still generate interrupts, but they end up permanently
   // pending as the handlers are not executed.
-  NVIC_SETENA |= 1 << RADIO_IRQn;
+  NVIC_EnableIRQ(RADIO_IRQn);
 }
 
 void radio_receive() {
