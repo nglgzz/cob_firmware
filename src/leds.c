@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include "gpio.h"
+#include "nrf52840_bitfields.h"
 #include "utils.h"
 
 // uintn_t is a fixed width integer, the size of a regular int is implementation
@@ -19,18 +20,18 @@ void init_leds() {
   for (int i = 0; i < led_pins_size; i++) {
     // toggling GPIO_DIR at pin number (led_pins[i]) to high
     // which makes all led_pins output pins.
-    GPIO0->DIRSET = (GPIO_DIRSET_Set << led_pins[i]);
+    GPIO0->DIRSET = (GPIO_DIRSET_PIN0_Set << led_pins[i]);
     // Clear LED.
-    GPIO0->OUTSET = (GPIO_OUTSET_Set << led_pins[i]);
+    GPIO0->OUTSET = (GPIO_OUTSET_PIN0_Set << led_pins[i]);
   }
 }
 
 // State is 1 = on, 0 = off
 void toggle_led(int index, int state) {
   if (state) {
-    GPIO0->OUTCLR = (GPIO_OUTCLR_Clear << led_pins[index % led_pins_size]);
+    GPIO0->OUTCLR = (GPIO_OUTCLR_PIN0_Clear << led_pins[index % led_pins_size]);
   } else {
-    GPIO0->OUTSET = (GPIO_OUTSET_Set << led_pins[index % led_pins_size]);
+    GPIO0->OUTSET = (GPIO_OUTSET_PIN0_Set << led_pins[index % led_pins_size]);
   }
 }
 

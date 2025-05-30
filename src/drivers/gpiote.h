@@ -22,10 +22,5 @@ typedef struct {
 
 extern gpiote_t *const GPIOTE;
 
-// Bit number representing the PORT event when setting INTEN* values.
-#define GPIOTE_INTENSET_PORT_EVENT_Pos 31
-// Bit number representing the PORT event when setting INTEN* values.
-#define GPIOTE_INTENCLR_PORT_EVENT_Pos 31
-
 #define GPIOTE_H
 #endif  // GPIOTE_H

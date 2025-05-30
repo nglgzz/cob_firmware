@@ -7,6 +7,7 @@
 #include "gpiote.h"
 #include "leds.h"
 #include "matrix_scan.h"
+#include "nrf52840_bitfields.h"
 
 static uint16_t switch_pins[] = {SW_PIN_2, SW_PIN_4, SW_PIN_3, SW_PIN_1};
 static size_t switch_pins_size = sizeof(switch_pins) / sizeof(switch_pins[0]);
@@ -37,10 +38,10 @@ void init_switches() {
    * configuration (write '0' to EVENTS_PORT).
    *   4. Enable interrupts (through INTENSET.PORT).
    */
-  GPIOTE->INTENCLR |= 1 << GPIOTE_INTENCLR_PORT_EVENT_Pos;
+  GPIOTE->INTENCLR |= GPIOTE_INTENCLR_PORT_Msk;
 
   for (int i = 0; i < switch_pins_size; i++) {
-    GPIO0->DIRCLR = (GPIO_DIRCLR_Clear << switch_pins[i]);
+    GPIO0->DIRCLR = (GPIO_DIRCLR_PIN0_Clear << switch_pins[i]);
     GPIO0->PIN_CNF[switch_pins[i]] = sense_low;
   }
 
@@ -48,7 +49,7 @@ void init_switches() {
   GPIOTE->EVENTS_PORT = 0;
 
   // Enable interrupts
-  GPIOTE->INTENSET |= 1 << GPIOTE_INTENSET_PORT_EVENT_Pos;
+  GPIOTE->INTENSET |= GPIOTE_INTENSET_PORT_Msk;
 }
 
 void GPIOTE_IRQHandler() {
@@ -59,7 +60,7 @@ void GPIOTE_IRQHandler() {
 
     for (int i = 0; i < switch_pins_size; i++) {
       uint16_t pin = switch_pins[i];
-      uint32_t pinValue = GPIO0->IN & (GPIO_IN_High << pin);
+      uint32_t pinValue = GPIO0->IN & (GPIO_IN_PIN0_High << pin);
 
       // The values are flipped because the switches are pulled up (i.e. 1 is low and 0 is
       // high).

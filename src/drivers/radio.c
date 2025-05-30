@@ -3,6 +3,7 @@
 #include "clock.h"
 #include "core.h"
 #include "leds.h"
+#include "nrf52840_bitfields.h"
 #include "probe.h"
 
 radio_t *const RADIO = ((radio_t *)RADIO_BASE);

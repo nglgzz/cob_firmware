@@ -4,6 +4,7 @@
 
 #include "clock.h"
 #include "core.h"
+#include "nrf52840_bitfields.h"
 #include "power.h"
 
 usbd_t* const USBD = ((usbd_t*)(USBD_BASE + 0x004));
