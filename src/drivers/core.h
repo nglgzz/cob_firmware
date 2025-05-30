@@ -24,8 +24,9 @@ typedef struct {
   volatile uint32_t IABR[8];
   volatile uint32_t __RESERVED4[56];
   // Interrupt priority register
-  // Priority goes from 0 (highest) to 7 (lowest)
-  volatile uint32_t IPR[8];
+  // Priority is 8 bits in the cortex m4 specification, but the Nordic implementation uses
+  // values from 0 (highest) to 7 (lowest).
+  volatile uint8_t IPR[240];
 } nvic_t;
 
 extern nvic_t *const NVIC;
@@ -90,6 +91,15 @@ typedef enum {
 
 static inline void NVIC_EnableIRQ(IRQn_t IRQn) {
   NVIC->ISER[IRQn >> 5U] |= (1 << (IRQn % 32U));
+}
+
+static inline void NVIC_DisableIRQ(IRQn_t IRQn) {
+  NVIC->ICER[IRQn >> 5U] |= (1 << (IRQn % 32U));
+}
+
+// Priority goes from 0 (highest) to 7 (lowest)
+static inline void NVIC_SetPriority(IRQn_t IRQn, uint8_t priority) {
+  NVIC->IPR[(uint32_t)IRQn] = (uint8_t)(priority & 0xFFU);
 }
 
 #endif  // CORE_H
