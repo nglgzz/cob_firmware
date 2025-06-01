@@ -10,7 +10,11 @@
     "stdbool.h": "c",
     "probe.h": "c",
     "leds.h": "c",
-    "radio.h": "c"
+    "radio.h": "c",
+    "array": "c",
+    "format": "c",
+    "initializer_list": "c",
+    "span": "c"
   },
   "github.copilot.enable": {
     "*": false,

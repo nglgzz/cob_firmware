@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define USBD_BASE 0x40027000
+#define USBD_BASE 0x40027000U
 
 void init_usbd();
 
