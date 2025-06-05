@@ -71,10 +71,10 @@ static uint8_t device_descriptor[] = {
     // Temporary vendor and product IDs, once the repo is open sourced, request
     // vid & pid here:
     // https://pid.codes/howto/
-    0x5E,  // # idVendor L
-    0x04,  // # idVendor H (Example: Nordic Semiconductor)
-    0x23,  // # idProduct L
-    0x57,  // # idProduct H (Example: Custom Keyboard)
+    0xED,  // # idVendor L
+    0xFE,  // # idVendor H (Example: Nordic Semiconductor)
+    0x01,  // # idProduct L
+    0x00,  // # idProduct H (Example: Custom Keyboard)
     0x01,  // # bcdDevice L
     0x00,  // # bcdDevice H (0.0.1 / JJ.M.N - J:major M:minor N:subminor)
     0x01,  // iManufacturer (index of string descriptor describing manufacturer)

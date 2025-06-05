@@ -145,6 +145,7 @@ void USBD_IRQHandler() {
           break;
 
         case USBD_BREQUEST_BREQUEST_STD_SET_CONFIGURATION:
+        case USBD_BREQUEST_BREQUEST_STD_SET_DESCRIPTOR:
           USBD->TASKS_EP0STATUS = 1;
           break;
 
@@ -156,25 +157,36 @@ void USBD_IRQHandler() {
           //  Stall unsupported requests
           USBD->TASKS_EP0STALL = 1;
       }
+    } else if (requestType == USBD_BMREQUESTTYPE_TYPE_Class) {
+      switch (bRequest) {
+        // SET_REPORT
+        case 0x09:
+          USBD->TASKS_EP0STATUS = 1;
+          break;
+
+        default:
+          //  Stall unsupported requests
+          USBD->TASKS_EP0STALL = 1;
+      }
     }
-
-    // if (USBD->EVENTS_ENDEPIN[0]) {
-    //   USBD->EVENTS_ENDEPIN[0] = 0;
-    //   USBD->TASKS_EP0STATUS = 1;
-    // }
-
-    // if (USBD->EVENTS_EP0DATADONE) {
-    //   USBD->EVENTS_EP0DATADONE = 0;
-
-    //   // read_p = (read_p + 1) % RINGBUF_LEN;
-    //   // setup_ep0();
-    //   // ...
-    //   // or
-    //   // ...
-
-    //   USBD->TASKS_EP0STATUS = 1;
-    // }
   }
+
+  // if (USBD->EVENTS_ENDEPIN[0]) {
+  //   USBD->EVENTS_ENDEPIN[0] = 0;
+  //   USBD->TASKS_EP0STATUS = 1;
+  // }
+
+  // if (USBD->EVENTS_EP0DATADONE) {
+  //   USBD->EVENTS_EP0DATADONE = 0;
+
+  //   // read_p = (read_p + 1) % RINGBUF_LEN;
+  //   // setup_ep0();
+  //   // ...
+  //   // or
+  //   // ...
+
+  //   USBD->TASKS_EP0STATUS = 1;
+  // }
 }
 
 void pullup_maybe() {
