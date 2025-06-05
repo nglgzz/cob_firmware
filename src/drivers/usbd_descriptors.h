@@ -7,7 +7,7 @@
 //        STATUS
 // ----------------------
 // USB Device Status
-static const uint8_t device_status[] = {
+static uint8_t device_status[] = {
     // D0: Self Powered (1 Self powered, 0 Bus powered)
     // D1: Remote Wakeup (1 Enable, 0 Disable)
     // D2-15: Reserved (Must be set to 0)
@@ -16,14 +16,14 @@ static const uint8_t device_status[] = {
 };
 
 // USB Interface Status
-static const uint8_t interface_status[] = {
+static uint8_t interface_status[] = {
     // D0-D15: Reserved (Must be set to 0)
     0x00,
     0x00,
 };
 
 // USB Endpoint Status
-static const uint8_t endpoint_status[] = {
+static uint8_t endpoint_status[] = {
     // D0: Halt (1 Endpoint halted, 0 Endpoint not halted)
     // D1-D15: Reserved (Must be set to 0)
     0x00,
@@ -59,7 +59,7 @@ static const uint8_t endpoint_status[] = {
 #define USBD_DESCRIPTOR_TYPE_HIDReport 0x22
 #define USBD_DESCRIPTOR_TYPE_PhysicalDescriptor 0x23
 
-static const uint8_t device_descriptor[] = {
+static uint8_t device_descriptor[] = {
     0x12,                         // bLength (18 bytes / size of this descriptor in bytes)
     USBD_DESCRIPTOR_TYPE_Device,  // bDescriptorType
     0x00,                         // bcdUSB L
@@ -88,7 +88,7 @@ static const uint8_t device_descriptor[] = {
 // --------------------------------------------
 
 // USB Configuration Descriptor (with HID Descriptor for a keyboard)
-static const uint8_t configuration_descriptor[] = {
+static uint8_t configuration_descriptor[] = {
     // Configuration descriptor
     0x09,                                // bLength
     USBD_DESCRIPTOR_TYPE_Configuration,  // bDescriptorType
@@ -170,14 +170,14 @@ static const uint8_t configuration_descriptor[] = {
 //    String Descriptors
 // --------------------------------------------
 
-const uint8_t string_descriptor_0_langID[] = {
+static uint8_t string_descriptor_0_langID[] = {
     0x04,                         // bLength
     USBD_DESCRIPTOR_TYPE_String,  // bDescriptorType
     0x09,
     0x04  // wLANGID[0] = 0x0409 (US English)
 };
 
-static const uint8_t string_descriptor_4_interface[] = {
+static uint8_t string_descriptor_4_interface[] = {
     0x18,                         // bLength (2 + 6 characters * 2 / UTF-16LE encoded)
     USBD_DESCRIPTOR_TYPE_String,  // bDescriptorType
     '4',
@@ -204,7 +204,7 @@ static const uint8_t string_descriptor_4_interface[] = {
     0,
 };
 
-static const uint8_t string_descriptor_1_manufacturer[] = {
+static uint8_t string_descriptor_1_manufacturer[] = {
     0x0E,                         // bLength (2 + 6 characters * 2 / UTF-16LE encoded)
     USBD_DESCRIPTOR_TYPE_String,  // bDescriptorType
     'n',
@@ -221,8 +221,8 @@ static const uint8_t string_descriptor_1_manufacturer[] = {
     0,
 };
 
-static const uint8_t string_descriptor_2_product[] = {
-    0x04,                         // bLength (2 + 6 characters * 2 / UTF-16LE encoded)
+static uint8_t string_descriptor_2_product[] = {
+    0x06,                         // bLength (2 + 6 characters * 2 / UTF-16LE encoded)
     USBD_DESCRIPTOR_TYPE_String,  // bDescriptorType
     '4',
     0,
@@ -230,8 +230,8 @@ static const uint8_t string_descriptor_2_product[] = {
     0,
 };
 
-static const uint8_t string_descriptor_3_serial_number[] = {
-    0x0E,                         // bLength (2 + 6 characters * 2 / UTF-16LE encoded)
+static uint8_t string_descriptor_3_serial_number[] = {
+    0x0C,                         // bLength (2 + 6 characters * 2 / UTF-16LE encoded)
     USBD_DESCRIPTOR_TYPE_String,  // bDescriptorType
     '0',
     0,
@@ -240,8 +240,6 @@ static const uint8_t string_descriptor_3_serial_number[] = {
     '0',
     0,
     '.',
-    0,
-    '0',
     0,
     '1',
     0,
@@ -312,7 +310,7 @@ static const uint8_t string_descriptor_3_serial_number[] = {
 #define IO_ConstantValue IO_Constant | IO_Variable
 
 // HID Report Descriptor (Keyboard)
-static const uint8_t hid_report_descriptor[] = {
+static uint8_t hid_report_descriptor[] = {
     gUsagePage(1),      PAGE_GenericDesktop,     // Usage Page (Generic Desktop)
     lUsage(1),          USAGE_Keyboard,          // Usage (Keyboard)
     Collection(1),      COLLECTION_Application,  //   Collection (Application)
