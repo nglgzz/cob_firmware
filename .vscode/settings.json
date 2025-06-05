@@ -14,7 +14,8 @@
     "array": "c",
     "format": "c",
     "initializer_list": "c",
-    "span": "c"
+    "span": "c",
+    "usbd_descriptors.h": "c"
   },
   "github.copilot.enable": {
     "*": false,

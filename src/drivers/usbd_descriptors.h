@@ -1,34 +1,31 @@
 #ifndef USBD_DESCRIPTORS_H
 #define USBD_DESCRIPTORS_H
 
+#include <stddef.h>
 #include <stdint.h>
 
-// ----------------------
-//        STATUS
-// ----------------------
-// USB Device Status
-static uint8_t device_status[] = {
-    // D0: Self Powered (1 Self powered, 0 Bus powered)
-    // D1: Remote Wakeup (1 Enable, 0 Disable)
-    // D2-15: Reserved (Must be set to 0)
-    0x00,
-    0x00,
-};
+typedef struct {
+  uint8_t* ptr;
+  uint16_t size;
+} descriptor_ptr_t;
 
-// USB Interface Status
-static uint8_t interface_status[] = {
-    // D0-D15: Reserved (Must be set to 0)
-    0x00,
-    0x00,
-};
+uint16_t usbd_descriptors_set_configuration_descriptor(uint8_t combined_descriptor[],
+                                                       descriptor_ptr_t descriptor_list[],
+                                                       size_t length);
 
-// USB Endpoint Status
-static uint8_t endpoint_status[] = {
-    // D0: Halt (1 Endpoint halted, 0 Endpoint not halted)
-    // D1-D15: Reserved (Must be set to 0)
-    0x00,
-    0x00,
-};
+// Creates descriptor pointer from a struct
+#define DESCRIPTOR(desc) {.ptr = (uint8_t*)&desc, .size = sizeof(desc)}
+
+// Takes an array of bytes and a variable number of descriptors, and copies the descriptors
+// into the byte array.
+#define USBD_DESCRIPTORS_Configuration(combined_desc, ...)                \
+  descriptor_ptr_t desc_list[] = {__VA_ARGS__};                           \
+  size_t desc_list_length = sizeof(desc_list) / sizeof(descriptor_ptr_t); \
+  usbd_descriptors_set_configuration_descriptor(combined_desc, desc_list, desc_list_length)
+
+// USB Request handlers
+void USBD_GetDescriptor_Device(uint8_t** ptr, uint16_t* length);
+void USBD_GetDescriptor_Configuration(uint8_t** ptr, uint16_t* length);
 
 // -----------------------------
 //        FEATURES
@@ -39,11 +36,6 @@ static uint8_t endpoint_status[] = {
 // -----------------------------
 //        DESCRIPTORS
 // -----------------------------
-
-// --------------------------------------------
-//    Device Descriptor
-// --------------------------------------------
-
 // Defined in the USB 2.0 specification
 #define USBD_DESCRIPTOR_TYPE_Device 1
 #define USBD_DESCRIPTOR_TYPE_Configuration 2
@@ -59,112 +51,132 @@ static uint8_t endpoint_status[] = {
 #define USBD_DESCRIPTOR_TYPE_HIDReport 0x22
 #define USBD_DESCRIPTOR_TYPE_PhysicalDescriptor 0x23
 
-static uint8_t device_descriptor[] = {
-    0x12,                         // bLength (18 bytes / size of this descriptor in bytes)
-    USBD_DESCRIPTOR_TYPE_Device,  // bDescriptorType
-    0x00,                         // bcdUSB L
-    0x02,                         // bcdUSB H (USB 2.0 / JJ.M.N - J:major M:minor N:subminor)
-    0x00,  // bDeviceClass (0: each interface specifies its own class independently)
-    0x00,  // bDeviceSubClass (if bDeviceClass is 0, this must also be 0)
-    0x00,  // bDeviceProtocol (same as above)
-    0x40,  // bMaxPacketSize0 (64 bytes)
-    // Temporary vendor and product IDs, once the repo is open sourced, request
-    // vid & pid here:
-    // https://pid.codes/howto/
-    0xED,  // # idVendor L
-    0xFE,  // # idVendor H (Example: Nordic Semiconductor)
-    0x01,  // # idProduct L
-    0x00,  // # idProduct H (Example: Custom Keyboard)
-    0x01,  // # bcdDevice L
-    0x00,  // # bcdDevice H (0.0.1 / JJ.M.N - J:major M:minor N:subminor)
-    0x01,  // iManufacturer (index of string descriptor describing manufacturer)
-    0x02,  // iProduct (index of string descriptor describing product)
-    0x03,  // iSerialNumber (index of string descriptor describing serialnumber)
-    0x01   // bNumConfigurations (number of possible configurations)
-};
+// Universal Serial Bus Specification Revision 2.0
+// Table 9-8. Standard DEVICE Descriptor
+typedef struct __attribute__((packed)) {
+  uint8_t bLength;          // Size of this descriptor in bytes
+  uint8_t bDescriptorType;  // Descriptor type constant
+  uint16_t bcdUSB;  // Binary coded decimal representing the supported USB version (JJ.M.N -
+                    // J:major M:minor N:subminor)
+  uint8_t bDeviceClass;     // Zero to let each interface specify its own class
+  uint8_t bDeviceSubClass;  // Must be set to zero if bDeviceClass is zero
+  uint8_t bDeviceProtocol;  // Must be set to zero if bDeviceClass is zero
+  uint8_t bMaxPacketSize;   // Maximum packet size for endpoint 0
 
-// --------------------------------------------
-//    Configuration Descriptor
-// --------------------------------------------
+  // A vendor and product ID can be requested for open source projects here:
+  // https://pid.codes/howto/
+  uint16_t idVendor;
+  uint16_t idProduct;
+  uint16_t
+      bcdDevice;  // Binary coded decimal device version (JJ.M.N - J:major M:minor N:subminor)
 
-// USB Configuration Descriptor (with HID Descriptor for a keyboard)
-static uint8_t configuration_descriptor[] = {
-    // Configuration descriptor
-    0x09,                                // bLength
-    USBD_DESCRIPTOR_TYPE_Configuration,  // bDescriptorType
-    0x22,                                // # wTotalLength L
-    0x00,  // # wTotalLength H (34 bytes / includes combined length of all descriptors under
-           // # configuration (configuration, interface, endpoint, and class/vendor specific))
-    0x01,  // # bNumInterfaces
-    0x01,  // bConfigurationValue (value to use as an argument of SetConfiguration to select
-           // this configuration)
-    0x04,  // iConfiguration (index of string descriptor describing this configuration)
-    // D0-D4: Reserved (reset to zero)
-    // D5: Remote Wakeup
-    // D6: 0 Bus-powered, 1 Self-powered
-    // D7: Reserved (set to 1)
-    0xA0,  // bmAttributes (Bus-powered, Remote Wakeup)
-    0x32,  // # bMaxPower (100 mA / unit is 2mA)
+  uint8_t iManufacturer;  // Index of string descriptor describing the manufacturer
+  uint8_t iProduct;       // Index of string descriptor describing the product
+  uint8_t iSerialNumber;  // Index of string descriptor describing the serial number
 
-    // Interface descriptor
-    0x09,                            // bLength
-    USBD_DESCRIPTOR_TYPE_Interface,  // bDescriptorType
-    0x00,                            // bInterfaceNumber
-    0x00,  // bAlternateSetting (value used to select this alternate setting for the interface
-           // identified in the prior field)
-    0x01,  // bNumEndpoints (number of endpoints used by this device, excluding endpoint zero)
-    0x03,  // bInterfaceClass (3: HID Class)
-    // The HID Class doesn't use subclasses to define most protocols, instead the data protocol
-    // and data provided is defined in the report descriptor. Since the HID report descriptor
-    // parsing is a significant amount of code, which is not available during BIOS, a subclass
-    // of Boot Interface is made available for devices that need BIOS support.
-    0x01,  // bInterfaceSubClass (0: No Subclass, 1: Boot Interface)
-    // bInterfaceProtocol only has meaning if bInterfaceSubClass declares that the device
-    // supports a boot interface, otherwise it is 0.
-    0x01,  // bInterfaceProtocol (0: None, 1: Keyboard, 2: Mouse)
-    0x00,  // iInterface (index of string descriptor describing this interface)
+  uint8_t bNumConfigurations;  // Number of possible configurations
+} device_descriptor_t;
 
-    // HID descriptor
-    0x09,                      // bLength
-    USBD_DESCRIPTOR_TYPE_HID,  // bDescriptorType
-    0x11,                      // bcdHID L
-    0x01,                      // bcdHID H (HID 1.11 / HID Class Specification release)
-    // If the hardware is localized, this would define which country it is localized for. Zero
-    // means the hardware is not localized.
-    0x00,  // bCountryCode
-    // Number of class descriptors, must be at least 1 (i.e. Report descriptor).
-    0x01,                            // # bNumDescriptors
-    USBD_DESCRIPTOR_TYPE_HIDReport,  // # bDescriptorType[0]
-    0x3F,                            // # wDescriptorLength[0] L
-    0x00,                            // # wDescriptorLength[0] H (63 bytes)
-    // Additional class descriptors can be added here, by adding the corresponding
-    // bDescriptorType and wDescriptorLength values.
+// Universal Serial Bus Specification Revision 2.0
+// Table 9-10. Standard CONFIGURATION Descriptor
+typedef struct __attribute__((packed)) {
+  uint8_t bLength;          // Size of this descriptor in bytes
+  uint8_t bDescriptorType;  // Descriptor type constant
+  uint16_t wTotalLength;    // Combined length of all descriptors under configuration
+                            // (configuration, interface, endpoint, and class/vendor specific)
+  uint8_t bNumInterfaces;
+  uint8_t bConfigurationValue;  // Value to use as an argument of SetConfiguration to select
+                                // this configuration
+  uint8_t iConfiguration;       // Index of string descriptor for this configuration
 
-    // Endpoint descriptor
-    0x07,                           // bLength
-    USBD_DESCRIPTOR_TYPE_Endpoint,  // bDescriptorType
-    // D0-D3: Endpoint number
-    // D4-D6: Reserved, set to 0
-    // D7: Direction, ignored for control endpoints (0 OUT endpoint, 1 IN endpoint)
-    0x81,  // bEndpointAddress (IN endpoint 1)
-    // D0-D1: (0 Control, 1 Isochronous, 2 Bulk, 3 Interrupt)
-    // If an isochronous endpoint:
-    //    D2-D3: Synchronization type (0 no sync, 1 async, 2 adaptive, 3 sync)
-    //    D4-D5: Usage type (0 data, 1 feedback, 2 implicit feedback data, 3 reserved)
-    //    D6-D7: Reserved, set to 0
-    // Otherwise all other bits are reserved, set to 0.
-    0x03,  // bmAttributes (Interrupt)
-    // Max packet size that this endpoint is capable of receiving or sending.
-    // D0-D10: Max size in bytes
-    // D11-D12: Only relevant in high-speed isochronous and interrupt endpoints.
-    // D13-D15: Reserved, set to 0
-    0x08,  // wMaxPacketSize L
-    0x00,  // wMaxPacketSize H (8 bytes)
-    // Interval for polling the endpoint for data transfers in milliseconds (assuming
-    // full-speed). For full-/low-speed interrupt endpoints, the value of this field may be
-    // from 1 to 255.
-    0x0A,  // # bInterval (10 ms)
-};
+  // D0-D4: Reserved (reset to zero)
+  // D5: Remote Wakeup
+  // D6: 0 Bus-powered, 1 Self-powered
+  // D7: Reserved (set to 1)
+  uint8_t bmAttributes;
+  uint8_t bMaxPower;  // The unit is 2mA, (e.g. 0x32 (50dec) is 100mA)
+} configuration_descriptor_t;
+
+// Universal Serial Bus Specification Revision 2.0
+// Table 9-12. Standard INTERFACE Descriptor
+typedef struct __attribute__((packed)) {
+  uint8_t bLength;            // Size of this descriptor in bytes
+  uint8_t bDescriptorType;    // Descriptor type constant
+  uint8_t bInterfaceNumber;   // Zero-based value identifying this interface in the array of
+                              // concurrent interfaces supported by the current configuration.
+  uint8_t bAlternateSetting;  // Value used to select this alternate setting for the interface
+                              // identified in the prior field (no idea what this means)
+  uint8_t bNumEndpoints;      // Number of endpoints used by this interface.
+
+  uint8_t bInterfaceClass;     // Class code
+  uint8_t bInterfaceSubClass;  // Subclass code
+  uint8_t bInterfaceProtocol;  // Protocol code
+  uint8_t iInterface;          // Index of string descriptor describing this interface
+} interface_descriptor_t;
+
+// Universal Serial Bus Specification Revision 2.0
+// Table 9-13. Standard ENDPOINT Descriptor
+typedef struct __attribute__((packed)) {
+  uint8_t bLength;          // Size of this descriptor in bytes
+  uint8_t bDescriptorType;  // Descriptor type constant
+
+  // D0-D3: Endpoint number
+  // D4-D6: Reserved, set to 0
+  // D7: Direction, ignored for control endpoints (0 OUT endpoint, 1 IN endpoint)
+  uint8_t bEndpointAddress;
+
+  // D0-D1: (0 Control, 1 Isochronous, 2 Bulk, 3 Interrupt)
+  // If an isochronous endpoint:
+  //    D2-D3: Synchronization type (0 no sync, 1 async, 2 adaptive, 3 sync)
+  //    D4-D5: Usage type (0 data, 1 feedback, 2 implicit feedback data, 3 reserved)
+  //    D6-D7: Reserved, set to 0
+  // Otherwise all other bits are reserved, set to 0.
+  uint8_t bmAttributes;
+
+  // Max packet size that this endpoint is capable of receiving or sending.
+  // D0-D10: Max size in bytes
+  // D11-D12: Only relevant in high-speed isochronous and interrupt endpoints.
+  // D13-D15: Reserved, set to 0
+  uint16_t wMaxPacketSize;
+
+  // Interval for polling the endpoint for data transfers in milliseconds (assuming
+  // full-speed).
+  //
+  // For full-/low-speed interrupt endpoints, the value of this field may be from 1 to 255.
+  //
+  // For full-/high-speed isochronous endpoints, this value must be in the range from 1 to 16.
+  // The bInterval value is used as the exponent for a 2^(bInterval-1) value; e.g., a bInterval
+  // of 4 means a period of 8 (2^(4-1)).
+  uint8_t bInterval;
+} endpoint_descriptor_t;
+
+// Device Class Definition for Human Interface Devices (HID) Version 1.11
+// 6.2.1 HID Descriptor
+typedef struct __attribute__((packed)) {
+  uint8_t bDescriptorType;     // Constant name identifying type of class descriptor. See
+                               // Section 7.1.2: Set_Descriptor Request for a table of class
+                               // descriptor constants.
+  uint16_t wDescriptorLength;  // Size of the Report descriptor.
+} hid_class_descriptor_t;
+
+// Device Class Definition for Human Interface Devices (HID) Version 1.11
+// 6.2.1 HID Descriptor
+typedef struct __attribute__((packed)) {
+  uint8_t bLength;          // Size of this descriptor in bytes
+  uint8_t bDescriptorType;  // Descriptor type constant
+
+  uint16_t bcdHID;  // Binary coded decimal representing the supported USB version (JJ.M.N -
+                    // J:major M:minor N:subminor)
+
+  uint8_t bCountryCode;  // If the hardware is localized, this would define which country it is
+                         // localized for. Zero means the hardware is not localized.
+
+  uint8_t bNumDescriptors;  // Number of class descriptors (always at least one i.e. Report
+                            // descriptor.)
+
+  // At least one descriptor must be specified, the following are optional.
+  hid_class_descriptor_t hidClassDescriptors[];
+} hid_descriptor_t;
 
 // --------------------------------------------
 //    String Descriptors
@@ -348,7 +360,7 @@ static uint8_t hid_report_descriptor[] = {
     lUsageMaximum(1),   0x65,                 //   Usage Maximum (101)
     Input(1),           IO_DataArray,         //   Input (Data, Array)
 
-    EndCollection  // End Collection
+    EndCollection,  // End Collection
 };
 
 #endif  // USBD_DESCRIPTORS_H

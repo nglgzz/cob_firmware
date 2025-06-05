@@ -46,9 +46,6 @@ void init_usbd() {
 }
 
 void pullup_maybe();
-void setup_ep0();
-void handle_get_descriptor();
-void handle_get_string_descriptor(uint16_t wLength, uint8_t descriptor_index);
 
 void POWER_CLOCK_IRQHandler() {
   if (POWER_EVENTS_USBDETECTED) {
@@ -97,6 +94,10 @@ void POWER_CLOCK_IRQHandler() {
     USBD->USBPULLUP = 0;
   }
 }
+
+void setup_ep0();
+void handle_get_descriptor();
+void handle_get_string_descriptor(uint16_t wLength, uint8_t descriptor_index);
 
 void USBD_IRQHandler() {
   if (USBD->EVENTS_USBEVENT) {
@@ -241,17 +242,15 @@ void handle_get_descriptor() {
   uint16_t wLength =
       (((uint16_t)USBD->WLENGTHH & 0xFF) << 8) | ((uint16_t)USBD->WLENGTHL & 0xFF);
 
-  const uint8_t *descriptor = NULL;
+  uint8_t *descriptor = NULL;
   uint16_t descriptor_length = 0;
 
   switch (descriptor_type) {
     case USBD_DESCRIPTOR_TYPE_Device:
-      descriptor = device_descriptor;
-      descriptor_length = sizeof(device_descriptor);
+      USBD_GetDescriptor_Device(&descriptor, &descriptor_length);
       break;
     case USBD_DESCRIPTOR_TYPE_Configuration:
-      descriptor = configuration_descriptor;
-      descriptor_length = sizeof(configuration_descriptor);
+      USBD_GetDescriptor_Configuration(&descriptor, &descriptor_length);
       break;
     case USBD_DESCRIPTOR_TYPE_HIDReport:
       descriptor = hid_report_descriptor;
