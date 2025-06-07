@@ -18,14 +18,20 @@ uint16_t usbd_descriptors_set_configuration_descriptor(uint8_t combined_descript
 
 // Takes an array of bytes and a variable number of descriptors, and copies the descriptors
 // into the byte array.
-#define USBD_DESCRIPTORS_Configuration(combined_desc, ...)                \
-  descriptor_ptr_t desc_list[] = {__VA_ARGS__};                           \
-  size_t desc_list_length = sizeof(desc_list) / sizeof(descriptor_ptr_t); \
-  usbd_descriptors_set_configuration_descriptor(combined_desc, desc_list, desc_list_length)
+#define USBD_DESCRIPTORS_Configuration(combined_desc, ptr, length, ...)                      \
+  descriptor_ptr_t desc_list[] = {__VA_ARGS__};                                              \
+  size_t desc_list_length = sizeof(desc_list) / sizeof(descriptor_ptr_t);                    \
+  usbd_descriptors_set_configuration_descriptor(combined_desc, desc_list, desc_list_length); \
+  ptr = configuration0;                                                                      \
+  length = (uint16_t)configuration0[2] | ((uint16_t)configuration0[3]) << 8
+
+void USBD_DESCRIPTORS_String(char* string_descriptors[], uint8_t** ptr, uint16_t* length,
+                             uint8_t index);
 
 // USB Request handlers
-void USBD_GetDescriptor_Device(uint8_t** ptr, uint16_t* length);
-void USBD_GetDescriptor_Configuration(uint8_t** ptr, uint16_t* length);
+void USBD_GetDescriptor_Device(uint8_t** ptr, uint16_t* length, uint8_t index);
+void USBD_GetDescriptor_Configuration(uint8_t** ptr, uint16_t* length, uint8_t index);
+void USBD_GetDescriptor_String(uint8_t** ptr, uint16_t* length, uint8_t index);
 
 // -----------------------------
 //        FEATURES
@@ -177,85 +183,6 @@ typedef struct __attribute__((packed)) {
   // At least one descriptor must be specified, the following are optional.
   hid_class_descriptor_t hidClassDescriptors[];
 } hid_descriptor_t;
-
-// --------------------------------------------
-//    String Descriptors
-// --------------------------------------------
-
-static uint8_t string_descriptor_0_langID[] = {
-    0x04,                         // bLength
-    USBD_DESCRIPTOR_TYPE_String,  // bDescriptorType
-    0x09,
-    0x04  // wLANGID[0] = 0x0409 (US English)
-};
-
-static uint8_t string_descriptor_4_interface[] = {
-    0x18,                         // bLength (2 + 6 characters * 2 / UTF-16LE encoded)
-    USBD_DESCRIPTOR_TYPE_String,  // bDescriptorType
-    '4',
-    0,
-    '2',
-    0,
-    ' ',
-    0,
-    'K',
-    0,
-    'e',
-    0,
-    'y',
-    0,
-    'b',
-    0,
-    'o',
-    0,
-    'a',
-    0,
-    'r',
-    0,
-    'd',
-    0,
-};
-
-static uint8_t string_descriptor_1_manufacturer[] = {
-    0x0E,                         // bLength (2 + 6 characters * 2 / UTF-16LE encoded)
-    USBD_DESCRIPTOR_TYPE_String,  // bDescriptorType
-    'n',
-    0,
-    'g',
-    0,
-    'l',
-    0,
-    'g',
-    0,
-    'z',
-    0,
-    'z',
-    0,
-};
-
-static uint8_t string_descriptor_2_product[] = {
-    0x06,                         // bLength (2 + 6 characters * 2 / UTF-16LE encoded)
-    USBD_DESCRIPTOR_TYPE_String,  // bDescriptorType
-    '4',
-    0,
-    '2',
-    0,
-};
-
-static uint8_t string_descriptor_3_serial_number[] = {
-    0x0C,                         // bLength (2 + 6 characters * 2 / UTF-16LE encoded)
-    USBD_DESCRIPTOR_TYPE_String,  // bDescriptorType
-    '0',
-    0,
-    '.',
-    0,
-    '0',
-    0,
-    '.',
-    0,
-    '1',
-    0,
-};
 
 // --------------------------------------------
 //    HID Report Descriptor

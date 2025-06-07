@@ -97,7 +97,6 @@ void POWER_CLOCK_IRQHandler() {
 
 void setup_ep0();
 void handle_get_descriptor();
-void handle_get_string_descriptor(uint16_t wLength, uint8_t descriptor_index);
 
 void USBD_IRQHandler() {
   if (USBD->EVENTS_USBEVENT) {
@@ -247,21 +246,18 @@ void handle_get_descriptor() {
 
   switch (descriptor_type) {
     case USBD_DESCRIPTOR_TYPE_Device:
-      USBD_GetDescriptor_Device(&descriptor, &descriptor_length);
+      USBD_GetDescriptor_Device(&descriptor, &descriptor_length, descriptor_index);
       break;
     case USBD_DESCRIPTOR_TYPE_Configuration:
-      USBD_GetDescriptor_Configuration(&descriptor, &descriptor_length);
+      USBD_GetDescriptor_Configuration(&descriptor, &descriptor_length, descriptor_index);
       break;
     case USBD_DESCRIPTOR_TYPE_HIDReport:
       descriptor = hid_report_descriptor;
       descriptor_length = sizeof(hid_report_descriptor);
       break;
     case USBD_DESCRIPTOR_TYPE_String:
-      handle_get_string_descriptor(wLength, descriptor_index);
-      return;
-    default:
-      USBD->TASKS_EP0STALL = 1;
-      return;
+      USBD_GetDescriptor_String(&descriptor, &descriptor_length, descriptor_index);
+      break;
   }
 
   if (descriptor) {
@@ -269,43 +265,7 @@ void handle_get_descriptor() {
     USBD->EPIN[0].PTR = (uint32_t)descriptor;
     USBD->EPIN[0].MAXCNT = (wLength < descriptor_length) ? wLength : descriptor_length;
     USBD->TASKS_STARTEPIN[0] = 1;
-  }
-}
-
-void handle_get_string_descriptor(uint16_t wLength, uint8_t descriptor_index) {
-  const uint8_t *descriptor = NULL;
-  uint16_t descriptor_length = 0;
-
-  switch (descriptor_index) {
-    case 0:
-      descriptor = string_descriptor_0_langID;
-      descriptor_length = sizeof(string_descriptor_0_langID);
-      break;
-    case 1:
-      descriptor = string_descriptor_1_manufacturer;
-      descriptor_length = sizeof(string_descriptor_1_manufacturer);
-      break;
-    case 2:
-      descriptor = string_descriptor_2_product;
-      descriptor_length = sizeof(string_descriptor_2_product);
-      break;
-    case 3:
-      descriptor = string_descriptor_3_serial_number;
-      descriptor_length = sizeof(string_descriptor_3_serial_number);
-      break;
-    case 4:
-      descriptor = string_descriptor_4_interface;
-      descriptor_length = sizeof(string_descriptor_4_interface);
-      break;
-    default:
-      USBD->TASKS_EP0STALL = 1;
-      return;
-  }
-
-  if (descriptor) {
-    // Send the descriptor
-    USBD->EPIN[0].PTR = (uint32_t)descriptor;
-    USBD->EPIN[0].MAXCNT = (wLength < descriptor_length) ? wLength : descriptor_length;
-    USBD->TASKS_STARTEPIN[0] = 1;
+  } else {
+    USBD->TASKS_EP0STALL = 1;
   }
 }

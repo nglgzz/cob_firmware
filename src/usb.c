@@ -21,7 +21,7 @@ device_descriptor_t device_desc = {
     .bNumConfigurations = 0x01,
 };
 
-configuration_descriptor_t configuration_desc = {
+static const configuration_descriptor_t configuration_desc = {
     .bLength = sizeof(configuration_descriptor_t),
     .bDescriptorType = USBD_DESCRIPTOR_TYPE_Configuration,
     .wTotalLength = 0x0022,
@@ -74,19 +74,29 @@ static const endpoint_descriptor_t endpoint_desc = {
     .bInterval = 0x0A,         // 10ms
 };
 
-void USBD_GetDescriptor_Device(uint8_t** ptr, uint16_t* length) {
+void USBD_GetDescriptor_Device(uint8_t** ptr, uint16_t* length, uint8_t _index) {
   *ptr = (uint8_t*)&device_desc;
   *length = sizeof(device_descriptor_t);
 }
 
 static uint8_t configuration0[64];
-void USBD_GetDescriptor_Configuration(uint8_t** ptr, uint16_t* length) {
+void USBD_GetDescriptor_Configuration(uint8_t** ptr, uint16_t* length, uint8_t _index) {
   USBD_DESCRIPTORS_Configuration(configuration0,
+                                 *ptr,
+                                 *length,
                                  DESCRIPTOR(configuration_desc),
                                  DESCRIPTOR(interface_desc),
                                  DESCRIPTOR(hid_desc),
                                  DESCRIPTOR(endpoint_desc));
+}
 
-  *ptr = configuration0;
-  *length = (uint16_t)configuration0[2] | ((uint16_t)configuration0[3]) << 8;
+static char* string_descriptors[] = {
+    (char[]){0x09, 0x04},  // Lang ID: US English
+    "nglgzz",              // Manufacturer
+    "42 Dongle",           // Product name
+    "0.0.1",               // Serial number
+    "42 Keyboard"          // Interface name
+};
+void USBD_GetDescriptor_String(uint8_t** ptr, uint16_t* length, uint8_t index) {
+  USBD_DESCRIPTORS_String(string_descriptors, ptr, length, index);
 }

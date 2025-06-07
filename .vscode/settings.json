@@ -15,7 +15,10 @@
     "format": "c",
     "initializer_list": "c",
     "span": "c",
-    "usbd_descriptors.h": "c"
+    "usbd_descriptors.h": "c",
+    "utils.h": "c",
+    "string": "c",
+    "charconv": "c"
   },
   "github.copilot.enable": {
     "*": false,
