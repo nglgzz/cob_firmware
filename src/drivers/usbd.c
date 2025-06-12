@@ -102,10 +102,33 @@ void handle_get_descriptor();
 volatile bool transfer_in_progress = false;
 volatile bool endpoint0_configured = false;
 
-static uint8_t report[8] = {0, 0, 0x18, 0, 0, 0, 0, 0};
-void send_report() {
+hid_report_t hid_report = {
+    .modifiers = 0,
+    ._reserved = 0,
+    .keys = {0},
+};
+uint8_t hid_keycodes[] = {0x00, 0x17, 0x15, 0x08};
+uint32_t current_switches = 0;
+
+void send_report(uint32_t switches) {
+  current_switches = switches;
+
+  // HID report
+  if (switches & 0x01)
+    // Left shift
+    hid_report.modifiers = 0x02;
+  else
+    hid_report.modifiers = 0x00;
+
+  for (int i = 1; i < 4; i++) {
+    if (switches & (0x01 << i))
+      hid_report.keys[i + 2] = hid_keycodes[i];
+    else
+      hid_report.keys[i + 2] = 0x00;
+  }
+
   transfer_in_progress = true;
-  USBD->EPIN[1].PTR = (uint32_t)report;
+  USBD->EPIN[1].PTR = (uint32_t)&hid_report;
   USBD->EPIN[1].MAXCNT = 8;
   USBD->TASKS_STARTEPIN[1] = 1;
 }
@@ -130,7 +153,7 @@ void USBD_IRQHandler() {
   }
 
   if (!transfer_in_progress && endpoint0_configured) {
-    send_report();
+    send_report(current_switches);
   }
 
   // A control transfer is a transfer used to configure the USB device. It contains 3 stages:
@@ -171,10 +194,6 @@ void USBD_IRQHandler() {
 
         case USBD_BREQUEST_BREQUEST_STD_SET_CONFIGURATION:
           USBD->TASKS_EP0STATUS = 1;
-
-          // delay(50000);
-          // endpoint0_configured = true;
-          // send_report();
           break;
         case USBD_BREQUEST_BREQUEST_STD_SET_DESCRIPTOR:
           USBD->TASKS_EP0STATUS = 1;

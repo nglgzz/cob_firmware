@@ -23,7 +23,10 @@ int main(void) {
    */
   SCR = 1 << 1 | 1 << 2;
 
+#ifdef RADIO_RX
   init_usbd();
+#endif
+
   init_probes();
   init_switches();
   init_leds();

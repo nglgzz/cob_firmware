@@ -5,8 +5,15 @@
 
 #define USBD_BASE 0x40027000U
 
-void send_report();
+void send_report(uint32_t switches);
 void init_usbd();
+
+typedef struct __attribute__((packed, aligned(4))) {
+  uint8_t modifiers;
+  uint8_t _reserved;
+  uint8_t keys[6];
+} hid_report_t;
+extern hid_report_t hid_report;
 
 typedef struct {
   volatile uint32_t PTR;     // Data pointer
