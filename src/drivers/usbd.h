@@ -5,6 +5,7 @@
 
 #define USBD_BASE 0x40027000U
 
+void send_report();
 void init_usbd();
 
 typedef struct {

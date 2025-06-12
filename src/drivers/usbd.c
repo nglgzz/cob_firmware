@@ -8,6 +8,7 @@
 #include "nrf52840_bitfields.h"
 #include "power.h"
 #include "usbd_descriptors.h"
+#include "utils.h"
 
 usbd_t *const USBD = ((usbd_t *)(USBD_BASE + 0x004U));
 
@@ -98,6 +99,17 @@ void POWER_CLOCK_IRQHandler() {
 void setup_ep0();
 void handle_get_descriptor();
 
+volatile bool transfer_in_progress = false;
+volatile bool endpoint0_configured = false;
+
+static uint8_t report[8] = {0, 0, 0x18, 0, 0, 0, 0, 0};
+void send_report() {
+  transfer_in_progress = true;
+  USBD->EPIN[1].PTR = (uint32_t)report;
+  USBD->EPIN[1].MAXCNT = 8;
+  USBD->TASKS_STARTEPIN[1] = 1;
+}
+
 void USBD_IRQHandler() {
   if (USBD->EVENTS_USBEVENT) {
     USBD->EVENTS_USBEVENT = 0;
@@ -105,7 +117,20 @@ void USBD_IRQHandler() {
 
   if (USBD->EVENTS_USBRESET) {
     USBD->EVENTS_USBRESET = 0;
+    transfer_in_progress = false;
+    endpoint0_configured = false;
+
+    USBD->EPINEN = 0x3;
     setup_ep0();
+  }
+
+  if (USBD->EVENTS_ENDEPIN[1]) {
+    USBD->EVENTS_ENDEPIN[1] = 0;
+    transfer_in_progress = false;
+  }
+
+  if (!transfer_in_progress && endpoint0_configured) {
+    send_report();
   }
 
   // A control transfer is a transfer used to configure the USB device. It contains 3 stages:
@@ -145,6 +170,12 @@ void USBD_IRQHandler() {
           break;
 
         case USBD_BREQUEST_BREQUEST_STD_SET_CONFIGURATION:
+          USBD->TASKS_EP0STATUS = 1;
+
+          // delay(50000);
+          // endpoint0_configured = true;
+          // send_report();
+          break;
         case USBD_BREQUEST_BREQUEST_STD_SET_DESCRIPTOR:
           USBD->TASKS_EP0STATUS = 1;
           break;

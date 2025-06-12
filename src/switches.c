@@ -8,6 +8,7 @@
 #include "leds.h"
 #include "matrix_scan.h"
 #include "nrf52840_bitfields.h"
+#include "usbd.h"
 
 static uint16_t switch_pins[] = {SW_PIN_2, SW_PIN_4, SW_PIN_3, SW_PIN_1};
 static size_t switch_pins_size = sizeof(switch_pins) / sizeof(switch_pins[0]);
@@ -74,6 +75,7 @@ void GPIOTE_IRQHandler() {
     }
     send(switches);
 
+    send_report();
     // Clear potential PORT events that could have occurred during configuration.
     GPIOTE->EVENTS_PORT = 0;
   }
