@@ -74,7 +74,7 @@ void GPIOTE_IRQHandler() {
       }
     }
     send(switches);
-    usbd_hid_send(switches);
+    hid_send_report(switches);
 
     // Clear potential PORT events that could have occurred during configuration.
     GPIOTE->EVENTS_PORT = 0;

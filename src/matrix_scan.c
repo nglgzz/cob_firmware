@@ -60,7 +60,7 @@ void RADIO_ReceivedHandler(volatile radio_packet_t* payload) {
       toggle_led(i, report.pins & (1U << i));
     }
 
-    usbd_hid_send(report.pins);
+    hid_send_report(report.pins);
   }
   radio_receive();
 };
