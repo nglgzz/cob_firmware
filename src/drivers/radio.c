@@ -110,10 +110,11 @@ void radio_send(radio_packet_t *payload) {
   RADIO->TASKS_TXEN = 1;
 }
 
-void noop(volatile radio_packet_t *payload) {}
+void RADIO_noop(volatile radio_packet_t *payload) {}
 void RADIO_ReceivedHandler(volatile radio_packet_t *payload)
-    __attribute__((weak, alias("noop")));
-void RADIO_SentHandler(volatile radio_packet_t *payload) __attribute__((weak, alias("noop")));
+    __attribute__((weak, alias("RADIO_noop")));
+void RADIO_SentHandler(volatile radio_packet_t *payload)
+    __attribute__((weak, alias("RADIO_noop")));
 
 void RADIO_IRQHandler() {
   if (RADIO->EVENTS_READY) {

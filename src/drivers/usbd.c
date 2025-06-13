@@ -18,6 +18,9 @@ static inline void usbd_pullup();
 static inline void usbd_reset();
 static inline void usbd_get_descriptor_handler();
 
+void USBD_noop() {}
+void USBD_Reset_Handler() __attribute__((weak, alias("USBD_noop")));
+
 void init_usbd() {
   CLOCK->TASKS_HFCLKSTART = 1;
   while (CLOCK->EVENTS_HFCLKSTARTED == 0);
@@ -27,7 +30,7 @@ void init_usbd() {
 
   USBD->INTENSET = USBD_INTENSET_USBEVENT_Msk | USBD_INTENSET_USBRESET_Msk |
                    USBD_INTENSET_EP0SETUP_Msk | USBD_INTENSET_ENDEPIN0_Msk |
-                   USBD_INTENSET_EP0DATADONE_Msk | USBD_INTENSET_ENDEPIN1_Msk;
+                   USBD_INTENSET_ENDEPIN1_Msk;
 
   // It is possible to enable a shortcut from the EP0DATADONE event to the EP0STATUS task,
   // typically if the data stage is expected to take a single transfer. If there is no data
@@ -69,7 +72,7 @@ void POWER_CLOCK_IRQHandler() {
     *(volatile uint32_t *)0x4006EC00 = 0x00009375;
     // End of magic incantations
 
-    usbd_state.usbd_ready = 1;
+    usbd_state.usbd_ready = true;
     usbd_pullup();
   }
   if (POWER_EVENTS_USBPWRRDY) {
@@ -79,10 +82,19 @@ void POWER_CLOCK_IRQHandler() {
   }
   if (POWER_EVENTS_USBREMOVED) {
     POWER_EVENTS_USBREMOVED = 0;
+
+    // Wait for potential transfers to end and then disable USBD.
+    while (usbd_state.transfer_in_progress);
+
     usbd_state.vbus_detected = false;
-    // TODO: wait for potential transfers to end and then disable USBD
+    usbd_state.usb_power_ready = false;
+    usbd_state.usbd_ready = false;
+
+    // After writing Disabled to this register, reading the register will return Enabled until
+    // USBD is completely disabled.
     USBD->ENABLE = 0;
     while (USBD->ENABLE == 1);
+
     USBD->USBPULLUP = 0;
   }
 }
@@ -90,20 +102,13 @@ void POWER_CLOCK_IRQHandler() {
 void USBD_IRQHandler() {
   if (USBD->EVENTS_USBEVENT) {
     USBD->EVENTS_USBEVENT = 0;
+
+    // TODO: check USBD->EVENTCAUSE and handle SUSPEND, RESUME, and USBWUALLOWED.
   }
 
   if (USBD->EVENTS_USBRESET) {
     USBD->EVENTS_USBRESET = 0;
     usbd_reset();
-  }
-
-  if (USBD->EVENTS_ENDEPIN[1]) {
-    USBD->EVENTS_ENDEPIN[1] = 0;
-    usbd_state.transfer_in_progress = false;
-  }
-
-  if (!usbd_state.transfer_in_progress && usbd_state.endpoint0_configured) {
-    usbd_hid_send(current_switches);
   }
 
   // A control transfer is a transfer used to configure the USB device. It contains 3 stages:
@@ -162,12 +167,13 @@ void USBD_IRQHandler() {
           USBD->TASKS_EP0STALL = 1;
       }
     } else if (requestType == USBD_BMREQUESTTYPE_TYPE_Class) {
-      // TODO - this assumes HID class currently
+      // TODO: this assumes HID class currently
       switch (bRequest) {
           // SET_REPORT
           // The Set_Report request allows the host to send a report to the device, possibly
           // setting the state of input, output, or feature controls.
         case 0x09:
+          // TODO: needs implementation
           USBD->TASKS_EP0STATUS = 1;
           break;
 
@@ -178,22 +184,16 @@ void USBD_IRQHandler() {
     }
   }
 
-  // if (USBD->EVENTS_ENDEPIN[0]) {
-  //   USBD->EVENTS_ENDEPIN[0] = 0;
-  //   USBD->TASKS_EP0STATUS = 1;
-  // }
+  if (USBD->EVENTS_ENDEPIN[0]) {
+    USBD->EVENTS_ENDEPIN[0] = 0;
+    // TODO:
+    // usbd_state.transfer_in_progress = false;
+  }
 
-  // if (USBD->EVENTS_EP0DATADONE) {
-  //   USBD->EVENTS_EP0DATADONE = 0;
-
-  //   // read_p = (read_p + 1) % RINGBUF_LEN;
-  //   // setup_ep0();
-  //   // ...
-  //   // or
-  //   // ...
-
-  //   USBD->TASKS_EP0STATUS = 1;
-  // }
+  if (USBD->EVENTS_ENDEPIN[1]) {
+    USBD->EVENTS_ENDEPIN[1] = 0;
+    usbd_state.transfer_in_progress = false;
+  }
 }
 
 static inline void usbd_pullup() {
@@ -218,10 +218,9 @@ static inline void usbd_pullup() {
 
 static inline void usbd_reset() {
   usbd_state.transfer_in_progress = false;
-  usbd_state.endpoint0_configured = false;
   usbd_state.configuration = 0;
 
-  USBD->EPINEN = 0x3;
+  USBD_Reset_Handler();
 }
 
 static inline void usbd_get_descriptor_handler() {
@@ -266,7 +265,15 @@ static inline void usbd_get_descriptor_handler() {
 }
 
 inline void usbd_epin_start(uint8_t ep, uint32_t ptr, uint32_t len) {
-  usbd_state.transfer_in_progress = true;
+  // TODO: Assuming for now that endpoint 0 transfers don't need to wait for the current
+  // transfer to end. This is to avoid accidentally blocking the setup stage while waiting for
+  // some other endpoint to finish a transfer that may never end. Probably need a more reliable
+  // way to detect both the start and end of a transfer.
+  if (ep != 0) {
+    // Wait until the current transfer is done before starting another one.
+    while (usbd_state.transfer_in_progress);
+    usbd_state.transfer_in_progress = true;
+  }
 
   uint8_t ep_n = ep % 8;
   USBD->EPIN[ep_n].PTR = ptr;

@@ -1,4 +1,10 @@
+#include "usbd.h"
 #include "usbd_descriptors.h"
+
+void USBD_Reset_Handler() {
+  // EP0 & EP1
+  USBD->EPINEN = 0x3;
+}
 
 device_descriptor_t device_desc = {
     .bLength = sizeof(device_descriptor_t),

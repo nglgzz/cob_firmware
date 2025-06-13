@@ -23,10 +23,11 @@ typedef struct {
   // USBD is ready for normal operation.
   bool usbd_ready;
 
+  // Acts as a lock for transfers since:
+  //    Only a single EasyDMA transfer can take place in USBD at any time.
   bool transfer_in_progress;
 
-  bool endpoint0_configured;
-
+  // Current selected configuration, defaults to 0 until
   uint16_t configuration;
 } usbd_state_t;
 
