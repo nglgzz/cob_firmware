@@ -1,19 +1,40 @@
 #ifndef USBD_H
 #define USBD_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #define USBD_BASE 0x40027000U
 
-void send_report(uint32_t switches);
 void init_usbd();
 
-typedef struct __attribute__((packed, aligned(4))) {
-  uint8_t modifiers;
-  uint8_t _reserved;
-  uint8_t keys[6];
-} hid_report_t;
-extern hid_report_t hid_report;
+typedef struct {
+  // 5V supply detected on VBUS.
+  bool vbus_detected;
+
+  // Internal voltage regulator's worst case settling time has elapsed, indicating to the
+  // software that it can enable the USB pull-up to signal a USB connection to the host.
+  //
+  // The internal voltage regulator converts the VBUS supply into 3.3V that should be used for
+  // the data lines.
+  bool usb_power_ready;
+
+  // USBD is ready for normal operation.
+  bool usbd_ready;
+
+  bool transfer_in_progress;
+
+  bool endpoint0_configured;
+} usbd_state_t;
+extern usbd_state_t usbd_state;
+
+// void send_report(uint32_t switches);
+// typedef struct __attribute__((packed, aligned(4))) {
+//   uint8_t modifiers;
+//   uint8_t _reserved;
+//   uint8_t keys[6];
+// } hid_report_t;
+// extern hid_report_t hid_report;
 
 typedef struct {
   volatile uint32_t PTR;     // Data pointer

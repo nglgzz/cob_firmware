@@ -4,7 +4,7 @@
 #include "leds.h"
 #include "probe.h"
 #include "radio.h"
-#include "usbd.h"
+#include "usbd_hid.h"
 #include "utils.h"
 
 static radio_packet_t packet = {.len = 48, .data = {0}};
@@ -60,7 +60,7 @@ void RADIO_ReceivedHandler(volatile radio_packet_t* payload) {
       toggle_led(i, report.pins & (1U << i));
     }
 
-    send_report(report.pins);
+    usbd_hid_send(report.pins);
   }
   radio_receive();
 };

@@ -8,22 +8,31 @@
 #include "nrf52840_bitfields.h"
 #include "power.h"
 #include "usbd_descriptors.h"
+#include "usbd_hid.h"
 #include "utils.h"
 
 usbd_t *const USBD = ((usbd_t *)(USBD_BASE + 0x004U));
+usbd_state_t usbd_state = {};
 
-// Flags used to check that everything is ready for the device to enable the pullup
-static bool vbus_detected = false;
-static bool usb_power_ready = false;
-static bool usbd_ready = false;
+// typedef struct {
+//   // 5V supply detected on VBUS.
+//   bool vbus_detected;
 
-#define RINGBUF_LEN 64
-// Ring buffer used for setup
-// Full speed devices must have a packet size of 64 bytes
-static uint8_t read_ringbuf[RINGBUF_LEN];
-static uint8_t write_ringbuf[RINGBUF_LEN];
-static uint32_t read_p = 0;
-static uint32_t write_p = 0;
+//   // Internal voltage regulator's worst case settling time has elapsed, indicating to the
+//   // software that it can enable the USB pull-up to signal a USB connection to the host.
+//   //
+//   // The internal voltage regulator converts the VBUS supply into 3.3V that should be used
+//   for
+//   // the data lines.
+//   bool usb_power_ready;
+
+//   // USBD is ready for normal operation.
+//   bool usbd_ready;
+
+//   bool transfer_in_progress;
+
+//   bool endpoint0_configured;
+// } usbd_state_t;
 
 void init_usbd() {
   CLOCK->TASKS_HFCLKSTART = 1;
@@ -34,7 +43,7 @@ void init_usbd() {
 
   USBD->INTENSET = USBD_INTENSET_USBEVENT_Msk | USBD_INTENSET_USBRESET_Msk |
                    USBD_INTENSET_EP0SETUP_Msk | USBD_INTENSET_ENDEPIN0_Msk |
-                   USBD_INTENSET_EP0DATADONE_Msk;
+                   USBD_INTENSET_EP0DATADONE_Msk | USBD_INTENSET_ENDEPIN1_Msk;
 
   // It is possible to enable a shortcut from the EP0DATADONE event to the EP0STATUS task,
   // typically if the data stage is expected to take a single transfer. If there is no data
@@ -51,7 +60,7 @@ void pullup_maybe();
 void POWER_CLOCK_IRQHandler() {
   if (POWER_EVENTS_USBDETECTED) {
     POWER_EVENTS_USBDETECTED = 0;
-    vbus_detected = true;
+    usbd_state.vbus_detected = true;
 
     // The following lines are magic incantations from nRF52840 Engineering D Errata v1.5, to
     // address the following issue:
@@ -78,17 +87,17 @@ void POWER_CLOCK_IRQHandler() {
     *(volatile uint32_t *)0x4006EC00 = 0x00009375;
     // End of magic incantations
 
-    usbd_ready = 1;
+    usbd_state.usbd_ready = 1;
     pullup_maybe();
   }
   if (POWER_EVENTS_USBPWRRDY) {
     POWER_EVENTS_USBPWRRDY = 0;
-    usb_power_ready = true;
+    usbd_state.usb_power_ready = true;
     pullup_maybe();
   }
   if (POWER_EVENTS_USBREMOVED) {
     POWER_EVENTS_USBREMOVED = 0;
-    vbus_detected = false;
+    usbd_state.vbus_detected = false;
     // TODO: wait for potential transfers to end and then disable USBD
     USBD->ENABLE = 0;
     while (USBD->ENABLE == 1);
@@ -99,39 +108,44 @@ void POWER_CLOCK_IRQHandler() {
 void setup_ep0();
 void handle_get_descriptor();
 
-volatile bool transfer_in_progress = false;
-volatile bool endpoint0_configured = false;
+// hid_report_t hid_report = {
+//     .modifiers = 0,
+//     ._reserved = 0,
+//     .keys = {0},
+// };
+// uint8_t hid_keycodes[] = {0x00, 0x17, 0x15, 0x08};
+// uint32_t current_switches = 0;
 
-hid_report_t hid_report = {
-    .modifiers = 0,
-    ._reserved = 0,
-    .keys = {0},
-};
-uint8_t hid_keycodes[] = {0x00, 0x17, 0x15, 0x08};
-uint32_t current_switches = 0;
+// void send_report(uint32_t switches) {
+//   current_switches = switches;
 
-void send_report(uint32_t switches) {
-  current_switches = switches;
+//   // HID report
+//   if (switches & 0x01)
+//     // Left shift
+//     hid_report.modifiers = 0x02;
+//   else
+//     hid_report.modifiers = 0x00;
 
-  // HID report
-  if (switches & 0x01)
-    // Left shift
-    hid_report.modifiers = 0x02;
-  else
-    hid_report.modifiers = 0x00;
+//   for (int i = 1; i < 4; i++) {
+//     if (switches & (0x01 << i))
+//       hid_report.keys[i + 2] = hid_keycodes[i];
+//     else
+//       hid_report.keys[i + 2] = 0x00;
+//   }
 
-  for (int i = 1; i < 4; i++) {
-    if (switches & (0x01 << i))
-      hid_report.keys[i + 2] = hid_keycodes[i];
-    else
-      hid_report.keys[i + 2] = 0x00;
-  }
+//   usbd_state.transfer_in_progress = true;
+//   USBD->EPIN[1].PTR = (uint32_t)&hid_report;
+//   USBD->EPIN[1].MAXCNT = 8;
+//   USBD->TASKS_STARTEPIN[1] = 1;
+// }
 
-  transfer_in_progress = true;
-  USBD->EPIN[1].PTR = (uint32_t)&hid_report;
-  USBD->EPIN[1].MAXCNT = 8;
-  USBD->TASKS_STARTEPIN[1] = 1;
-}
+#define RINGBUF_LEN 64
+// Ring buffer used for setup
+// Full speed devices must have a packet size of 64 bytes
+static uint8_t read_ringbuf[RINGBUF_LEN];
+static uint8_t write_ringbuf[RINGBUF_LEN];
+static uint32_t read_p = 0;
+static uint32_t write_p = 0;
 
 void USBD_IRQHandler() {
   if (USBD->EVENTS_USBEVENT) {
@@ -140,8 +154,8 @@ void USBD_IRQHandler() {
 
   if (USBD->EVENTS_USBRESET) {
     USBD->EVENTS_USBRESET = 0;
-    transfer_in_progress = false;
-    endpoint0_configured = false;
+    usbd_state.transfer_in_progress = false;
+    usbd_state.endpoint0_configured = false;
 
     USBD->EPINEN = 0x3;
     setup_ep0();
@@ -149,11 +163,11 @@ void USBD_IRQHandler() {
 
   if (USBD->EVENTS_ENDEPIN[1]) {
     USBD->EVENTS_ENDEPIN[1] = 0;
-    transfer_in_progress = false;
+    usbd_state.transfer_in_progress = false;
   }
 
-  if (!transfer_in_progress && endpoint0_configured) {
-    send_report(current_switches);
+  if (!usbd_state.transfer_in_progress && usbd_state.endpoint0_configured) {
+    usbd_hid_send(current_switches);
   }
 
   // A control transfer is a transfer used to configure the USB device. It contains 3 stages:
@@ -244,7 +258,7 @@ void pullup_maybe() {
     return;
   }
 
-  if (!(vbus_detected && usb_power_ready && usbd_ready)) {
+  if (!(usbd_state.vbus_detected && usbd_state.usb_power_ready && usbd_state.usbd_ready)) {
     return;
   }
 
