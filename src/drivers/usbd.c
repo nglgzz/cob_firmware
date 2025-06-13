@@ -7,8 +7,7 @@
 #include "core.h"
 #include "nrf52840_bitfields.h"
 #include "power.h"
-#include "usbd_descriptors.h"
-#include "usbd_hid.h"
+#include "usbd_desc.h"
 #include "utils.h"
 
 usbd_t *const USBD = ((usbd_t *)(USBD_BASE + 0x004U));
@@ -241,16 +240,16 @@ static inline void usbd_get_descriptor_handler() {
   uint16_t descriptor_length = 0;
 
   switch (descriptor_type) {
-    case USBD_DESCRIPTOR_TYPE_Device:
+    case USBD_DESC_TYPE_Device:
       USBD_GetDescriptor_Device(&descriptor, &descriptor_length, descriptor_index);
       break;
-    case USBD_DESCRIPTOR_TYPE_Configuration:
+    case USBD_DESC_TYPE_Configuration:
       USBD_GetDescriptor_Configuration(&descriptor, &descriptor_length, descriptor_index);
       break;
-    case USBD_DESCRIPTOR_TYPE_HIDReport:
+    case USBD_DESC_TYPE_HIDReport:
       USBD_GetDescriptor_HIDReport(&descriptor, &descriptor_length, descriptor_index);
       break;
-    case USBD_DESCRIPTOR_TYPE_String:
+    case USBD_DESC_TYPE_String:
       USBD_GetDescriptor_String(&descriptor, &descriptor_length, descriptor_index);
       break;
   }

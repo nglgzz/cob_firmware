@@ -1,5 +1,5 @@
 #include "usbd.h"
-#include "usbd_descriptors.h"
+#include "usbd_desc.h"
 
 void USBD_Reset_Handler() {
   // EP0 & EP1
@@ -8,7 +8,7 @@ void USBD_Reset_Handler() {
 
 device_descriptor_t device_desc = {
     .bLength = sizeof(device_descriptor_t),
-    .bDescriptorType = USBD_DESCRIPTOR_TYPE_Device,
+    .bDescriptorType = USBD_DESC_TYPE_Device,
 
     .bcdUSB = 0x0200,        // 2.0.0
     .bDeviceClass = 0,       // 0: each interface specifies its own class independently
@@ -17,7 +17,7 @@ device_descriptor_t device_desc = {
     .bMaxPacketSize = 0x40,  // 64 bytes
 
     .idVendor = 0xFEED,
-    .idProduct = 0x0000,
+    .idProduct = 0x0003,
     .bcdDevice = 0x0001,  // 0.0.1
 
     .iManufacturer = 0x01,
@@ -26,10 +26,14 @@ device_descriptor_t device_desc = {
 
     .bNumConfigurations = 0x01,
 };
+void USBD_GetDescriptor_Device(uint8_t** ptr, uint16_t* length, uint8_t _index) {
+  *ptr = (uint8_t*)&device_desc;
+  *length = sizeof(device_descriptor_t);
+}
 
 static const configuration_descriptor_t configuration_desc = {
     .bLength = sizeof(configuration_descriptor_t),
-    .bDescriptorType = USBD_DESCRIPTOR_TYPE_Configuration,
+    .bDescriptorType = USBD_DESC_TYPE_Configuration,
     .wTotalLength = 0x0022,
 
     .bNumInterfaces = 0x01,
@@ -42,21 +46,22 @@ static const configuration_descriptor_t configuration_desc = {
 
 static const interface_descriptor_t interface_desc = {
     .bLength = sizeof(interface_descriptor_t),
-    .bDescriptorType = USBD_DESCRIPTOR_TYPE_Interface,
+    .bDescriptorType = USBD_DESC_TYPE_Interface,
 
     .bInterfaceNumber = 0x00,
     .bAlternateSetting = 0x00,
     .bNumEndpoints = 0x01,
 
-    .bInterfaceClass = 0x03,     // HID Class
+    .bInterfaceClass = 0x03,  // HID Class
+    // TODO: turn this into a boot subclass (and figure out what's needed to support that)
     .bInterfaceSubClass = 0x00,  // 0: No subclass, 1: Boot interface
     .bInterfaceProtocol = 0x01,  // 0: None, 1: Keyboard, 2: Mouse
     .iInterface = 0x00,
 };
 
 static const uint8_t hid_desc[] = {
-    0x09,                      // .bLength      sizeof(hid_class_descriptor_t)
-    USBD_DESCRIPTOR_TYPE_HID,  // .bDescriptorType
+    0x09,                // .bLength      sizeof(hid_class_descriptor_t)
+    USBD_DESC_TYPE_HID,  // .bDescriptorType
 
     0x11,  // .bcdHID (L)             HID 1.11
     0x01,  // .bcdHID (H)             HID 1.11
@@ -65,35 +70,31 @@ static const uint8_t hid_desc[] = {
     0x01,  // .bNumDescriptors
 
     // At least one descriptor must be specified, the following are optional.
-    USBD_DESCRIPTOR_TYPE_HIDReport,  // .bDescriptorType
-    0x3F,                            // .wDescriptorLength (L)   63 bytes
-    0x00,                            // .wDescriptorLength (H)    63 bytes
+    USBD_DESC_TYPE_HIDReport,  // .bDescriptorType
+    0x3F,                      // .wDescriptorLength (L)   63 bytes
+    0x00,                      // .wDescriptorLength (H)    63 bytes
 };
 
 static const endpoint_descriptor_t endpoint_desc = {
     .bLength = sizeof(endpoint_descriptor_t),
-    .bDescriptorType = USBD_DESCRIPTOR_TYPE_Endpoint,
+    .bDescriptorType = USBD_DESC_TYPE_Endpoint,
 
     .bEndpointAddress = 0x81,  // IN endpoint 1
     .bmAttributes = 0x03,      // Interrupt
     .wMaxPacketSize = 0x0008,  // 8 bytes
     .bInterval = 0x0A,         // 10ms
 };
-
-void USBD_GetDescriptor_Device(uint8_t** ptr, uint16_t* length, uint8_t _index) {
-  *ptr = (uint8_t*)&device_desc;
-  *length = sizeof(device_descriptor_t);
-}
-
 static uint8_t configuration0[64];
+static descriptor_ptr_t descriptor_list[] = {USBD_DESC(configuration_desc),
+                                             USBD_DESC(interface_desc),
+                                             USBD_DESC(hid_desc),
+                                             USBD_DESC(endpoint_desc)};
+
 void USBD_GetDescriptor_Configuration(uint8_t** ptr, uint16_t* length, uint8_t _index) {
-  USBD_DESCRIPTORS_Configuration(configuration0,
-                                 *ptr,
-                                 *length,
-                                 DESCRIPTOR(configuration_desc),
-                                 DESCRIPTOR(interface_desc),
-                                 DESCRIPTOR(hid_desc),
-                                 DESCRIPTOR(endpoint_desc));
+  uint16_t size = USBD_DESC_CombineDescriptors(
+      configuration0, descriptor_list, sizeof(descriptor_list) / sizeof(descriptor_ptr_t));
+  *ptr = configuration0;
+  *length = size;
 }
 
 static char* string_descriptors[] = {
@@ -104,7 +105,7 @@ static char* string_descriptors[] = {
     "42 Keyboard"          // Interface name
 };
 void USBD_GetDescriptor_String(uint8_t** ptr, uint16_t* length, uint8_t index) {
-  USBD_DESCRIPTORS_String(string_descriptors, ptr, length, index);
+  USBD_DESC_GetString(string_descriptors, ptr, length, index);
 }
 
 // --------------------------------------------

@@ -1,5 +1,5 @@
-#ifndef USBD_DESCRIPTORS_H
-#define USBD_DESCRIPTORS_H
+#ifndef USBD_DESC_H
+#define USBD_DESC_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -9,24 +9,14 @@ typedef struct {
   uint16_t size;
 } descriptor_ptr_t;
 
-uint16_t usbd_descriptors_set_configuration_descriptor(uint8_t combined_descriptor[],
-                                                       descriptor_ptr_t descriptor_list[],
-                                                       size_t length);
-
 // Creates descriptor pointer from a struct
-#define DESCRIPTOR(desc) {.ptr = (uint8_t*)&desc, .size = sizeof(desc)}
+#define USBD_DESC(desc) {.ptr = (uint8_t*)&desc, .size = sizeof(desc)}
 
-// Takes an array of bytes and a variable number of descriptors, and copies the descriptors
-// into the byte array.
-#define USBD_DESCRIPTORS_Configuration(combined_desc, ptr, length, ...)                      \
-  descriptor_ptr_t desc_list[] = {__VA_ARGS__};                                              \
-  size_t desc_list_length = sizeof(desc_list) / sizeof(descriptor_ptr_t);                    \
-  usbd_descriptors_set_configuration_descriptor(combined_desc, desc_list, desc_list_length); \
-  ptr = configuration0;                                                                      \
-  length = (uint16_t)configuration0[2] | ((uint16_t)configuration0[3]) << 8
+uint16_t USBD_DESC_CombineDescriptors(uint8_t combined_descriptor[],
+                                      descriptor_ptr_t descriptor_list[], size_t length);
 
-void USBD_DESCRIPTORS_String(char* string_descriptors[], uint8_t** ptr, uint16_t* length,
-                             uint8_t index);
+void USBD_DESC_GetString(char* string_descriptors[], uint8_t** ptr, uint16_t* length,
+                         uint8_t index);
 
 // USB Request handlers
 void USBD_GetDescriptor_Device(uint8_t** ptr, uint16_t* length, uint8_t index);
@@ -44,19 +34,19 @@ void USBD_GetDescriptor_HIDReport(uint8_t** ptr, uint16_t* length, uint8_t index
 //        DESCRIPTORS
 // -----------------------------
 // Defined in the USB 2.0 specification
-#define USBD_DESCRIPTOR_TYPE_Device 1
-#define USBD_DESCRIPTOR_TYPE_Configuration 2
-#define USBD_DESCRIPTOR_TYPE_String 3
-#define USBD_DESCRIPTOR_TYPE_Interface 4
-#define USBD_DESCRIPTOR_TYPE_Endpoint 5
-#define USBD_DESCRIPTOR_TYPE_DeviceQualifier 6
-#define USBD_DESCRIPTOR_TYPE_OtherSpeedConfiguration 7
-#define USBD_DESCRIPTOR_TYPE_InterfacePower 8
+#define USBD_DESC_TYPE_Device 1
+#define USBD_DESC_TYPE_Configuration 2
+#define USBD_DESC_TYPE_String 3
+#define USBD_DESC_TYPE_Interface 4
+#define USBD_DESC_TYPE_Endpoint 5
+#define USBD_DESC_TYPE_DeviceQualifier 6
+#define USBD_DESC_TYPE_OtherSpeedConfiguration 7
+#define USBD_DESC_TYPE_InterfacePower 8
 
 // Defined in the USB Device Class Definition - HID
-#define USBD_DESCRIPTOR_TYPE_HID 0x21
-#define USBD_DESCRIPTOR_TYPE_HIDReport 0x22
-#define USBD_DESCRIPTOR_TYPE_PhysicalDescriptor 0x23
+#define USBD_DESC_TYPE_HID 0x21
+#define USBD_DESC_TYPE_HIDReport 0x22
+#define USBD_DESC_TYPE_PhysicalDescriptor 0x23
 
 // Universal Serial Bus Specification Revision 2.0
 // Table 9-8. Standard DEVICE Descriptor
@@ -249,4 +239,4 @@ typedef struct __attribute__((packed)) {
 #define IO_DataVariableAbsolute IO_Data | IO_Variable | IO_Absolute
 #define IO_ConstantValue IO_Constant | IO_Variable
 
-#endif  // USBD_DESCRIPTORS_H
+#endif  // USBD_DESC_H
