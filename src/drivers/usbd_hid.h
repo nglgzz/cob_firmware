@@ -14,4 +14,7 @@ typedef struct __attribute__((packed, aligned(4))) {
 extern hid_report_t hid_report;
 extern uint32_t current_switches;
 
+extern uint8_t hid_report_desc_keyboard[];
+extern uint16_t hid_report_desc_keyboard_length;
+
 #endif  // USBD_HID_H
