@@ -98,3 +98,5 @@ void USBD_GetDescriptor_Configuration(uint8_t **ptr, uint16_t *length, uint8_t i
     __attribute__((weak, alias("USBD_DefaultHandler")));
 void USBD_GetDescriptor_String(uint8_t **ptr, uint16_t *length, uint8_t index)
     __attribute__((weak, alias("USBD_DefaultHandler")));
+void USBD_GetDescriptor_HIDReport(uint8_t **ptr, uint16_t *length, uint8_t index)
+    __attribute__((weak, alias("USBD_DefaultHandler")));

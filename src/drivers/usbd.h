@@ -7,6 +7,7 @@
 #define USBD_BASE 0x40027000U
 
 void init_usbd();
+void usbd_epin_start(uint8_t ep, uint32_t ptr, uint32_t len);
 
 typedef struct {
   // 5V supply detected on VBUS.
@@ -25,16 +26,11 @@ typedef struct {
   bool transfer_in_progress;
 
   bool endpoint0_configured;
-} usbd_state_t;
-extern usbd_state_t usbd_state;
 
-// void send_report(uint32_t switches);
-// typedef struct __attribute__((packed, aligned(4))) {
-//   uint8_t modifiers;
-//   uint8_t _reserved;
-//   uint8_t keys[6];
-// } hid_report_t;
-// extern hid_report_t hid_report;
+  uint16_t configuration;
+} usbd_state_t;
+
+extern usbd_state_t usbd_state;
 
 typedef struct {
   volatile uint32_t PTR;     // Data pointer

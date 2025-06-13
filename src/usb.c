@@ -100,3 +100,52 @@ static char* string_descriptors[] = {
 void USBD_GetDescriptor_String(uint8_t** ptr, uint16_t* length, uint8_t index) {
   USBD_DESCRIPTORS_String(string_descriptors, ptr, length, index);
 }
+
+// --------------------------------------------
+//        HID Report (Keyboard)
+// --------------------------------------------
+uint8_t hid_report_descriptor[] = {
+    gUsagePage(1),      PAGE_GenericDesktop,     // Usage Page (Generic Desktop)
+    lUsage(1),          USAGE_Keyboard,          // Usage (Keyboard)
+    Collection(1),      COLLECTION_Application,  //   Collection (Application)
+
+    gUsagePage(1),      PAGE_KeyboardKeypad,      //   MODIFIERS / Usage Page (Keyboard/Keypad)
+    lUsageMinimum(1),   0xE0,                     //   Usage Minimum (224)
+    lUsageMaximum(1),   0xE7,                     //   Usage Maximum (231)
+    gLogicalMinimum(1), 0x00,                     //   Logical Minimum (0)
+    gLogicalMaximum(1), 0x01,                     //   Logical Maximum (1)
+    gReportSize(1),     0x01,                     //   Report Size (1)
+    gReportCount(1),    0x08,                     //   Report Count (8)
+    Input(1),           IO_DataVariableAbsolute,  //   Input (Data, Variable, Absolute)
+
+    gReportCount(1),    0x01,              //   RESERVED / Report Count (1)
+    gReportSize(1),     0x08,              //   Report Size (8)
+    Input(1),           IO_ConstantValue,  //   Input (Constant)
+
+    gReportCount(1),    0x05,                     //   LEDS / Report Count (5)
+    gReportSize(1),     0x01,                     //   Report Size (1)
+    gUsagePage(1),      0x08,                     //   Usage Page (LEDs)
+    lUsageMinimum(1),   0x01,                     //   Usage Minimum (1)
+    lUsageMaximum(1),   0x05,                     //   Usage Maximum (5)
+    Output(1),          IO_DataVariableAbsolute,  //   Output (Data, Variable, Absolute)
+
+    gReportCount(1),    0x01,              //   BYTE ALIGNING / Report Count (1)
+    gReportSize(1),     0x03,              //   Report Size (3)
+    Output(1),          IO_ConstantValue,  //   Output (Constant)
+
+    gReportCount(1),    0x06,                 //   KEYS / Report Count (6)
+    gReportSize(1),     0x08,                 //   Report Size (8)
+    gLogicalMinimum(1), 0x00,                 //   Logical Minimum (0)
+    gLogicalMaximum(1), 0x65,                 //   Logical Maximum (101)
+    gUsagePage(1),      PAGE_KeyboardKeypad,  //   Usage Page (Keyboard/Keypad)
+    lUsageMinimum(1),   0x00,                 //   Usage Minimum (0)
+    lUsageMaximum(1),   0x65,                 //   Usage Maximum (101)
+    Input(1),           IO_DataArray,         //   Input (Data, Array)
+
+    EndCollection,  // End Collection
+};
+
+void USBD_GetDescriptor_HIDReport(uint8_t** ptr, uint16_t* length, uint8_t index) {
+  *ptr = hid_report_descriptor;
+  *length = sizeof(hid_report_descriptor);
+}
