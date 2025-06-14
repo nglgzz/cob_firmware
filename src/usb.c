@@ -35,7 +35,7 @@ void USBD_GetDescriptor_Device(uint8_t** ptr, uint16_t* length, uint8_t _index) 
 static const configuration_descriptor_t configuration_desc = {
     .bLength = sizeof(configuration_descriptor_t),
     .bDescriptorType = USBD_DESC_TYPE_Configuration,
-    .wTotalLength = 0x0022,
+    .wTotalLength = 0x0000,  // This gets overwritten by USBD_DESC_CombineDescriptors (0x0022)
 
     .bNumInterfaces = 0x01,
     .bConfigurationValue = 0x01,
@@ -72,8 +72,8 @@ static const uint8_t hid_desc[] = {
 
     // At least one descriptor must be specified, the following are optional.
     USBD_DESC_TYPE_HIDReport,  // .bDescriptorType
-    0x3F,                      // .wDescriptorLength (L)   63 bytes
-    0x00,                      // .wDescriptorLength (H)    63 bytes
+    47U,                       // .wDescriptorLength (L)   47 bytes
+    0x00,                      // .wDescriptorLength (H)
 };
 
 static const endpoint_descriptor_t endpoint_desc = {
@@ -110,6 +110,6 @@ void USBD_GetDescriptor_String(uint8_t** ptr, uint16_t* length, uint8_t index) {
 }
 
 void USBD_GetDescriptor_HIDReport(uint8_t** ptr, uint16_t* length, uint8_t index) {
-  *ptr = hid_report_desc_keyboard;
-  *length = hid_report_desc_keyboard_length;
+  *ptr = hid_report_desc;
+  *length = hid_report_desc_length;
 }

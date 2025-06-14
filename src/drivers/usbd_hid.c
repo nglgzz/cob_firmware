@@ -6,7 +6,7 @@
 #include "usbd.h"
 
 // --------------------------------------------
-//    HID Report Descriptor
+//        HID Report Descriptors
 // --------------------------------------------
 
 // HID 1.11
@@ -58,7 +58,14 @@
 
 // HID Usage Tables
 // 4 Generic Desktop Page (0x01)
+#define USAGE_Pointer 0x01
+#define USAGE_Mouse 0x02
 #define USAGE_Keyboard 0x06
+#define USAGE_X 0x30
+#define USAGE_Y 0x31
+#define USAGE_Z 0x32
+#define USAGE_Wheel 0x38
+#define USAGE_MotionWakeup 0x3C
 
 // HID 1.11
 // 6.2.2.6 Collection, End Collection Items
@@ -76,13 +83,14 @@
 #define IO_Relative 0x01 << 2
 
 #define IO_DataArray IO_Data | IO_Array | IO_Absolute
+#define IO_DataVariableRelative IO_Data | IO_Variable | IO_Relative
 #define IO_DataVariableAbsolute IO_Data | IO_Variable | IO_Absolute
 #define IO_ConstantValue IO_Constant | IO_Array | IO_Absolute
 
 // --------------------------------------------
 //        HID Report (Keyboard)
 // --------------------------------------------
-uint8_t hid_report_desc_keyboard[] = {
+uint8_t hid_report_desc[] = {
     gUsagePage(1),      PAGE_GenericDesktop,     // Usage Page (Generic Desktop)
     lUsage(1),          USAGE_Keyboard,          // Usage (Keyboard)
     Collection(1),      COLLECTION_Application,  //   Collection (Application)
@@ -111,16 +119,22 @@ uint8_t hid_report_desc_keyboard[] = {
 
     EndCollection,  // End Collection
 };
-uint16_t hid_report_desc_keyboard_length = sizeof(hid_report_desc_keyboard);
+uint16_t hid_report_desc_length = sizeof(hid_report_desc);
 
 // --------------------------------------------
-//        HID Report (Utils)
+//        HID Send Report
 // --------------------------------------------
 
-hid_report_t hid_report = {
+hid_report_keyboard_t hid_report_keyboard = {
     .modifiers = 0,
     ._reserved = 0,
     .keys = {0},
+};
+
+hid_report_mouse_t hid_report_mouse = {
+    .report_id = 1,
+    .x = 0,
+    .y = 0,
 };
 
 uint8_t hid_keycodes[] = {0x00, 0x17, 0x15, 0x08};
@@ -132,19 +146,19 @@ void hid_send_report(uint32_t switches) {
   // HID report
   if (switches & 0x01)
     // Left shift
-    hid_report.modifiers = 0x02;
+    hid_report_keyboard.modifiers = 0x02;
   else
-    hid_report.modifiers = 0x00;
+    hid_report_keyboard.modifiers = 0x00;
 
   for (int i = 1; i < 4; i++) {
     if (switches & (0x01 << i))
-      hid_report.keys[i + 2] = hid_keycodes[i];
+      hid_report_keyboard.keys[i + 2] = hid_keycodes[i];
     else
-      hid_report.keys[i + 2] = 0x00;
+      hid_report_keyboard.keys[i + 2] = 0x00;
   }
 
   usbd_state.transfer_in_progress = true;
-  USBD->EPIN[1].PTR = (uint32_t)&hid_report;
-  USBD->EPIN[1].MAXCNT = sizeof(hid_report);
+  USBD->EPIN[1].PTR = (uint32_t)&hid_report_keyboard;
+  USBD->EPIN[1].MAXCNT = sizeof(hid_report_keyboard);
   USBD->TASKS_STARTEPIN[1] = 1;
 }

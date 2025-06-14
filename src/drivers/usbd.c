@@ -14,7 +14,6 @@ usbd_t *const USBD = ((usbd_t *)(USBD_BASE + 0x004U));
 usbd_state_t usbd_state = {};
 
 static inline void usbd_pullup();
-static inline void usbd_reset();
 static inline void usbd_get_descriptor_handler();
 
 void USBD_noop() {}
@@ -53,6 +52,7 @@ void POWER_CLOCK_IRQHandler() {
     //   This anomaly applies to IC Rev.Engineering D, build codes CKAA - DA0, QIAA - DA0. It
     //   was inherited from the previous IC revision Revision 1.
     //   https://docs.nordicsemi.com/bundle/errata_nRF52840_EngD/page/ERR/nRF52840/EngineeringD/latest/err_840.html
+    //   https://docs.nordicsemi.com/bundle/errata_nRF52840_EngD/page/ERR/nRF52840/EngineeringD/latest/anomaly_840_187.html
     //
     // Symptoms
     //   After writing to NRF_USBD->ENABLE, no EVENTS_USBEVENT is triggered, and
@@ -107,7 +107,10 @@ void USBD_IRQHandler() {
 
   if (USBD->EVENTS_USBRESET) {
     USBD->EVENTS_USBRESET = 0;
-    usbd_reset();
+    usbd_state.transfer_in_progress = false;
+    usbd_state.configuration = 0;
+
+    USBD_Reset_Handler();
   }
 
   // A control transfer is a transfer used to configure the USB device. It contains 3 stages:
@@ -215,13 +218,6 @@ static inline void usbd_pullup() {
   }
 }
 
-static inline void usbd_reset() {
-  usbd_state.transfer_in_progress = false;
-  usbd_state.configuration = 0;
-
-  USBD_Reset_Handler();
-}
-
 static inline void usbd_get_descriptor_handler() {
   // GET_DESCRIPTOR
   // - wValueH: descriptor type
@@ -246,11 +242,14 @@ static inline void usbd_get_descriptor_handler() {
     case USBD_DESC_TYPE_Configuration:
       USBD_GetDescriptor_Configuration(&descriptor, &descriptor_length, descriptor_index);
       break;
-    case USBD_DESC_TYPE_HIDReport:
-      USBD_GetDescriptor_HIDReport(&descriptor, &descriptor_length, descriptor_index);
-      break;
     case USBD_DESC_TYPE_String:
       USBD_GetDescriptor_String(&descriptor, &descriptor_length, descriptor_index);
+      break;
+    case USBD_DESC_TYPE_DeviceQualifier:
+      // Only relevant for high speed
+      break;
+    case USBD_DESC_TYPE_HIDReport:
+      USBD_GetDescriptor_HIDReport(&descriptor, &descriptor_length, descriptor_index);
       break;
   }
 
