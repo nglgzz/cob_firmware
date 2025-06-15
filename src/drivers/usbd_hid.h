@@ -6,15 +6,18 @@
 void hid_send_report(uint32_t switches);
 
 typedef struct __attribute__((packed, aligned(4))) {
+  uint8_t report_id;
   uint8_t modifiers;
   uint8_t _reserved;
-  uint8_t keys[6];
+  uint8_t keys[5];
 } hid_report_keyboard_t;
 
 typedef struct __attribute__((packed, aligned(4))) {
   uint8_t report_id;
-  uint16_t x;
-  uint16_t y;
+  uint8_t buttons;
+  int16_t x;
+  int16_t y;
+  int16_t wheel;
 } hid_report_mouse_t;
 
 extern hid_report_keyboard_t hid_report_keyboard;

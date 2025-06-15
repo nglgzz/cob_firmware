@@ -11,39 +11,39 @@
 
 // HID 1.11
 // 6.2.2.4 Main Items
-#define Input(size) 0x80 | (0x03 & size)
-#define Output(size) 0x90 | (0x03 & size)
-#define Feature(size) 0xB0 | (0x03 & size)
-#define Collection(size) 0xA0 | (0x03 & size)
+#define Input(size, value) 0x80 | (0x03 & size), value
+#define Output(size, value) 0x90 | (0x03 & size), value
+#define Feature(size, value) 0xB0 | (0x03 & size), value
+#define Collection(size, value) 0xA0 | (0x03 & size), value
 #define EndCollection 0xC0
 
 // HID 1.11
 // 6.2.2.7 Global Items
-#define gUsagePage(size) 0x04 | (0x03 & size)
-#define gLogicalMinimum(size) 0x14 | (0x03 & size)
-#define gLogicalMaximum(size) 0x24 | (0x03 & size)
-#define gPhysicalMinimum(size) 0x34 | (0x03 & size)
-#define gPhysicalMaximum(size) 0x44 | (0x03 & size)
-#define gUnitExponent(size) 0x54 | (0x03 & size)
-#define gUnit(size) 0x64 | (0x03 & size)
-#define gReportSize(size) 0x74 | (0x03 & size)
-#define gReportId(size) 0x84 | (0x03 & size)
-#define gReportCount(size) 0x94 | (0x03 & size)
-#define gReportPush(size) 0xA4 | (0x03 & size)
-#define gReportPop(size) 0xB4 | (0x03 & size)
+#define UsagePage(size, value) 0x04 | (0x03 & size), value
+#define LogicalMinimum(size, value) 0x14 | (0x03 & size), value
+#define LogicalMaximum(size, value) 0x24 | (0x03 & size), value
+#define PhysicalMinimum(size, value) 0x34 | (0x03 & size), value
+#define PhysicalMaximum(size, value) 0x44 | (0x03 & size), value
+#define UnitExponent(size, value) 0x54 | (0x03 & size), value
+#define Unit(size, value) 0x64 | (0x03 & size), value
+#define ReportSize(size, value) 0x74 | (0x03 & size), value
+#define ReportId(size, value) 0x84 | (0x03 & size), value
+#define ReportCount(size, value) 0x94 | (0x03 & size), value
+#define ReportPush(size, value) 0xA4 | (0x03 & size), value
+#define ReportPop(size, value) 0xB4 | (0x03 & size), value
 
 // HID 1.11
 // 6.2.2.8 Local Items
-#define lUsage(size) 0x08 | (0x03 & size)
-#define lUsageMinimum(size) 0x18 | (0x03 & size)
-#define lUsageMaximum(size) 0x28 | (0x03 & size)
-#define lDesignatorIndex(size) 0x38 | (0x03 & size)
-#define lDesignatorMinimum(size) 0x48 | (0x03 & size)
-#define lDesignatorMaximum(size) 0x58 | (0x03 & size)
-#define lStringIndex(size) 0x78 | (0x03 & size)
-#define lStringMinimum(size) 0x88 | (0x03 & size)
-#define lStringMaximum(size) 0x98 | (0x03 & size)
-#define lDelimiter(size) 0xA8 | (0x03 & size)
+#define Usage(size, value) 0x08 | (0x03 & size), value
+#define UsageMinimum(size, value) 0x18 | (0x03 & size), value
+#define UsageMaximum(size, value) 0x28 | (0x03 & size), value
+#define DesignatorIndex(size, value) 0x38 | (0x03 & size), value
+#define DesignatorMinimum(size, value) 0x48 | (0x03 & size), value
+#define DesignatorMaximum(size, value) 0x58 | (0x03 & size), value
+#define StringIndex(size, value) 0x78 | (0x03 & size), value
+#define StringMinimum(size, value) 0x88 | (0x03 & size), value
+#define StringMaximum(size, value) 0x98 | (0x03 & size), value
+#define Delimiter(size, value) 0xA8 | (0x03 & size), value
 
 // HID Usage Tables
 // 3 Usage Pages
@@ -73,6 +73,9 @@
 //      Output, or Feature.) For example, a mouse could be described as a collection of
 //      two to four data (x, y, button 1, button 2). While the Collection item opens a
 //      collection of data, the End Collection item closes a collection.
+// (group of axes)
+#define COLLECTION_Physical 0x00
+// (mouse, keyboard)
 #define COLLECTION_Application 0x01
 
 #define IO_Data 0x00 << 0
@@ -91,33 +94,72 @@
 //        HID Report (Keyboard)
 // --------------------------------------------
 uint8_t hid_report_desc[] = {
-    gUsagePage(1),      PAGE_GenericDesktop,     // Usage Page (Generic Desktop)
-    lUsage(1),          USAGE_Keyboard,          // Usage (Keyboard)
-    Collection(1),      COLLECTION_Application,  //   Collection (Application)
+    // KEYBOARD
+    UsagePage(1, PAGE_GenericDesktop),
+    Usage(1, USAGE_Keyboard),
+    Collection(1, COLLECTION_Application),
+    //    REPORT ID (1 byte)
+    ReportId(1, 0x01),
 
-    gUsagePage(1),      PAGE_KeyboardKeypad,      //   MODIFIERS / Usage Page (Keyboard/Keypad)
-    lUsageMinimum(1),   0xE0,                     //   Usage Minimum (224)
-    lUsageMaximum(1),   0xE7,                     //   Usage Maximum (231)
-    gLogicalMinimum(1), 0x00,                     //   Logical Minimum (0)
-    gLogicalMaximum(1), 0x01,                     //   Logical Maximum (1)
-    gReportCount(1),    0x08,                     //   Report Count (8)
-    gReportSize(1),     0x01,                     //   Report Size (1)
-    Input(1),           IO_DataVariableAbsolute,  //   Input (Data, Variable, Absolute)
+    //    MODIFIERS (1 byte)
+    UsagePage(1, PAGE_KeyboardKeypad),
+    UsageMinimum(1, 0xE0),
+    UsageMaximum(1, 0xE7),
+    LogicalMinimum(1, 0x00),
+    LogicalMaximum(1, 0x01),
+    ReportSize(1, 0x01),
+    ReportCount(1, 0x08),
+    Input(1, IO_DataVariableAbsolute),
 
-    gReportCount(1),    0x01,              //   RESERVED / Report Count (1)
-    gReportSize(1),     0x08,              //   Report Size (8)
-    Input(1),           IO_ConstantValue,  //   Input (Constant, Array, Absolute)
+    //    RESERVED (1 byte)
+    ReportSize(1, 0x08),
+    ReportCount(1, 0x01),
+    Input(1, IO_ConstantValue),
 
-    gUsagePage(1),      PAGE_KeyboardKeypad,  //   KEYS / Usage Page (Keyboard/Keypad)
-    lUsageMinimum(1),   0x00,                 //   Usage Minimum (0)
-    lUsageMaximum(1),   0xFF,                 //   Usage Maximum (255)
-    gLogicalMinimum(1), 0x00,                 //   Logical Minimum (0)
-    gLogicalMaximum(1), 0xFF,                 //   Logical Maximum (255)
-    gReportCount(1),    0x06,                 //   Report Count (6)
-    gReportSize(1),     0x08,                 //   Report Size (8)
-    Input(1),           IO_DataArray,         //   Input (Data, Array, Absolute)
+    //    KEYS (5 bytes)
+    UsagePage(1, PAGE_KeyboardKeypad),
+    UsageMinimum(1, 0x00),
+    UsageMaximum(1, 0xFF),
+    LogicalMinimum(1, 0x00),
+    LogicalMaximum(1, 0xFF),
+    ReportSize(1, 0x08),
+    ReportCount(1, 0x05),
+    Input(1, IO_DataArray),
+    EndCollection,  // (Application)
+    // END KEYBOARD
 
-    EndCollection,  // End Collection
+    // MOUSE
+    UsagePage(1, PAGE_GenericDesktop),
+    Usage(1, USAGE_Mouse),
+    Collection(1, COLLECTION_Application),
+    //    REPORT ID (1 byte)
+    ReportId(1, 0x02),
+    Usage(1, USAGE_Pointer),
+    Collection(1, COLLECTION_Physical),
+
+    //    BUTTONS (1 byte)
+    UsagePage(1, PAGE_Button),
+    UsageMinimum(1, 0x01),
+    UsageMaximum(1, 0x08),
+    LogicalMinimum(1, 0x00),
+    LogicalMaximum(1, 0x01),
+    ReportCount(1, 0x03),
+    ReportSize(1, 0x01),
+    Input(1, IO_DataVariableAbsolute),
+
+    //    X, Y, WHEEL (6 bytes)
+    UsagePage(1, PAGE_GenericDesktop),
+    Usage(1, USAGE_X),
+    Usage(1, USAGE_Y),
+    Usage(1, USAGE_Wheel),
+    LogicalMinimum(1, 0xFF),  // 255
+    LogicalMaximum(1, 0x01),  // -255
+    ReportSize(1, 0x0F),      // 16 bits
+    ReportCount(1, 0x03),
+    Input(1, IO_DataVariableRelative),
+
+    EndCollection,  // (Physical)
+    EndCollection,  // (Application)
 };
 uint16_t hid_report_desc_length = sizeof(hid_report_desc);
 
@@ -126,39 +168,52 @@ uint16_t hid_report_desc_length = sizeof(hid_report_desc);
 // --------------------------------------------
 
 hid_report_keyboard_t hid_report_keyboard = {
+    .report_id = 1,
     .modifiers = 0,
     ._reserved = 0,
     .keys = {0},
 };
 
 hid_report_mouse_t hid_report_mouse = {
-    .report_id = 1,
+    .report_id = 2,
+    .buttons = 0,
     .x = 0,
     .y = 0,
+    .wheel = 0,
 };
 
 uint8_t hid_keycodes[] = {0x00, 0x17, 0x15, 0x08};
 uint32_t current_switches = 0;
 
 void hid_send_report(uint32_t switches) {
+  if (!(usbd_state.usbd_ready && usbd_state.vbus_detected && usbd_state.usb_power_ready)) {
+    return;
+  }
+
   current_switches = switches;
+  bool keyboard_changed = (switches & 0x0C) || hid_report_keyboard.keys[0] ||
+                          hid_report_keyboard.keys[1] || hid_report_keyboard.keys[2];
 
   // HID report
   if (switches & 0x01)
     // Left shift
-    hid_report_keyboard.modifiers = 0x02;
+    hid_report_mouse.x += 100;
+  else if (switches & 0x02)
+    hid_report_mouse.x -= 100;
   else
-    hid_report_keyboard.modifiers = 0x00;
+    hid_report_mouse.x = 0;
 
-  for (int i = 1; i < 4; i++) {
+  for (int i = 2; i < 4; i++) {
     if (switches & (0x01 << i))
-      hid_report_keyboard.keys[i + 2] = hid_keycodes[i];
+      hid_report_keyboard.keys[i - 1] = hid_keycodes[i];
     else
-      hid_report_keyboard.keys[i + 2] = 0x00;
+      hid_report_keyboard.keys[i - 1] = 0x00;
   }
 
-  usbd_state.transfer_in_progress = true;
-  USBD->EPIN[1].PTR = (uint32_t)&hid_report_keyboard;
-  USBD->EPIN[1].MAXCNT = sizeof(hid_report_keyboard);
-  USBD->TASKS_STARTEPIN[1] = 1;
+  // TODO: implement queue or split into separate endpoints
+  if (keyboard_changed) {
+    usbd_epin_start(1, (uint32_t)&hid_report_keyboard, sizeof(hid_report_keyboard));
+  } else {
+    usbd_epin_start(1, (uint32_t)&hid_report_mouse, sizeof(hid_report_mouse));
+  }
 }

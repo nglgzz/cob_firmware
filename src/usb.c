@@ -56,7 +56,7 @@ static const interface_descriptor_t interface_desc = {
     .bInterfaceClass = 0x03,  // HID Class
     // TODO: turn this into a boot subclass (and figure out what's needed to support that)
     .bInterfaceSubClass = 0x00,  // 0: No subclass, 1: Boot interface
-    .bInterfaceProtocol = 0x01,  // 0: None, 1: Keyboard, 2: Mouse
+    .bInterfaceProtocol = 0x00,  // 0: None, 1: Keyboard, 2: Mouse
     .iInterface = 0x00,
 };
 
@@ -72,7 +72,7 @@ static const uint8_t hid_desc[] = {
 
     // At least one descriptor must be specified, the following are optional.
     USBD_DESC_TYPE_HIDReport,  // .bDescriptorType
-    47U,                       // .wDescriptorLength (L)   47 bytes
+    95U,                       // .wDescriptorLength (L) in bytes
     0x00,                      // .wDescriptorLength (H)
 };
 
@@ -82,7 +82,7 @@ static const endpoint_descriptor_t endpoint_desc = {
 
     .bEndpointAddress = 0x81,  // IN endpoint 1
     .bmAttributes = 0x03,      // Interrupt
-    .wMaxPacketSize = 0x0008,  // 8 bytes
+    .wMaxPacketSize = 0x0016,  // 16 bytes
     .bInterval = 0x0A,         // 10ms
 };
 static uint8_t configuration0[64];
