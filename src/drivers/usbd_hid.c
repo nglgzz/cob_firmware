@@ -197,9 +197,9 @@ void hid_send_report(uint32_t switches) {
   // HID report
   if (switches & 0x01)
     // Left shift
-    hid_report_mouse.x += 100;
+    hid_report_mouse.x += 200;
   else if (switches & 0x02)
-    hid_report_mouse.x -= 100;
+    hid_report_mouse.x -= 200;
   else
     hid_report_mouse.x = 0;
 

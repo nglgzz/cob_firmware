@@ -15,6 +15,7 @@ usbd_state_t usbd_state = {};
 
 static inline void usbd_pullup();
 static inline void usbd_get_descriptor_handler();
+static inline void usbd_epin0_transfer(uint32_t ptr, uint16_t len, uint16_t max_len);
 
 void USBD_noop() {}
 void USBD_Reset_Handler() __attribute__((weak, alias("USBD_noop")));
@@ -26,15 +27,8 @@ void init_usbd() {
   POWER_INTENSET = POWER_INTENSET_USBDETECTED_Msk | POWER_INTENSET_USBREMOVED_Msk |
                    POWER_INTENSET_USBPWRRDY_Msk;
 
-  USBD->INTENSET = USBD_INTENSET_USBEVENT_Msk | USBD_INTENSET_USBRESET_Msk |
-                   USBD_INTENSET_EP0SETUP_Msk | USBD_INTENSET_ENDEPIN0_Msk |
-                   USBD_INTENSET_ENDEPIN1_Msk;
-
-  // It is possible to enable a shortcut from the EP0DATADONE event to the EP0STATUS task,
-  // typically if the data stage is expected to take a single transfer. If there is no data
-  // stage, the software can initiate the status stage through the EP0STATUS task right away,
-  // as as shown in the following figure.
-  USBD->SHORTS = USBD_SHORTS_EP0DATADONE_EP0STATUS_Msk;
+  USBD->INTENSET =
+      USBD_INTENSET_USBEVENT_Msk | USBD_INTENSET_USBRESET_Msk | USBD_INTENSET_EP0SETUP_Msk;
 
   NVIC_EnableIRQ(USBD_IRQn);
   NVIC_EnableIRQ(POWER_CLOCK_IRQn);
@@ -186,12 +180,6 @@ void USBD_IRQHandler() {
     }
   }
 
-  if (USBD->EVENTS_ENDEPIN[0]) {
-    USBD->EVENTS_ENDEPIN[0] = 0;
-    // TODO:
-    // usbd_state.transfer_in_progress = false;
-  }
-
   if (USBD->EVENTS_ENDEPIN[1]) {
     USBD->EVENTS_ENDEPIN[1] = 0;
     usbd_state.transfer_in_progress = false;
@@ -255,26 +243,87 @@ static inline void usbd_get_descriptor_handler() {
 
   if (descriptor) {
     // Send the descriptor
-    usbd_epin_start(
-        0, (uint32_t)descriptor, (wLength < descriptor_length) ? wLength : descriptor_length);
+    usbd_epin0_transfer((uint32_t)descriptor, descriptor_length, wLength);
   } else {
     USBD->TASKS_EP0STALL = 1;
   }
 }
 
+static inline void usbd_epin0_transfer(uint32_t ptr, uint16_t len, uint16_t max_len) {
+  usbd_state.transfer_in_progress = true;
+  // If what we're trying to send is longer than the max total length determined by the
+  // host, then we'll need to truncate the data we send.
+  uint16_t send_len = (len < max_len) ? len : max_len;
+
+  // If what we're trying to send is longer than the max packet size defined in the device
+  // descriptor, then we'll need to send the data in multiple packets.
+  uint16_t max_packet_size = 64;
+
+  uint16_t bytes_sent = 0;
+  while (bytes_sent < send_len) {
+    uint16_t packet_size = ((send_len - bytes_sent) < max_packet_size)
+                               ? (send_len - bytes_sent)
+                               : max_packet_size;
+
+    usbd_epin_start(0, ptr + bytes_sent, packet_size);
+    bytes_sent += packet_size;
+  }
+
+  USBD->TASKS_EP0STATUS = 1;
+  usbd_state.transfer_in_progress = false;
+}
+
 inline void usbd_epin_start(uint8_t ep, uint32_t ptr, uint32_t len) {
-  // TODO: Assuming for now that endpoint 0 transfers don't need to wait for the current
-  // transfer to end. This is to avoid accidentally blocking the setup stage while waiting for
-  // some other endpoint to finish a transfer that may never end. Probably need a more reliable
-  // way to detect both the start and end of a transfer.
+  // TODO: re-enable this
+  // if (ep != 0 && usbd_state.transfer_in_progress) {
+  //   // Drop requests from other endpoints if there are transfers in progress in endpoint 0.
+  //   // This is to avoid blocking setup requests and potentially ending with a deadlock
+  //   // (i.e. endpoint 0 waiting for another endpoint to complete its transfer and the other
+  //   // endpoint not being able to complete the transfer if the setup is not complete).
+  //   return;
+  // }
+
   if (ep != 0) {
     // Wait until the current transfer is done before starting another one.
     while (usbd_state.transfer_in_progress);
     usbd_state.transfer_in_progress = true;
   }
 
+  if (ep == 0) {
+    // Clear the event just in case, since we're gonna wait for it.
+    USBD->EVENTS_EP0DATADONE = 0;
+  }
+
   uint8_t ep_n = ep % 8;
+
+  // The following lines are magic incantations from nRF52840 Engineering D Errata v1.5, to
+  // address the following issue:
+  //
+  // 3.30 [199] USBD: USBD cannot receive tasks during DMA
+  //   This anomaly applies to IC Rev. Engineering D, build codes CKAA-DA0, QIAA-DA0.
+  //   It was inherited from the previous IC revision Revision 1.
+  //   https://docs.nordicsemi.com/bundle/errata_nRF52840_EngD/page/ERR/nRF52840/EngineeringD/latest/err_840.html
+  //   https://docs.nordicsemi.com/bundle/errata_nRF52840_EngD/page/ERR/nRF52840/EngineeringD/latest/anomaly_840_199.html
+  //
+  // Symptoms
+  //   The USBD does not perform incoming tasks.
+  //
+  // To enable incoming tasks when using DMA, use the following code when starting a DMA
+  // transfer:
+  *(volatile uint32_t *)0x40027C1C = 0x00000082;
   USBD->EPIN[ep_n].PTR = ptr;
   USBD->EPIN[ep_n].MAXCNT = len;
   USBD->TASKS_STARTEPIN[ep_n] = 1;
+
+  if (ep_n == 0) {
+    while (USBD->EVENTS_EP0DATADONE == 0);
+    USBD->EVENTS_EP0DATADONE = 0;
+  } else {
+    while (USBD->EVENTS_ENDEPIN[ep_n] == 0);
+    USBD->EVENTS_ENDEPIN[ep_n] = 0;
+    usbd_state.transfer_in_progress = false;
+  }
+
+  // After the DMA transfer is completed, use:
+  *(volatile uint32_t *)0x40027C1C = 0x00000000;
 }
