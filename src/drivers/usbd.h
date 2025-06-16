@@ -151,4 +151,19 @@ typedef struct {
 
 extern usbd_t* const USBD;
 
+// Defined in the USB 2.0 specification
+#define USBD_DESC_TYPE_Device 1
+#define USBD_DESC_TYPE_Configuration 2
+#define USBD_DESC_TYPE_String 3
+#define USBD_DESC_TYPE_Interface 4
+#define USBD_DESC_TYPE_Endpoint 5
+#define USBD_DESC_TYPE_DeviceQualifier 6
+#define USBD_DESC_TYPE_OtherSpeedConfiguration 7
+#define USBD_DESC_TYPE_InterfacePower 8
+
+// Defined in the USB Device Class Definition - HID
+#define USBD_DESC_TYPE_HID 0x21
+#define USBD_DESC_TYPE_HIDReport 0x22
+#define USBD_DESC_TYPE_PhysicalDescriptor 0x23
+
 #endif  // USBD_H

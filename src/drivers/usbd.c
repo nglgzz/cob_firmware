@@ -7,7 +7,6 @@
 #include "core.h"
 #include "nrf52840_bitfields.h"
 #include "power.h"
-#include "usbd_desc.h"
 #include "utils.h"
 
 usbd_t *const USBD = ((usbd_t *)(USBD_BASE + 0x004U));
@@ -18,7 +17,17 @@ static inline void usbd_get_descriptor_handler();
 static inline void usbd_epin0_transfer(uint32_t ptr, uint16_t len, uint16_t max_len);
 
 void USBD_noop() {}
+void USBD_DefaultHandler(uint8_t **ptr, uint16_t *length, uint8_t index) {}
+
 void USBD_Reset_Handler() __attribute__((weak, alias("USBD_noop")));
+void USBD_GetDescriptor_Device(uint8_t **ptr, uint16_t *length, uint8_t index)
+    __attribute__((weak, alias("USBD_DefaultHandler")));
+void USBD_GetDescriptor_Configuration(uint8_t **ptr, uint16_t *length, uint8_t index)
+    __attribute__((weak, alias("USBD_DefaultHandler")));
+void USBD_GetDescriptor_String(uint8_t **ptr, uint16_t *length, uint8_t index)
+    __attribute__((weak, alias("USBD_DefaultHandler")));
+void USBD_GetDescriptor_HIDReport(uint8_t **ptr, uint16_t *length, uint8_t index)
+    __attribute__((weak, alias("USBD_DefaultHandler")));
 
 void init_usbd() {
   CLOCK->TASKS_HFCLKSTART = 1;

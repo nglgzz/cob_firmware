@@ -4,7 +4,7 @@
 #include "leds.h"
 #include "probe.h"
 #include "radio.h"
-#include "usbd_hid.h"
+#include "usb_hid.h"
 #include "utils.h"
 
 static radio_packet_t packet = {.len = 48, .data = {0}};

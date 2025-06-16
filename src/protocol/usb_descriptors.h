@@ -1,5 +1,5 @@
-#ifndef USBD_DESC_H
-#define USBD_DESC_H
+#ifndef USB_DESCRIPTORS_H
+#define USB_DESCRIPTORS_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -8,21 +8,6 @@ typedef struct {
   uint8_t* ptr;
   uint16_t size;
 } descriptor_ptr_t;
-
-// Creates descriptor pointer from a struct
-#define USBD_DESC(desc) {.ptr = (uint8_t*)&desc, .size = sizeof(desc)}
-
-uint16_t USBD_DESC_CombineDescriptors(uint8_t combined_descriptor[],
-                                      descriptor_ptr_t descriptor_list[], size_t length);
-
-void USBD_DESC_GetString(char* string_descriptors[], uint8_t** ptr, uint16_t* length,
-                         uint8_t index);
-
-// USB Request handlers
-void USBD_GetDescriptor_Device(uint8_t** ptr, uint16_t* length, uint8_t index);
-void USBD_GetDescriptor_Configuration(uint8_t** ptr, uint16_t* length, uint8_t index);
-void USBD_GetDescriptor_String(uint8_t** ptr, uint16_t* length, uint8_t index);
-void USBD_GetDescriptor_HIDReport(uint8_t** ptr, uint16_t* length, uint8_t index);
 
 // -----------------------------
 //        FEATURES
@@ -33,20 +18,6 @@ void USBD_GetDescriptor_HIDReport(uint8_t** ptr, uint16_t* length, uint8_t index
 // -----------------------------
 //        DESCRIPTORS
 // -----------------------------
-// Defined in the USB 2.0 specification
-#define USBD_DESC_TYPE_Device 1
-#define USBD_DESC_TYPE_Configuration 2
-#define USBD_DESC_TYPE_String 3
-#define USBD_DESC_TYPE_Interface 4
-#define USBD_DESC_TYPE_Endpoint 5
-#define USBD_DESC_TYPE_DeviceQualifier 6
-#define USBD_DESC_TYPE_OtherSpeedConfiguration 7
-#define USBD_DESC_TYPE_InterfacePower 8
-
-// Defined in the USB Device Class Definition - HID
-#define USBD_DESC_TYPE_HID 0x21
-#define USBD_DESC_TYPE_HIDReport 0x22
-#define USBD_DESC_TYPE_PhysicalDescriptor 0x23
 
 // Universal Serial Bus Specification Revision 2.0
 // Table 9-8. Standard DEVICE Descriptor
@@ -175,68 +146,4 @@ typedef struct __attribute__((packed)) {
   hid_class_descriptor_t hidClassDescriptors[];
 } hid_descriptor_t;
 
-// --------------------------------------------
-//    HID Report Descriptor
-// --------------------------------------------
-
-// Main items
-#define Input(size) 0x80 | (0x03 & size)
-#define Output(size) 0x90 | (0x03 & size)
-#define Feature(size) 0xB0 | (0x03 & size)
-#define Collection(size) 0xA0 | (0x03 & size)
-#define EndCollection 0xC0
-
-// Global Items
-#define gUsagePage(size) 0x04 | (0x03 & size)
-#define gLogicalMinimum(size) 0x14 | (0x03 & size)
-#define gLogicalMaximum(size) 0x24 | (0x03 & size)
-#define gPhysicalMinimum(size) 0x34 | (0x03 & size)
-#define gPhysicalMaximum(size) 0x44 | (0x03 & size)
-#define gUnitExponent(size) 0x54 | (0x03 & size)
-#define gUnit(size) 0x64 | (0x03 & size)
-#define gReportSize(size) 0x74 | (0x03 & size)
-#define gReportId(size) 0x84 | (0x03 & size)
-#define gReportCount(size) 0x94 | (0x03 & size)
-#define gReportPush(size) 0xA4 | (0x03 & size)
-#define gReportPop(size) 0xB4 | (0x03 & size)
-
-// Local Items
-#define lUsage(size) 0x08 | (0x03 & size)
-#define lUsageMinimum(size) 0x18 | (0x03 & size)
-#define lUsageMaximum(size) 0x28 | (0x03 & size)
-#define lDesignatorIndex(size) 0x38 | (0x03 & size)
-#define lDesignatorMinimum(size) 0x48 | (0x03 & size)
-#define lDesignatorMaximum(size) 0x58 | (0x03 & size)
-#define lStringIndex(size) 0x78 | (0x03 & size)
-#define lStringMinimum(size) 0x88 | (0x03 & size)
-#define lStringMaximum(size) 0x98 | (0x03 & size)
-#define lDelimiter(size) 0xA8 | (0x03 & size)
-
-// Pages
-#define PAGE_GenericDesktop 0x01
-#define PAGE_KeyboardKeypad 0x07
-#define PAGE_Led 0x08
-#define PAGE_Button 0x09
-#define PAGE_Consumer 0x0C
-#define PAGE_Digitizers 0x0D
-#define PAGE_Unicode 0x10
-#define PAGE_Sensors 0x20
-
-// Usages
-#define USAGE_Keyboard 0x06
-
-// Collections
-#define COLLECTION_Application 0x01
-
-#define IO_Data 0x00 << 0
-#define IO_Constant 0x01 << 0
-#define IO_Array 0x00 << 1
-#define IO_Variable 0x01 << 1
-#define IO_Absolute 0x00 << 2
-#define IO_Relative 0x01 << 2
-
-#define IO_DataArray IO_Data | IO_Array
-#define IO_DataVariableAbsolute IO_Data | IO_Variable | IO_Absolute
-#define IO_ConstantValue IO_Constant | IO_Variable
-
-#endif  // USBD_DESC_H
+#endif  // USB_DESCRIPTORS_H
