@@ -35,6 +35,11 @@ Define the RESET handler in which you should enable the relevant endpoints.
 void USBD_Reset_Handler();
 ```
 
+### Lengths
+
+- Length of HID report descriptor inside of the HID descriptor
+- Endpoint max packet size
+
 ### Startup
 
 Call `usbd_init()` to start up the peripheral and start listening to USB events.

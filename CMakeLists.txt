@@ -20,6 +20,8 @@ file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.c")
 include_directories(
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/drivers
+    ${CMAKE_SOURCE_DIR}/src/examples
+    ${CMAKE_SOURCE_DIR}/src/protocol
 )
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES})
