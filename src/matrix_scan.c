@@ -33,34 +33,34 @@ static switch_report_t report = {
     .port = 0,
 };
 
-void send(uint32_t switches) {
-  report.device = 0x00;
-  report.pins = switches;
-  report.port = 0;
+// void send(uint32_t switches) {
+//   report.device = 0x00;
+//   report.pins = switches;
+//   report.port = 0;
 
-  memcpy((void*)packet.data, &report, sizeof(report));
-  radio_send(&packet);
-}
-void RADIO_SentHandler(volatile radio_packet_t* payload) {
-  for (int i = 0; i < 4; i++) {
-    if (report.pins & (1 << i)) {
-      leds_set(i, 1);
-    } else {
-      leds_set(i, 0);
-    }
-  }
-};
+//   memcpy((void*)packet.data, &report, sizeof(report));
+//   radio_send(&packet);
+// }
+// void RADIO_SentHandler(volatile radio_packet_t* payload) {
+//   for (int i = 0; i < 2; i++) {
+//     if (report.pins & (1 << i)) {
+//       leds_set(i, 1);
+//     } else {
+//       leds_set(i, 0);
+//     }
+//   }
+// };
 
-void receive() { radio_receive(); }
-void RADIO_ReceivedHandler(volatile radio_packet_t* payload) {
-  if (RADIO->CRCSTATUS == 1) {
-    memcpy((void*)&report, (void*)payload->data, sizeof(report));
+// void receive() { radio_receive(); }
+// void RADIO_ReceivedHandler(volatile radio_packet_t* payload) {
+//   if (RADIO->CRCSTATUS == 1) {
+//     memcpy((void*)&report, (void*)payload->data, sizeof(report));
 
-    for (int i = 0; i < 4; i++) {
-      leds_set(i, report.pins & (1U << i));
-    }
+//     for (int i = 0; i < 2; i++) {
+//       leds_set(i, report.pins & (1U << i));
+//     }
 
-    hid_send_report(report.pins);
-  }
-  radio_receive();
-};
+//     hid_send_report(report.pins);
+//   }
+//   radio_receive();
+// };

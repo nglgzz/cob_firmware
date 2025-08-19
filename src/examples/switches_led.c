@@ -22,5 +22,6 @@ int example_switches_led() {
     __asm__("WFI");
   }
 }
-
+#ifdef EXAMPLE_SWITCHES_LED
 void SWITCHES_PressedHandler(uint32_t switches) { leds_set_all(switches); }
+#endif

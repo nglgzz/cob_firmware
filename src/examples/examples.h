@@ -12,6 +12,19 @@
 #define SW_PIN_4 25  // 0x50000764
 
 int example_blinky();
+
+// Show the current pressed switches by turning on/off the corresponding LEDs.
 int example_switches_led();
+
+// Send the current pressed switches via radio, and turn on/off the corresponding LEDs.
+int example_switches_radio();
+
+// Send the current pressed switches via radio, turn on/off the corresponding LEDs, and send
+// the corresponding keypress via USB HID.
+int example_switches_radio_hid();
+
+// Send values on the radio at an interval, and show the corresponding received values with
+// LEDs.
+int example_radio_auto_tx();
 
 #endif  // EXAMPLES_H
