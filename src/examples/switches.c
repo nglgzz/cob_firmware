@@ -21,3 +21,8 @@ int example_switches() {
     __asm__("WFI");
   }
 }
+
+void SWITCH_PressedHandler(uint32_t switches) {
+  //
+  toggle_many(switches);
+}

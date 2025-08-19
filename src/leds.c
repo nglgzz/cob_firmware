@@ -1,3 +1,8 @@
+/**
+ * NOTES:
+ *    - Max number of LEDs is determined by MAX_LED_PINS_SIZE.
+ *    - All LEDs need to be on GPIO port 0.
+ */
 #include "leds.h"
 
 #include <stddef.h>
@@ -10,7 +15,6 @@
 uint8_t led_pins[MAX_LED_PINS_SIZE];
 size_t led_pins_size;
 
-// Max size is determined by MAX_LED_PINS_SIZE
 void init_leds(uint8_t pins[], size_t pins_size) {
   led_pins_size = pins_size <= MAX_LED_PINS_SIZE ? pins_size : MAX_LED_PINS_SIZE;
   memcpy(led_pins, pins, led_pins_size);
@@ -30,6 +34,16 @@ void toggle_led(int index, int state) {
     GPIO0->OUTCLR = (GPIO_OUTCLR_PIN0_Clear << led_pins[index % led_pins_size]);
   } else {
     GPIO0->OUTSET = (GPIO_OUTSET_PIN0_Set << led_pins[index % led_pins_size]);
+  }
+}
+
+void toggle_many(uint32_t leds) {
+  for (int i = 0; i < led_pins_size; i++) {
+    if (leds & (1 << i)) {
+      toggle_led(i, 1);
+    } else {
+      toggle_led(i, 0);
+    }
   }
 }
 

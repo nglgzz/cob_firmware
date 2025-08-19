@@ -1,3 +1,8 @@
+/**
+ * NOTES:
+ *    - Max number of switches is determined by MAX_SWITCH_PINS_SIZE.
+ *    - All switches need to be on GPIO port 0.
+ */
 #include "switches.h"
 
 #include <stddef.h>
@@ -5,10 +10,7 @@
 #include "core.h"
 #include "gpio.h"
 #include "gpiote.h"
-#include "leds.h"
-#include "matrix_scan.h"
 #include "nrf52840_bitfields.h"
-#include "usb_hid.h"
 #include "utils.h"
 
 uint8_t switch_pins[MAX_SWITCH_PINS_SIZE];
@@ -23,6 +25,9 @@ static const uint32_t sense_high = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_P
                                    (GPIO_PIN_CNF_INPUT_Connect << GPIO_PIN_CNF_INPUT_Pos) |
                                    (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos) |
                                    (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
+
+void SWITCH_noop(uint32_t switches) {}
+void SWITCH_PressedHandler(uint32_t switches) __attribute__((weak, alias("SWITCH_noop")));
 
 void init_switches(uint8_t pins[], size_t pins_size) {
   switch_pins_size = pins_size <= MAX_SWITCH_PINS_SIZE ? pins_size : MAX_SWITCH_PINS_SIZE;
@@ -66,6 +71,7 @@ void GPIOTE_IRQHandler() {
     for (int i = 0; i < switch_pins_size; i++) {
       uint16_t pin = switch_pins[i];
       uint32_t pinValue = GPIO0->IN & (GPIO_IN_PIN0_High << pin);
+      // TODO: debounce read
 
       // The values are flipped because the switches are pulled up (i.e. 1 is low and 0 is
       // high).
@@ -77,10 +83,9 @@ void GPIOTE_IRQHandler() {
         GPIO0->PIN_CNF[switch_pins[i]] = sense_high;
       }
     }
-    send(switches);
-    hid_send_report(switches);
-
     // Clear potential PORT events that could have occurred during configuration.
     GPIOTE->EVENTS_PORT = 0;
+
+    SWITCH_PressedHandler(switches);
   }
 }
