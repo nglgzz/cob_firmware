@@ -1,7 +1,5 @@
 #include "leds.h"
 
-// stddef is defining size_t, while stdint is defining fixed width integer
-// types, both are used in the "leds.c" file.
 #include <stddef.h>
 #include <stdint.h>
 
@@ -9,14 +7,14 @@
 #include "nrf52840_bitfields.h"
 #include "utils.h"
 
-// uintn_t is a fixed width integer, the size of a regular int is implementation
-// dependent.
-static uint8_t led_pins[] = {LED_PIN_2, LED_PIN_4, LED_PIN_3, LED_PIN_1};
-// size_t is a type used to represent the size of an object, most functions that
-// deal with sizes, expect or return this type.
-static size_t led_pins_size = sizeof(led_pins) / sizeof(led_pins[0]);
+uint8_t led_pins[MAX_LED_PINS_SIZE];
+size_t led_pins_size;
 
-void init_leds() {
+// Max size is determined by MAX_LED_PINS_SIZE
+void init_leds(uint8_t pins[], size_t pins_size) {
+  led_pins_size = pins_size <= MAX_LED_PINS_SIZE ? pins_size : MAX_LED_PINS_SIZE;
+  memcpy(led_pins, pins, led_pins_size);
+
   for (int i = 0; i < led_pins_size; i++) {
     // toggling GPIO_DIR at pin number (led_pins[i]) to high
     // which makes all led_pins output pins.

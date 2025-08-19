@@ -9,9 +9,10 @@
 #include "matrix_scan.h"
 #include "nrf52840_bitfields.h"
 #include "usb_hid.h"
+#include "utils.h"
 
-static uint16_t switch_pins[] = {SW_PIN_2, SW_PIN_4, SW_PIN_3, SW_PIN_1};
-static size_t switch_pins_size = sizeof(switch_pins) / sizeof(switch_pins[0]);
+uint8_t switch_pins[MAX_SWITCH_PINS_SIZE];
+size_t switch_pins_size;
 
 static const uint32_t sense_low = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos) |
                                   (GPIO_PIN_CNF_INPUT_Connect << GPIO_PIN_CNF_INPUT_Pos) |
@@ -23,7 +24,10 @@ static const uint32_t sense_high = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_P
                                    (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos) |
                                    (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
 
-void init_switches() {
+void init_switches(uint8_t pins[], size_t pins_size) {
+  switch_pins_size = pins_size <= MAX_SWITCH_PINS_SIZE ? pins_size : MAX_SWITCH_PINS_SIZE;
+  memcpy(switch_pins, pins, switch_pins_size);
+
   // Enable the GPIOTE interrupt request handler. If this is not set, the
   // peripheral can still generate interrupts, but they end up permanently
   // pending as the handlers are not executed.

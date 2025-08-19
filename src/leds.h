@@ -3,14 +3,13 @@
 #ifndef LED_H
 #define LED_H
 
-void init_leds();
+#include <stddef.h>
+#include <stdint.h>
+
+void init_leds(uint8_t pins[], size_t pins_size);
 void toggle_led(int index, int state);
 void blink_leds();
 
-// All of these pins are on port 0
-#define LED_PIN_1 13
-#define LED_PIN_2 14
-#define LED_PIN_3 15
-#define LED_PIN_4 16
+#define MAX_LED_PINS_SIZE 8
 
 #endif  // LED_H
