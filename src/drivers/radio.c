@@ -27,6 +27,12 @@ radio_t *const RADIO = ((radio_t *)RADIO_BASE);
 static radio_packet_t tx_packet = {.len = PAYLOAD_LEN, .data = {0}};
 static radio_packet_t rx_packet = {.len = PAYLOAD_LEN, .data = {0}};
 
+void RADIO_noop(volatile radio_packet_t *payload) {}
+void RADIO_ReceivedHandler(volatile radio_packet_t *payload)
+    __attribute__((weak, alias("RADIO_noop")));
+void RADIO_SentHandler(volatile radio_packet_t *payload)
+    __attribute__((weak, alias("RADIO_noop")));
+
 void init_radio() {
   CLOCK->TASKS_HFCLKSTART = 1;
   while (CLOCK->EVENTS_HFCLKSTARTED == 0);
@@ -109,12 +115,6 @@ void radio_send(radio_packet_t *payload) {
   probe_on(PP_D1);     // ramp-up start
   RADIO->TASKS_TXEN = 1;
 }
-
-void RADIO_noop(volatile radio_packet_t *payload) {}
-void RADIO_ReceivedHandler(volatile radio_packet_t *payload)
-    __attribute__((weak, alias("RADIO_noop")));
-void RADIO_SentHandler(volatile radio_packet_t *payload)
-    __attribute__((weak, alias("RADIO_noop")));
 
 void RADIO_IRQHandler() {
   if (RADIO->EVENTS_READY) {

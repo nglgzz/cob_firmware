@@ -10,10 +10,10 @@ static uint8_t led_pins_size = sizeof(led_pins) / sizeof(uint8_t);
 int example_blinky() {
   init_leds(led_pins, led_pins_size);
 
-  blink_leds(500000);
+  leds_blink(500000);
 
   while (1) {
-    blink_leds(500000);
+    leds_blink(500000);
     delay(500000);
   }
 }

@@ -44,9 +44,9 @@ void send(uint32_t switches) {
 void RADIO_SentHandler(volatile radio_packet_t* payload) {
   for (int i = 0; i < 4; i++) {
     if (report.pins & (1 << i)) {
-      toggle_led(i, 1);
+      leds_set(i, 1);
     } else {
-      toggle_led(i, 0);
+      leds_set(i, 0);
     }
   }
 };
@@ -57,7 +57,7 @@ void RADIO_ReceivedHandler(volatile radio_packet_t* payload) {
     memcpy((void*)&report, (void*)payload->data, sizeof(report));
 
     for (int i = 0; i < 4; i++) {
-      toggle_led(i, report.pins & (1U << i));
+      leds_set(i, report.pins & (1U << i));
     }
 
     hid_send_report(report.pins);

@@ -8,12 +8,14 @@
 gpio_t *const GPIO0 = (gpio_t *)(GPIO0_BASE + 0x504U);
 gpio_t *const GPIO1 = (gpio_t *)(GPIO1_BASE + 0x504U);
 
+// Configure the specified pin to be an output pin
 void gpio_dir_pin_output(gpio_t *port, uint8_t pin) {
   // toggling GPIO_DIR at pin number `pin` to high
   // which makes it an output pin.
   port->DIRSET = (GPIO_DIRSET_PIN0_Set << pin);
 }
 
+// Set the output value of a pin
 void gpio_out_pin(gpio_t *port, uint8_t pin, bool value) {
   if (value) {
     port->OUTSET = (GPIO_OUTSET_PIN0_Set << pin);

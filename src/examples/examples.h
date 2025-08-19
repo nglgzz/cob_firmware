@@ -12,6 +12,6 @@
 #define SW_PIN_4 25  // 0x50000764
 
 int example_blinky();
-int example_switches();
+int example_switches_led();
 
 #endif  // EXAMPLES_H

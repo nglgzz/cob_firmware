@@ -29,28 +29,28 @@ void init_leds(uint8_t pins[], size_t pins_size) {
 }
 
 // State is 1 = on, 0 = off
-void toggle_led(int index, int state) {
-  if (state) {
+void leds_set(int index, int on) {
+  if (on) {
     GPIO0->OUTCLR = (GPIO_OUTCLR_PIN0_Clear << led_pins[index % led_pins_size]);
   } else {
     GPIO0->OUTSET = (GPIO_OUTSET_PIN0_Set << led_pins[index % led_pins_size]);
   }
 }
 
-void toggle_many(uint32_t leds) {
+void leds_set_all(uint32_t leds) {
   for (int i = 0; i < led_pins_size; i++) {
     if (leds & (1 << i)) {
-      toggle_led(i, 1);
+      leds_set(i, 1);
     } else {
-      toggle_led(i, 0);
+      leds_set(i, 0);
     }
   }
 }
 
-void blink_leds(uint32_t duration) {
+void leds_blink(uint32_t duration) {
   for (int i = 0; i < led_pins_size; i++) {
-    toggle_led(i, 1);
+    leds_set(i, 1);
     delay(duration);
-    toggle_led(i, 0);
+    leds_set(i, 0);
   }
 }
