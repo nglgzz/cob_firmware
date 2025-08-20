@@ -1,18 +1,13 @@
 #ifndef RADIO_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #define RADIO_BASE 0x40001000U
 
-#define RADIO_PAYLOAD_MAXLEN 128
-typedef struct {
-  volatile uint8_t len;
-  volatile uint8_t data[RADIO_PAYLOAD_MAXLEN];
-} radio_packet_t;
-
 void init_radio();
-void radio_receive();
-void radio_send(radio_packet_t *payload);
+void radio_receive(void *dest, size_t dest_len);
+void radio_send(void *src, size_t src_len);
 
 typedef struct {
   volatile uint32_t TASKS_TXEN;       // (0x000) Enable RADIO in TX mode

@@ -19,7 +19,10 @@
     "utils.h": "c",
     "string": "c",
     "charconv": "c",
-    "power.h": "c"
+    "power.h": "c",
+    "examples.h": "c",
+    "matrix_scan.h": "c",
+    "nrf52840_bitfields.h": "c"
   },
   "github.copilot.enable": {
     "*": false,

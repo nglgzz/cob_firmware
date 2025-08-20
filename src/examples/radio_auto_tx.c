@@ -14,6 +14,8 @@
 static uint8_t led_pins[] = {LED_PIN_2, LED_PIN_4, LED_PIN_3, LED_PIN_1};
 static size_t led_pins_size = sizeof(led_pins) / sizeof(uint8_t);
 
+static uint32_t report;
+
 void send(uint32_t switches);
 
 int example_radio_auto_tx() {
@@ -24,7 +26,11 @@ int example_radio_auto_tx() {
 
 #ifdef RADIO_RX
   leds_set(0, 1);
-  radio_receive();
+
+  while (1) {
+    radio_receive(&report, sizeof(report));
+    leds_set_all(report);
+  }
 #else
   while (1) {
     send(1);
@@ -42,27 +48,13 @@ int example_radio_auto_tx() {
 #endif
 
   while (1) {
-    leds_set(0, 0);
+    leds_set(3, 1);
     __asm__("WFI");
   }
 }
 
-static radio_packet_t packet = {.len = 48, .data = {0}};
-static uint32_t report;
-
 void send(uint32_t switches) {
-  report = switches;
-  memcpy((void*)packet.data, &switches, sizeof(switches));
-  radio_send(&packet);
+  radio_send(&switches, sizeof(switches));
+  leds_set_all(switches);
 }
 
-#ifdef EXAMPLE_RADIO_AUTO_TX
-void RADIO_SentHandler(volatile radio_packet_t* payload) { leds_set_all(report); }
-void RADIO_ReceivedHandler(volatile radio_packet_t* payload) {
-  if (RADIO->CRCSTATUS == 1) {
-    memcpy((void*)&report, (void*)payload->data, sizeof(report));
-    leds_set_all(report);
-  }
-  radio_receive();
-}
-#endif

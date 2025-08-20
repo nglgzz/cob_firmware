@@ -34,6 +34,8 @@ if(DEFINED ENV{RADIO_RX})
     add_definitions(-DRADIO_RX)
 endif()
 
+add_definitions(-DEXAMPLE_SWITCHES_RADIO)
+
 #
 # https://gcc.gnu.org/onlinedocs/gcc/index.html#toc-GCC-Command-Options
 # https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html

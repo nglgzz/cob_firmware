@@ -1,5 +1,8 @@
 #include "radio.h"
 
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "clock.h"
 #include "core.h"
 #include "leds.h"
@@ -20,18 +23,18 @@ radio_t *const RADIO = ((radio_t *)RADIO_BASE);
 // Higher power is easier to notice in the power profiler
 // #define RADIO_TXPOWER RADIO_TXPOWER_TXPOWER_Pos4dBm
 
+#define RADIO_PAYLOAD_MAXLEN 128
+typedef struct {
+  volatile uint8_t len;
+  volatile uint8_t data[RADIO_PAYLOAD_MAXLEN];
+} radio_packet_t;
+
 // Packet addresses to be used for the next transmission or reception. When
 // transmitting, the packet pointed to by this address will be transmitted and
 // when receiving, the received packet will be written to this address. This
-// address is a byte aligned RAM address.
+// address is a byte aligned RAM address (must be in RAM).
 static radio_packet_t tx_packet = {.len = PAYLOAD_LEN, .data = {0}};
 static radio_packet_t rx_packet = {.len = PAYLOAD_LEN, .data = {0}};
-
-void RADIO_noop(volatile radio_packet_t *payload) {}
-void RADIO_ReceivedHandler(volatile radio_packet_t *payload)
-    __attribute__((weak, alias("RADIO_noop")));
-void RADIO_SentHandler(volatile radio_packet_t *payload)
-    __attribute__((weak, alias("RADIO_noop")));
 
 void init_radio() {
   CLOCK->TASKS_HFCLKSTART = 1;
@@ -91,19 +94,43 @@ void init_radio() {
   NVIC_EnableIRQ(RADIO_IRQn);
 }
 
-void radio_receive() {
+static char *receive_ptr;
+static size_t receive_ptr_len;
+static bool radio_receiving = false;
+static bool radio_sending = false;
+
+void radio_receive(void *dest, size_t dest_len) {
+  if (radio_receiving || radio_receiving) {
+    // This is to enforce receiving/sending serially as that's the only mode supported by the
+    // RADIO peripheral.
+    return;
+  }
+
   // Clear any pending events
   RADIO->EVENTS_READY = 0;
   RADIO->EVENTS_ADDRESS = 0;
   RADIO->EVENTS_PAYLOAD = 0;
   RADIO->EVENTS_END = 0;
 
+  receive_ptr = (char *)dest;
+  receive_ptr_len = dest_len;
   RADIO->PACKETPTR = (uint32_t)&rx_packet;
+
+  radio_receiving = true;
   RADIO->TASKS_RXEN = 1;
+  while (radio_receiving);
 }
 
-void radio_send(radio_packet_t *payload) {
-  RADIO->PACKETPTR = (uint32_t)payload;
+void radio_send(void *src, size_t src_len) {
+  if (radio_receiving || radio_sending) {
+    // This is to enforce receiving/sending serially as that's the only mode supported by the
+    // RADIO peripheral.
+    return;
+  }
+
+  memcpy((void *)tx_packet.data, src, src_len);
+  tx_packet.len = src_len;
+  RADIO->PACKETPTR = (uint32_t)&tx_packet;
 
   // Clear events
   RADIO->EVENTS_READY = 0;
@@ -113,6 +140,8 @@ void radio_send(radio_packet_t *payload) {
   probe_pulse(PP_D3);  // TXEN triggered
   probe_on(PP_D0);     // start overall transmission
   probe_on(PP_D1);     // ramp-up start
+
+  radio_sending = true;
   RADIO->TASKS_TXEN = 1;
 }
 
@@ -129,12 +158,17 @@ void RADIO_IRQHandler() {
   if (RADIO->EVENTS_END) {
     RADIO->EVENTS_END = 0;
 
-#ifdef RADIO_RX
-    RADIO_ReceivedHandler((volatile radio_packet_t *)RADIO->PACKETPTR);
-#endif
+    if (radio_sending) {
+      radio_sending = false;
+    }
 
-#ifdef RADIO_TX
-    RADIO_SentHandler((volatile radio_packet_t *)RADIO->PACKETPTR);
-#endif
+    if (radio_receiving) {
+      if (RADIO->CRCSTATUS == 1) {
+        memcpy((void *)receive_ptr,
+               (void *)((volatile radio_packet_t *)RADIO->PACKETPTR)->data,
+               receive_ptr_len);
+        radio_receiving = false;
+      }
+    }
   }
 }

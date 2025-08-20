@@ -18,7 +18,9 @@ int main(void) {
  * handler).
  */
 #ifndef EXAMPLE_RADIO_AUTO_TX
+#ifndef RADIO_RX
   SCR = 1 << 1 | 1 << 2;
+#endif
 #endif
 
   //------------------
