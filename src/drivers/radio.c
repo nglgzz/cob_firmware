@@ -23,7 +23,6 @@ radio_t *const RADIO = ((radio_t *)RADIO_BASE);
 // Higher power is easier to notice in the power profiler
 // #define RADIO_TXPOWER RADIO_TXPOWER_TXPOWER_Pos4dBm
 
-#define RADIO_PAYLOAD_MAXLEN 128
 typedef struct {
   volatile uint8_t len;
   volatile uint8_t data[RADIO_PAYLOAD_MAXLEN];
@@ -99,11 +98,18 @@ static size_t receive_ptr_len;
 static bool radio_receiving = false;
 static bool radio_sending = false;
 
-void radio_receive(void *dest, size_t dest_len) {
+/**
+ * Return codes
+ *    0 - Success
+ *    1 - CRC error
+ *    2 - RADIO busy
+ *    3 - Timeout
+ */
+int radio_receive(void *dest, size_t dest_len) {
   if (radio_receiving || radio_receiving) {
     // This is to enforce receiving/sending serially as that's the only mode supported by the
     // RADIO peripheral.
-    return;
+    return 2;
   }
 
   // Clear any pending events
@@ -119,6 +125,12 @@ void radio_receive(void *dest, size_t dest_len) {
   radio_receiving = true;
   RADIO->TASKS_RXEN = 1;
   while (radio_receiving);
+
+  if (RADIO->CRCSTATUS != 1) {
+    return 1;
+  }
+
+  return 0;
 }
 
 void radio_send(void *src, size_t src_len) {
@@ -167,8 +179,8 @@ void RADIO_IRQHandler() {
         memcpy((void *)receive_ptr,
                (void *)((volatile radio_packet_t *)RADIO->PACKETPTR)->data,
                receive_ptr_len);
-        radio_receiving = false;
       }
+      radio_receiving = false;
     }
   }
 }

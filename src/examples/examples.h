@@ -19,6 +19,9 @@ int example_switches_leds();
 // Send the current pressed switches via radio, and turn on/off the corresponding LEDs.
 int example_radio_leds();
 
+// Send the current pressed switches via radio, and turn on/off the corresponding LEDs.
+int example_radio_arq_leds();
+
 // Send values on the radio at an interval, and show the corresponding received values with
 // LEDs.
 int example_radio_auto_tx();

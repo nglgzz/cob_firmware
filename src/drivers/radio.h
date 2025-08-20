@@ -4,9 +4,10 @@
 #include <stdint.h>
 
 #define RADIO_BASE 0x40001000U
+#define RADIO_PAYLOAD_MAXLEN 128
 
 void init_radio();
-void radio_receive(void *dest, size_t dest_len);
+int radio_receive(void *dest, size_t dest_len);
 void radio_send(void *src, size_t src_len);
 
 typedef struct {

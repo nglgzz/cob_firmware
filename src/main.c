@@ -17,10 +17,8 @@ int main(void) {
  * exception (so potential startup code is run before the external interrupt
  * handler).
  */
-#ifndef EXAMPLE_RADIO_AUTO_TX
 #ifndef RADIO_RX
   SCR = 1 << 1 | 1 << 2;
-#endif
 #endif
 
   //------------------
