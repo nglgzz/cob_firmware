@@ -29,14 +29,16 @@ int main(void) {
 
 #ifdef EXAMPLE_BLINKY
   example_blinky();
-#elif defined(EXAMPLE_SWITCHES_LED)
-  example_switches_led();
-#elif defined(EXAMPLE_SWITCHES_RADIO)
-  example_switches_radio();
-#elif defined(EXAMPLE_SWITCHES_RADIO_HID)
-  example_switches_radio_hid();
+#elif defined(EXAMPLE_SWITCHES_LEDS)
+  example_switches_leds();
+#elif defined(EXAMPLE_RADIO_LEDS)
+  example_radio_leds();
+#elif defined(EXAMPLE_RADIO_ARQ_LEDS)
+  example_radio_arq_leds();
 #elif defined(EXAMPLE_RADIO_AUTO_TX)
   example_radio_auto_tx();
+#elif defined(EXAMPLE_RADIO_HID)
+  example_radio_hid();
 #endif
 
   while (1) {

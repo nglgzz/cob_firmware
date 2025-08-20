@@ -14,17 +14,17 @@
 int example_blinky();
 
 // Show the current pressed switches by turning on/off the corresponding LEDs.
-int example_switches_led();
+int example_switches_leds();
 
 // Send the current pressed switches via radio, and turn on/off the corresponding LEDs.
-int example_switches_radio();
-
-// Send the current pressed switches via radio, turn on/off the corresponding LEDs, and send
-// the corresponding keypress via USB HID.
-int example_switches_radio_hid();
+int example_radio_leds();
 
 // Send values on the radio at an interval, and show the corresponding received values with
 // LEDs.
 int example_radio_auto_tx();
+
+// Send the current pressed switches via radio, turn on/off the corresponding LEDs, and send
+// the corresponding keypress via USB HID.
+int example_radio_hid();
 
 #endif  // EXAMPLES_H

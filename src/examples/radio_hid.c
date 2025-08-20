@@ -17,7 +17,7 @@ static size_t led_pins_size = sizeof(led_pins) / sizeof(uint8_t);
 
 static uint32_t report;
 
-int example_switches_radio_hid() {
+int example_radio_hid() {
 #ifdef RADIO_RX
   init_usbd();
 #endif
@@ -44,7 +44,7 @@ int example_switches_radio_hid() {
   }
 }
 
-#ifdef EXAMPLE_SWITCHES_RADIO_HID
+#ifdef EXAMPLE_RADIO_HID
 void SWITCHES_PressedHandler(uint32_t switches) {
   radio_send(&switches, sizeof(switches));
   leds_set_all(switches);
