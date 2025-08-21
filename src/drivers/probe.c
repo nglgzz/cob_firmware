@@ -3,7 +3,7 @@
 #include "gpio.h"
 #include "leds.h"
 
-static uint8_t profiler_pins[] = {PP_D0, PP_D1, PP_D2, PP_D3, PP_D4, PP_D5};
+static uint8_t profiler_pins[] = {PP_D0, PP_D1, PP_D2, PP_D3, PP_D4, PP_D5, PP_D6, PP_D7};
 static uint8_t profiler_pins_len = sizeof(profiler_pins) / sizeof(profiler_pins[0]);
 
 void init_probes() {

@@ -3,6 +3,7 @@
 #include "core.h"
 #include "examples.h"
 #include "leds.h"
+#include "probe.h"
 #include "utils.h"
 
 int main(void) {
@@ -20,6 +21,8 @@ int main(void) {
 #ifndef RADIO_RX
   SCR = 1 << 1 | 1 << 2;
 #endif
+
+  init_probes();
 
   //------------------
   // EXAMPLES
