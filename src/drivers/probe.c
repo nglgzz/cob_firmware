@@ -19,5 +19,14 @@ void probe_pulse(uint8_t pin) {
   gpio_out_pin(GPIO1, pin, false);
 }
 
+void probe_pulse_times(uint8_t pin, uint32_t count) {
+  while (count--) {
+    gpio_out_pin(GPIO1, pin, true);
+    delay(80);
+    gpio_out_pin(GPIO1, pin, false);
+    delay(60);
+  }
+}
+
 void probe_on(uint8_t pin) { gpio_out_pin(GPIO1, pin, true); }
 void probe_off(uint8_t pin) { gpio_out_pin(GPIO1, pin, false); }
