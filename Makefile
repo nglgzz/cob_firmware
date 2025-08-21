@@ -6,37 +6,33 @@ FILE_EXECUTABLE=$(DIR_BUILD)/mmk_firmware.elf
 BOARD_1=1050232668
 BOARD_2=1050276985
 
-RX_BOARD=$(BOARD_2)
-TX_BOARD=$(BOARD_1)
+.PHONY:  build1 build2  flash1 flash2 reset1 reset2 recover1 reset2 load debug format
 
+all: build1 build2 flash1 flash2
 
-.PHONY:  build-rx build-tx  flash-rx flash-tx reset-rx reset-tx recover-rx reset-tx load debug format
+build1:
+	RADIO_RX=1 cmake -S . -B build1
+	make --no-print-directory -C ./build1 clean all
+build2:
+	RADIO_TX=1 cmake -S . -B build2
+	make --no-print-directory -C ./build2 clean all
 
-all: build-rx build-tx flash-rx flash-tx
+flash1: build1
+	nrfutil device program  --serial-number $(BOARD_1) --firmware build1/mmk_firmware.elf
+	nrfutil device reset --serial-number $(BOARD_1)
+flash2: build2
+	nrfutil device program  --serial-number $(BOARD_2) --firmware build2/mmk_firmware.elf
+	nrfutil device reset --serial-number $(BOARD_2)
 
-build-rx:
-	RADIO_RX=1 cmake -S . -B build-rx
-	make --no-print-directory -C ./build-rx clean all
-build-tx:
-	RADIO_TX=1 cmake -S . -B build-tx
-	make --no-print-directory -C ./build-tx clean all
+reset1:
+	nrfutil device reset  --serial-number $(BOARD_1)
+reset2:
+	nrfutil device reset  --serial-number $(BOARD_2)
 
-flash-rx: build-rx
-	nrfutil device program  --serial-number $(RX_BOARD) --firmware build-rx/mmk_firmware.elf
-	nrfutil device reset --serial-number $(RX_BOARD)
-flash-tx: build-tx
-	nrfutil device program  --serial-number $(TX_BOARD) --firmware build-tx/mmk_firmware.elf
-	nrfutil device reset --serial-number $(TX_BOARD)
-
-reset-rx:
-	nrfutil device reset  --serial-number $(RX_BOARD)
-reset-tx:
-	nrfutil device reset  --serial-number $(TX_BOARD)
-
-recover-rx:
-	nrfutil device recover  --serial-number $(RX_BOARD)
-recover-tx:
-	nrfutil device recover  --serial-number $(TX_BOARD)
+recover1:
+	nrfutil device recover  --serial-number $(BOARD_1)
+recover2:
+	nrfutil device recover  --serial-number $(BOARD_2)
 
 
 load:

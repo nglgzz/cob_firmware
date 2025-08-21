@@ -5,45 +5,66 @@
   "tasks": [
     {
       "label": "all",
-      "detail": "Build & Flash (Receiver & Transmitter)",
+      "detail": "Build & Flash (1 & 2)",
       "type": "shell",
       "group": "build",
       "command": "make all"
     },
     {
-      "label": "flash-rx",
-      "detail": "Build & Flash (Receiver)",
+      "label": "flash1",
+      "detail": "Build & Flash (1)",
       "type": "shell",
       "group": "build",
-      "command": "make flash-rx"
+      "command": "make flash1"
     },
     {
-      "label": "flash-tx",
-      "detail": "Build & Flash (Transmitter)",
+      "label": "flash2",
+      "detail": "Build & Flash (2)",
       "type": "shell",
       "group": "build",
-      "command": "make flash-tx"
+      "command": "make flash2"
     },
     {
-      "label": "recover-rx",
-      "detail": "Recover (Receiver)",
+      "label": "recover1",
+      "detail": "Recover (1)",
       "type": "shell",
       "group": "build",
-      "command": "make recover-rx"
+      "command": "make recover1"
     },
     {
-      "label": "recover-tx",
-      "detail": "Recover (Transmitter)",
+      "label": "recover2",
+      "detail": "Recover (2)",
       "type": "shell",
       "group": "build",
-      "command": "make recover-tx"
+      "command": "make recover2"
     },
     {
-      "label": "recover",
-      "detail": "Recover (Receiver & Transmitter)",
+      "label": "reset",
+      "detail": "Reset (1 & 2)",
       "type": "shell",
       "group": "build",
-      "command": "make recover-rx & make recover-tx"
+      "command": "make reset1 & make reset2"
+    },
+    {
+      "label": "reset1",
+      "detail": "Reset (1)",
+      "type": "shell",
+      "group": "build",
+      "command": "make reset1"
+    },
+    {
+      "label": "reset2",
+      "detail": "Reset (2)",
+      "type": "shell",
+      "group": "build",
+      "command": "make reset2"
+    },
+    {
+      "label": "reset",
+      "detail": "Reset (1 & 2)",
+      "type": "shell",
+      "group": "build",
+      "command": "make reset1 & make reset2"
     }
   ]
 }
