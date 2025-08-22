@@ -1,6 +1,6 @@
 #include "utils.h"
 
-void* memcpy(void* dest, const void* src, size_t n) {
+volatile void* memcpy(volatile void* dest, volatile void* src, size_t n) {
   char* d = (char*)dest;
   char* s = (char*)src;
 

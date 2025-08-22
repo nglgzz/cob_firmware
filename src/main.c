@@ -22,7 +22,17 @@ int main(void) {
   SCR = 1 << 1 | 1 << 2;
 #endif
 
-  init_probes();
+  probe_tag_t tags[] = {
+      probe_tag_switch_handler,
+      probe_tag_radio_tx,
+      probe_tag_radio_rx,
+      probe_tag_radio_payload,
+      probe_tag_noop,
+      probe_tag_noop,
+      probe_tag_radio_send,
+      probe_tag_radio_receive,
+  };
+  init_probes(tags, sizeof(tags) / sizeof(probe_tag_t));
 
   //------------------
   // EXAMPLES

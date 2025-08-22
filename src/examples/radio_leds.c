@@ -3,6 +3,7 @@
 
 #include "examples.h"
 #include "leds.h"
+#include "probe.h"
 #include "radio.h"
 #include "switches.h"
 #include "utils.h"
@@ -39,7 +40,9 @@ int example_radio_leds() {
 
 #ifdef EXAMPLE_RADIO_LEDS
 void SWITCHES_PressedHandler(uint32_t switches) {
+  probe_on(probe_tag_switch_handler);
   radio_send(&switches, sizeof(switches));
   leds_set_all(switches);
+  probe_off(probe_tag_switch_handler);
 }
 #endif

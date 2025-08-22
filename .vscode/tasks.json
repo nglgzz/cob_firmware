@@ -43,7 +43,7 @@
       "detail": "Reset (1 & 2)",
       "type": "shell",
       "group": "build",
-      "command": "make reset1 & make reset2"
+      "command": "make recover1 & make recover2"
     },
     {
       "label": "reset1",

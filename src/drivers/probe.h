@@ -16,12 +16,22 @@
 #define PP_D6 8
 #define PP_D7 10
 
-void init_probes();
+typedef enum {
+  probe_tag_noop,
+  probe_tag_switch_handler,
+  probe_tag_radio_send,
+  probe_tag_radio_tx,
+  probe_tag_radio_receive,
+  probe_tag_radio_rx,
+  probe_tag_radio_status,
+  probe_tag_radio_payload,
+} probe_tag_t;
 
-void probe_pulse(uint8_t pin);
-void probe_pulse_times(uint8_t pin, uint32_t count);
-void probe_on(uint8_t pin);
-void probe_off(uint8_t pin);
+void init_probes(probe_tag_t tags[], size_t size);
+void probe_on(probe_tag_t tag);
+void probe_off(probe_tag_t tag);
+void probe_pulse(probe_tag_t tag);
+void probe_pulse_times(probe_tag_t tag, uint32_t count);
 
 #define PROBE_H
 #endif  // PROBE_H
