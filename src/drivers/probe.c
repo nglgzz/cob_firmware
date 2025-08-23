@@ -2,6 +2,8 @@
 
 #include "gpio.h"
 #include "leds.h"
+#include "rtc.h"
+#include "timer.h"
 #include "utils.h"
 
 static uint8_t profiler_pins[] = {PP_D0, PP_D1, PP_D2, PP_D3, PP_D4, PP_D5, PP_D6, PP_D7};
@@ -16,6 +18,8 @@ void init_probes(probe_tag_t tags[], size_t size) {
     gpio_dir_pin_output(GPIO1, profiler_pins[i]);
     gpio_out_pin(GPIO1, profiler_pins[i], false);
   }
+
+  init_timer(TIMER0);
 }
 
 static inline int find_tag_pin(probe_tag_t tag) {
@@ -47,7 +51,7 @@ void probe_pulse(probe_tag_t tag) {
   if (pin < 0) return;
 
   gpio_out_pin(GPIO1, pin, true);
-  delay(100);
+  timer_sleep_us(TIMER0, 60);
   gpio_out_pin(GPIO1, pin, false);
 }
 
@@ -57,10 +61,10 @@ void probe_pulse_times(probe_tag_t tag, uint32_t count) {
 
   while (count--) {
     gpio_out_pin(GPIO1, pin, true);
-    delay(100);
+    timer_sleep_us(TIMER0, 60);
     gpio_out_pin(GPIO1, pin, false);
-    delay(80);
+    timer_sleep_us(TIMER0, 30);
   }
 
-  delay(500);
+  timer_sleep_us(TIMER0, 120);
 }

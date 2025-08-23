@@ -25,6 +25,7 @@ typedef enum {
   probe_tag_radio_rx,
   probe_tag_radio_status,
   probe_tag_radio_payload,
+  probe_tag_timeout,
 } probe_tag_t;
 
 void init_probes(probe_tag_t tags[], size_t size);

@@ -39,8 +39,8 @@
       "command": "make recover2"
     },
     {
-      "label": "reset",
-      "detail": "Reset (1 & 2)",
+      "label": "recover",
+      "detail": "Recover (1 & 2)",
       "type": "shell",
       "group": "build",
       "command": "make recover1 & make recover2"
