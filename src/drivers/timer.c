@@ -54,6 +54,8 @@ void timer_sleep_us(timer_t *const timer, uint32_t us) {
 }
 
 void timer_start_timeout(timer_t *const timer, uint32_t us) {
+  if (us == 0) return;
+
   timer->TASKS_STOP = 1;
   timer->TASKS_CLEAR = 1;
 

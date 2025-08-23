@@ -8,7 +8,8 @@
 
 void init_radio();
 int radio_receive(void *dest, size_t dest_len);
-void radio_send(void *src, size_t src_len);
+int radio_receive_timeout(void *dest, size_t dest_len, uint32_t timeout_us);
+int radio_send(void *src, size_t src_len);
 
 typedef struct {
   volatile uint32_t TASKS_TXEN;       // (0x000) Enable RADIO in TX mode

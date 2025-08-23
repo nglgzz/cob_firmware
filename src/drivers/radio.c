@@ -8,6 +8,7 @@
 #include "leds.h"
 #include "nrf52840_bitfields.h"
 #include "probe.h"
+#include "timer.h"
 
 radio_t *const RADIO = ((radio_t *)RADIO_BASE);
 
@@ -90,13 +91,12 @@ void init_radio() {
   // Enable the RADIO interrupt request handler. If this is not set, the
   // peripheral can still generate interrupts, but they end up permanently
   // pending as the handlers are not executed.
-  NVIC_EnableIRQ(RADIO_IRQn);
+  //
+  // Not enabling this here, since the events are handled in a polling loop.
+  // NVIC_EnableIRQ(RADIO_IRQn);
 }
 
-static char *receive_ptr;
-static size_t receive_ptr_len;
-static bool radio_receiving = false;
-static bool radio_sending = false;
+static bool radio_busy = false;
 
 /**
  * Return codes
@@ -105,10 +105,13 @@ static bool radio_sending = false;
  *    2 - RADIO busy
  *    3 - Timeout
  */
-int radio_receive(void *dest, size_t dest_len) {
-  if (radio_receiving || radio_receiving) {
+int radio_receive_timeout(void *dest, size_t dest_len, uint32_t timeout_us) {
+  probe_on(probe_tag_radio_receive);
+
+  if (radio_busy) {
     // This is to enforce receiving/sending serially as that's the only mode supported by the
     // RADIO peripheral.
+    probe_off(probe_tag_radio_receive);
     return 2;
   }
 
@@ -118,26 +121,53 @@ int radio_receive(void *dest, size_t dest_len) {
   RADIO->EVENTS_PAYLOAD = 0;
   RADIO->EVENTS_END = 0;
 
-  receive_ptr = (char *)dest;
-  receive_ptr_len = dest_len;
   RADIO->PACKETPTR = (uint32_t)&rx_packet;
 
-  radio_receiving = true;
+  probe_on(probe_tag_radio_rx);
+  radio_busy = true;
   RADIO->TASKS_RXEN = 1;
-  while (radio_receiving);
 
-  if (RADIO->CRCSTATUS != 1) {
-    return 1;
+  timer_start_timeout(TIMER1, timeout_us);
+  while (!timer_has_timeout_expired(TIMER1) && RADIO->EVENTS_END == 0);
+  RADIO->EVENTS_END = 0;
+
+  radio_busy = false;
+  probe_off(probe_tag_radio_rx);
+
+  if (timer_has_timeout_expired(TIMER1)) {
+    // TODO: disable RADIO?
+    probe_pulse_times(probe_tag_timeout, 9);  // timeout
+    probe_off(probe_tag_radio_receive);
+    return 3;
   }
 
-  return 0;
+  if (RADIO->CRCSTATUS == 1) {
+    memcpy(dest, ((volatile radio_packet_t *)RADIO->PACKETPTR)->data, dest_len);
+  }
+
+  probe_pulse_times(probe_tag_timeout, 3);  // no timeout
+  probe_off(probe_tag_radio_receive);
+  return RADIO->CRCSTATUS == 1 ? 0 : 1;
 }
 
-void radio_send(void *src, size_t src_len) {
-  if (radio_receiving || radio_sending) {
+int radio_receive(void *dest, size_t dest_len) {
+  return radio_receive_timeout(dest, dest_len, 0);
+}
+
+/**
+ * Return codes
+ *    0 - Success
+ *    2 - RADIO busy
+ *    3 - Timeout
+ */
+int radio_send(void *src, size_t src_len) {
+  probe_on(probe_tag_radio_send);
+
+  if (radio_busy) {
     // This is to enforce receiving/sending serially as that's the only mode supported by the
     // RADIO peripheral.
-    return;
+    probe_off(probe_tag_radio_send);
+    return 2;
   }
 
   memcpy((void *)tx_packet.data, src, src_len);
@@ -149,38 +179,27 @@ void radio_send(void *src, size_t src_len) {
   RADIO->EVENTS_END = 0;
 
   // Start TX task
-  probe_pulse(PP_D3);  // TXEN triggered
-  probe_on(PP_D0);     // start overall transmission
-  probe_on(PP_D1);     // ramp-up start
+  probe_on(probe_tag_radio_tx);
 
-  radio_sending = true;
+  radio_busy = true;
   RADIO->TASKS_TXEN = 1;
-}
 
-void RADIO_IRQHandler() {
-  if (RADIO->EVENTS_READY) {
-    RADIO->EVENTS_READY = 0;
-  }
-  if (RADIO->EVENTS_ADDRESS) {
-    RADIO->EVENTS_ADDRESS = 0;
-  }
-  if (RADIO->EVENTS_PAYLOAD) {
-    RADIO->EVENTS_PAYLOAD = 0;
-  }
-  if (RADIO->EVENTS_END) {
-    RADIO->EVENTS_END = 0;
+  timer_start_timeout(TIMER1, 2e3);
+  while (!timer_has_timeout_expired(TIMER1) && RADIO->EVENTS_END == 0);
+  RADIO->EVENTS_END = 0;
 
-    if (radio_sending) {
-      radio_sending = false;
-    }
+  radio_busy = false;
+  probe_off(probe_tag_radio_tx);
 
-    if (radio_receiving) {
-      if (RADIO->CRCSTATUS == 1) {
-        memcpy((void *)receive_ptr,
-               (void *)((volatile radio_packet_t *)RADIO->PACKETPTR)->data,
-               receive_ptr_len);
-      }
-      radio_receiving = false;
-    }
+  if (timer_has_timeout_expired(TIMER1)) {
+    // TODO: disable RADIO?
+    probe_pulse_times(probe_tag_timeout, 9);  // timeout
+    probe_off(probe_tag_radio_send);
+    return 3;
   }
+
+  RADIO->EVENTS_END = 0;
+  probe_pulse_times(probe_tag_timeout, 3);  // no timeout
+  probe_off(probe_tag_radio_send);
+  return 0;
 }

@@ -28,7 +28,7 @@ int main(void) {
       probe_tag_radio_rx,
       probe_tag_radio_payload,
       probe_tag_noop,
-      probe_tag_noop,
+      probe_tag_timeout,
       probe_tag_radio_send,
       probe_tag_radio_receive,
   };
