@@ -114,6 +114,7 @@ int radio_receive_timeout(void *dest, size_t dest_len, uint32_t timeout_us) {
     probe_off(probe_tag_radio_receive);
     return 2;
   }
+  radio_busy = true;
 
   // Clear any pending events
   RADIO->EVENTS_READY = 0;
@@ -124,30 +125,34 @@ int radio_receive_timeout(void *dest, size_t dest_len, uint32_t timeout_us) {
   RADIO->PACKETPTR = (uint32_t)&rx_packet;
 
   probe_on(probe_tag_radio_rx);
-  radio_busy = true;
   RADIO->TASKS_RXEN = 1;
 
   timer_start_timeout(TIMER1, timeout_us);
   while (!timer_has_timeout_expired(TIMER1) && RADIO->EVENTS_END == 0);
+
+  if (RADIO->EVENTS_END) {
   RADIO->EVENTS_END = 0;
+    radio_busy = false;
+    probe_off(probe_tag_radio_rx);
+
+    if (RADIO->CRCSTATUS == 1) {
+      memcpy(dest,
+             ((volatile radio_packet_t *)RADIO->PACKETPTR)->data,
+             min(dest_len, PAYLOAD_LEN));
+    }
+
+    probe_pulse_times(probe_tag_timeout, 3);  // no timeout
+    probe_off(probe_tag_radio_receive);
+    return RADIO->CRCSTATUS == 1 ? 0 : 1;
+  }
 
   radio_busy = false;
   probe_off(probe_tag_radio_rx);
 
-  if (timer_has_timeout_expired(TIMER1)) {
     // TODO: disable RADIO?
     probe_pulse_times(probe_tag_timeout, 9);  // timeout
     probe_off(probe_tag_radio_receive);
     return 3;
-  }
-
-  if (RADIO->CRCSTATUS == 1) {
-    memcpy(dest, ((volatile radio_packet_t *)RADIO->PACKETPTR)->data, dest_len);
-  }
-
-  probe_pulse_times(probe_tag_timeout, 3);  // no timeout
-  probe_off(probe_tag_radio_receive);
-  return RADIO->CRCSTATUS == 1 ? 0 : 1;
 }
 
 int radio_receive(void *dest, size_t dest_len) {
@@ -169,6 +174,7 @@ int radio_send(void *src, size_t src_len) {
     probe_off(probe_tag_radio_send);
     return 2;
   }
+  radio_busy = true;
 
   memcpy((void *)tx_packet.data, src, src_len);
   tx_packet.len = src_len;
@@ -178,28 +184,27 @@ int radio_send(void *src, size_t src_len) {
   RADIO->EVENTS_READY = 0;
   RADIO->EVENTS_END = 0;
 
-  // Start TX task
   probe_on(probe_tag_radio_tx);
-
-  radio_busy = true;
   RADIO->TASKS_TXEN = 1;
 
-  timer_start_timeout(TIMER1, 2e3);
+  timer_start_timeout(TIMER1, 3e3);
   while (!timer_has_timeout_expired(TIMER1) && RADIO->EVENTS_END == 0);
+
+  if (RADIO->EVENTS_END) {
   RADIO->EVENTS_END = 0;
+    radio_busy = false;
+    probe_off(probe_tag_radio_tx);
+
+    probe_pulse_times(probe_tag_timeout, 3);  // no timeout
+    probe_off(probe_tag_radio_send);
+    return 0;
+  }
 
   radio_busy = false;
   probe_off(probe_tag_radio_tx);
 
-  if (timer_has_timeout_expired(TIMER1)) {
     // TODO: disable RADIO?
     probe_pulse_times(probe_tag_timeout, 9);  // timeout
     probe_off(probe_tag_radio_send);
     return 3;
-  }
-
-  RADIO->EVENTS_END = 0;
-  probe_pulse_times(probe_tag_timeout, 3);  // no timeout
-  probe_off(probe_tag_radio_send);
-  return 0;
 }

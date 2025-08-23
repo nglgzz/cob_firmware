@@ -4,7 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "probe.h"
 #include "radio.h"
+#include "timer.h"
 #include "utils.h"
 
 typedef enum {
@@ -18,11 +20,11 @@ typedef enum {
 typedef struct {
   arq_packet_type_t type;
   uint8_t data[RADIO_ARQ_PAYLOAD_MAXLEN];
-} arq_packet_t;
+} __attribute__((packed)) arq_packet_t;
 
 static inline void arq_ack() {
   arq_packet_t ack = {.type = arq_packet_type_status, .data = {1}};
-  int status = radio_receive(&ack, sizeof(ack));
+  radio_send(&ack, sizeof(ack));
 }
 
 static inline void arq_nack() {
@@ -30,44 +32,56 @@ static inline void arq_nack() {
   radio_send(&nack, sizeof(nack));
 }
 
-void radio_arq_send(void *src, size_t src_len) {
-  arq_packet_t packet = {.type = arq_packet_type_message, .data = {0}};
-  memcpy(&packet.data, src, min(src_len, RADIO_ARQ_PAYLOAD_MAXLEN));
+static bool radio_arq_busy = false;
 
-  radio_send(&packet, sizeof(packet));
+void radio_arq_send(void *src, size_t src_len) {
+  if (radio_arq_busy) return;
+  radio_arq_busy = true;
+
+  arq_packet_t packet = {.type = arq_packet_type_message, .data = {0}};
   arq_packet_t status = {.type = arq_packet_type_none, .data = {0}};
 
-  while (status.type != arq_packet_type_status) {
-    radio_receive(&status, sizeof(status));
-    if (status.type == arq_packet_type_status) {
-      if (status.data[0] == 1) {
-        // ACK
-        return;
-      }
+  memcpy((void *)packet.data, src, min(src_len, RADIO_ARQ_PAYLOAD_MAXLEN));
 
-      if (status.data[0] == 0) {
-        // NACK
-        // TODO: add retry limit
-        radio_arq_send(src, src_len);
-      }
-    } else {
-      // Other message
-      // TODO: add retry limit
-      radio_arq_send(src, src_len);
+  int retries = 3;
+  while (retries > 0) {
+    int send_status = radio_send(&packet, sizeof(packet));
+    probe_pulse_times(probe_tag_radio_payload, 3);
+    probe_pulse_times(probe_tag_radio_payload, send_status + 2);
+
+    int rec_status = radio_receive_timeout(&status, sizeof(status), 1e3);
+    probe_pulse_times(probe_tag_radio_payload, 5);
+    probe_pulse_times(probe_tag_radio_payload, rec_status + 2);
+    probe_pulse_times(probe_tag_radio_payload, status.type + 2);
+    probe_pulse_times(probe_tag_radio_payload, status.data[0] + 2);
+
+    if (status.type == arq_packet_type_status && status.data[0] == 1) {
+      // ACK
+      radio_arq_busy = false;
+      return;
     }
-    delay(5000);
+
+    retries--;
   }
+
+  radio_arq_busy = false;
 }
 
 void radio_arq_receive(void *dest, size_t dest_len) {
+  if (radio_arq_busy) return;
+  radio_arq_busy = true;
+
   arq_packet_t packet = {.type = arq_packet_type_none, .data = {0}};
   int status = radio_receive(&packet, sizeof(packet));
 
+  probe_pulse_times(probe_tag_radio_payload, 1);
+  probe_pulse_times(probe_tag_radio_payload, status + 2);
   if (status == 0) {
     arq_ack();
   } else {
     arq_nack();
-    // TODO: add retry limit
-    radio_arq_receive(dest, dest_len);
   }
+
+  memcpy(dest, packet.data, dest_len);
+  radio_arq_busy = false;
 }

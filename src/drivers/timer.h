@@ -48,8 +48,11 @@ typedef struct {
   volatile uint32_t CC[6];
 } timer_t;
 
+// Used for probes
 extern timer_t *const TIMER0;
+// Used for radio
 extern timer_t *const TIMER1;
+// Used for ARQ
 extern timer_t *const TIMER2;
 extern timer_t *const TIMER3;
 extern timer_t *const TIMER4;

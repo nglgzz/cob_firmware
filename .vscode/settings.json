@@ -22,7 +22,8 @@
     "power.h": "c",
     "examples.h": "c",
     "matrix_scan.h": "c",
-    "nrf52840_bitfields.h": "c"
+    "nrf52840_bitfields.h": "c",
+    "timer.h": "c"
   },
   "github.copilot.enable": {
     "*": false,

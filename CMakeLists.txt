@@ -34,7 +34,8 @@ if(DEFINED ENV{RADIO_RX})
     add_definitions(-DRADIO_RX)
 endif()
 
-add_definitions(-DEXAMPLE_RADIO_LEDS)
+add_definitions(-DEXAMPLE_RADIO_ARQ_LEDS)
+# add_definitions(-DEXAMPLE_RADIO_LEDS)
 
 #
 # https://gcc.gnu.org/onlinedocs/gcc/index.html#toc-GCC-Command-Options
