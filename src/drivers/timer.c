@@ -13,7 +13,7 @@ timer_t *const TIMER4 = (timer_t *)TIMER4_BASE;
 
 void init_timer(timer_t *const timer) {
   CLOCK->TASKS_HFCLKSTART = 1;
-  while (CLOCK->EVENTS_HFCLKSTARTED);
+  while (CLOCK->EVENTS_HFCLKSTARTED == 0);
 
   timer->TASKS_STOP = 1;
   timer->TASKS_CLEAR = 1;
@@ -54,10 +54,12 @@ void timer_sleep_us(timer_t *const timer, uint32_t us) {
 }
 
 void timer_start_timeout(timer_t *const timer, uint32_t us) {
-  if (us == 0) return;
-
   timer->TASKS_STOP = 1;
   timer->TASKS_CLEAR = 1;
+
+  // A value of zero is used to represent an infinite timeout, in such case we
+  // clear the timer and don't start it, so the expired check will always be false.
+  if (us == 0) return;
 
   timer->EVENTS_COMPARE[0] = 0;
   timer->CC[0] = us;  // because 1 tick = 1 us

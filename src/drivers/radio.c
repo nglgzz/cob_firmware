@@ -91,9 +91,7 @@ void init_radio() {
   // Enable the RADIO interrupt request handler. If this is not set, the
   // peripheral can still generate interrupts, but they end up permanently
   // pending as the handlers are not executed.
-  //
-  // Not enabling this here, since the events are handled in a polling loop.
-  // NVIC_EnableIRQ(RADIO_IRQn);
+  NVIC_EnableIRQ(RADIO_IRQn);
 }
 
 static bool radio_busy = false;
@@ -131,7 +129,7 @@ int radio_receive_timeout(void *dest, size_t dest_len, uint32_t timeout_us) {
   while (!timer_has_timeout_expired(TIMER1) && RADIO->EVENTS_END == 0);
 
   if (RADIO->EVENTS_END) {
-  RADIO->EVENTS_END = 0;
+    RADIO->EVENTS_END = 0;
     radio_busy = false;
     probe_off(probe_tag_radio_rx);
 
@@ -149,10 +147,10 @@ int radio_receive_timeout(void *dest, size_t dest_len, uint32_t timeout_us) {
   radio_busy = false;
   probe_off(probe_tag_radio_rx);
 
-    // TODO: disable RADIO?
-    probe_pulse_times(probe_tag_timeout, 9);  // timeout
-    probe_off(probe_tag_radio_receive);
-    return 3;
+  RADIO->TASKS_DISABLE = 1;
+  probe_pulse_times(probe_tag_timeout, 9);  // timeout
+  probe_off(probe_tag_radio_receive);
+  return 3;
 }
 
 int radio_receive(void *dest, size_t dest_len) {
@@ -191,7 +189,7 @@ int radio_send(void *src, size_t src_len) {
   while (!timer_has_timeout_expired(TIMER1) && RADIO->EVENTS_END == 0);
 
   if (RADIO->EVENTS_END) {
-  RADIO->EVENTS_END = 0;
+    RADIO->EVENTS_END = 0;
     radio_busy = false;
     probe_off(probe_tag_radio_tx);
 
@@ -203,8 +201,8 @@ int radio_send(void *src, size_t src_len) {
   radio_busy = false;
   probe_off(probe_tag_radio_tx);
 
-    // TODO: disable RADIO?
-    probe_pulse_times(probe_tag_timeout, 9);  // timeout
-    probe_off(probe_tag_radio_send);
-    return 3;
+  RADIO->TASKS_DISABLE = 1;
+  probe_pulse_times(probe_tag_timeout, 9);  // timeout
+  probe_off(probe_tag_radio_send);
+  return 3;
 }
