@@ -11,7 +11,7 @@
 static uint8_t profiler_pins[] = {PP_D0, PP_D1, PP_D2, PP_D3, PP_D4, PP_D5, PP_D6, PP_D7};
 static uint8_t profiler_pins_len = sizeof(profiler_pins) / sizeof(profiler_pins[0]);
 static probe_tag_t profiler_tags[8];
-static bool probes_initialized = false;
+bool probes_initialized = false;
 
 void init_probes(probe_tag_t tags[], size_t size) {
   memcpy(profiler_tags, tags, size);

@@ -1,5 +1,6 @@
 #ifndef PROBE_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -33,6 +34,8 @@ void probe_on(probe_tag_t tag);
 void probe_off(probe_tag_t tag);
 void probe_pulse(probe_tag_t tag);
 void probe_pulse_times(probe_tag_t tag, uint32_t count);
+
+extern bool probes_initialized;
 
 #define PROBE_H
 #endif  // PROBE_H
