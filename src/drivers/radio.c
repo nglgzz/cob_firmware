@@ -85,13 +85,17 @@ void init_radio() {
   RADIO->SHORTS = RADIO_SHORTS_READY_START_Msk | RADIO_SHORTS_END_DISABLE_Msk;
 
   // Enable generating interrupts for events
-  RADIO->INTENSET = RADIO_INTENSET_READY_Msk | RADIO_INTENSET_ADDRESS_Msk |
-                    RADIO_INTENSET_PAYLOAD_Msk | RADIO_INTENSET_END_Msk;
+  RADIO->INTENSET = RADIO_INTENSET_END_Msk;
 
   // Enable the RADIO interrupt request handler. If this is not set, the
   // peripheral can still generate interrupts, but they end up permanently
   // pending as the handlers are not executed.
-  NVIC_EnableIRQ(RADIO_IRQn);
+  //
+  // Disabled for now as the events are handled in a polling loop instead, and
+  // enabling the interrupts without handling them seems to interfere with other
+  // interrupts.
+  //
+  // NVIC_EnableIRQ(RADIO_IRQn);
 }
 
 static bool radio_busy = false;
@@ -114,14 +118,9 @@ int radio_receive_timeout(void *dest, size_t dest_len, uint32_t timeout_us) {
   }
   radio_busy = true;
 
-  // Clear any pending events
-  RADIO->EVENTS_READY = 0;
-  RADIO->EVENTS_ADDRESS = 0;
-  RADIO->EVENTS_PAYLOAD = 0;
-  RADIO->EVENTS_END = 0;
-
   RADIO->PACKETPTR = (uint32_t)&rx_packet;
 
+  RADIO->EVENTS_END = 0;
   probe_on(probe_tag_radio_rx);
   RADIO->TASKS_RXEN = 1;
 
@@ -177,10 +176,7 @@ int radio_send(void *src, size_t src_len) {
   tx_packet.len = src_len;
   RADIO->PACKETPTR = (uint32_t)&tx_packet;
 
-  // Clear events
-  RADIO->EVENTS_READY = 0;
   RADIO->EVENTS_END = 0;
-
   probe_on(probe_tag_radio_tx);
   RADIO->TASKS_TXEN = 1;
 
