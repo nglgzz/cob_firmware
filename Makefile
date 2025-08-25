@@ -11,13 +11,18 @@ BOARD_2=1050276985
 all: build1 build2 flash1 flash2
 
 build1:
-# 	RADIO_TX=1 cmake -S . -B build1
 	RADIO_RX=1 cmake -S . -B build1
 	make --no-print-directory -C ./build1 clean all
 build2:
-# 	RADIO_RX=1 cmake -S . -B build2
 	RADIO_TX=1 cmake -S . -B build2
 	make --no-print-directory -C ./build2 clean all
+
+# build1:
+# 	RADIO_TX=1 cmake -S . -B build1
+# 	make --no-print-directory -C ./build1 clean all
+# build2:
+# 	RADIO_RX=1 cmake -S . -B build2
+# 	make --no-print-directory -C ./build2 clean all
 
 flash1: build1
 	nrfutil device program  --serial-number $(BOARD_1) --firmware build1/mmk_firmware.elf

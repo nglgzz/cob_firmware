@@ -136,10 +136,9 @@ int radio_receive_timeout(void *dest, size_t dest_len, uint32_t timeout_us) {
     if (RADIO->CRCSTATUS == 1) {
       memcpy(dest,
              ((volatile radio_packet_t *)RADIO->PACKETPTR)->data,
-             min(dest_len, PAYLOAD_LEN));
+             min(dest_len, rx_packet.len));
     }
 
-    probe_pulse_times(probe_tag_timeout, 3);  // no timeout
     probe_off(probe_tag_radio_receive);
     return RADIO->CRCSTATUS == 1 ? 0 : 1;
   }
@@ -148,7 +147,7 @@ int radio_receive_timeout(void *dest, size_t dest_len, uint32_t timeout_us) {
   probe_off(probe_tag_radio_rx);
 
   RADIO->TASKS_DISABLE = 1;
-  probe_pulse_times(probe_tag_timeout, 9);  // timeout
+  probe_pulse_times(probe_tag_timeout, 5);  // timeout
   probe_off(probe_tag_radio_receive);
   return 3;
 }
@@ -193,7 +192,6 @@ int radio_send(void *src, size_t src_len) {
     radio_busy = false;
     probe_off(probe_tag_radio_tx);
 
-    probe_pulse_times(probe_tag_timeout, 3);  // no timeout
     probe_off(probe_tag_radio_send);
     return 0;
   }
@@ -202,7 +200,7 @@ int radio_send(void *src, size_t src_len) {
   probe_off(probe_tag_radio_tx);
 
   RADIO->TASKS_DISABLE = 1;
-  probe_pulse_times(probe_tag_timeout, 9);  // timeout
+  probe_pulse_times(probe_tag_timeout, 5);  // timeout
   probe_off(probe_tag_radio_send);
   return 3;
 }

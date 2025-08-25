@@ -45,15 +45,17 @@ void radio_arq_send(void *src, size_t src_len) {
 
   int retries = 3;
   while (retries > 0) {
+    // There can't be other operations happening in between sending and receiving, or the
+    // sender will miss the acknowledgement packet.
     int send_status = radio_send(&packet, sizeof(packet));
-    probe_pulse_times(probe_tag_radio_payload, 3);
-    probe_pulse_times(probe_tag_radio_payload, send_status + 2);
-
-    int rec_status = radio_receive_timeout(&status, sizeof(status), 1e3);
-    probe_pulse_times(probe_tag_radio_payload, 5);
-    probe_pulse_times(probe_tag_radio_payload, rec_status + 2);
-    probe_pulse_times(probe_tag_radio_payload, status.type + 2);
-    probe_pulse_times(probe_tag_radio_payload, status.data[0] + 2);
+    int rec_status = radio_receive_timeout(&status, sizeof(status), 2e3);
+    probe_pulse_times(probe_tag_radio_payload, send_status + 1);
+    timer_sleep_us(TIMER0, 90);
+    probe_pulse_times(probe_tag_radio_payload, rec_status + 1);
+    timer_sleep_us(TIMER0, 90);
+    probe_pulse_times(probe_tag_radio_payload, status.type + 1);
+    timer_sleep_us(TIMER0, 90);
+    probe_pulse_times(probe_tag_radio_payload, status.data[0] + 1);
 
     if (status.type == arq_packet_type_status && status.data[0] == 1) {
       // ACK
