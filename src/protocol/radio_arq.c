@@ -80,14 +80,13 @@ void radio_arq_receive(void *dest, size_t dest_len) {
 
   arq_packet_t packet = {.type = ARQ_PACKET_TYPE_NONE, .data = {0}};
   int status = radio_receive(&packet, sizeof(packet));
-  memcpy(dest, packet.data, min(dest_len, RADIO_ARQ_PAYLOAD_MAXLEN));
-
   if (status == 0) {
     arq_ack();
   } else {
     arq_nack();
   }
 
+  memcpy(dest, packet.data, min(dest_len, RADIO_ARQ_PAYLOAD_MAXLEN));
   probe_pulse_times(probe_tag_radio_payload, 1 + status);
   radio_arq_busy = false;
 }
