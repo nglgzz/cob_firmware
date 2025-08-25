@@ -5,16 +5,20 @@
  */
 #include "switches.h"
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #include "core.h"
 #include "gpio.h"
 #include "gpiote.h"
 #include "nrf52840_bitfields.h"
+#include "timer.h"
 #include "utils.h"
 
 uint8_t switch_pins[MAX_SWITCH_PINS_SIZE];
 size_t switch_pins_size;
+
+#define DEBOUNCE_DELAY_US 500
 
 static const uint32_t sense_low = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos) |
                                   (GPIO_PIN_CNF_INPUT_Connect << GPIO_PIN_CNF_INPUT_Pos) |
@@ -62,6 +66,9 @@ void init_switches(uint8_t pins[], size_t pins_size) {
   GPIOTE->INTENSET |= GPIOTE_INTENSET_PORT_Msk;
 }
 
+bool debounceTimeoutStarted = false;
+uint32_t previousValue = 0;
+
 void GPIOTE_IRQHandler() {
   if (GPIOTE->EVENTS_PORT) {
     // Clear PORT events
@@ -85,6 +92,18 @@ void GPIOTE_IRQHandler() {
     }
     // Clear potential PORT events that could have occurred during configuration.
     GPIOTE->EVENTS_PORT = 0;
+
+    // Ignore duplicate events
+    if (switches == previousValue) return;
+    previousValue = switches;
+
+    // Ignore new events during debounce time window
+    if (debounceTimeoutStarted && !timer_has_timeout_expired(TIMER2)) return;
+
+    // Start debounce timer if needed
+    if (!debounceTimeoutStarted || timer_has_timeout_expired(TIMER2)) {
+      timer_start_timeout(TIMER2, DEBOUNCE_DELAY_US);
+    }
 
     SWITCHES_ToggleHandler(switches);
   }
