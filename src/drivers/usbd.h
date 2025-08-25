@@ -149,7 +149,7 @@ typedef struct {
   volatile usbd_ep_t ISOOUT;    // (0x7A0) ISO endpoint OUT
 } usbd_t;
 
-extern usbd_t* const USBD;
+extern usbd_t *const USBD;
 
 // Defined in the USB 2.0 specification
 #define USBD_DESC_TYPE_Device 1
@@ -165,5 +165,11 @@ extern usbd_t* const USBD;
 #define USBD_DESC_TYPE_HID 0x21
 #define USBD_DESC_TYPE_HIDReport 0x22
 #define USBD_DESC_TYPE_PhysicalDescriptor 0x23
+
+void USBD_Reset_Handler();
+void USBD_GetDescriptor_Device(uint8_t **ptr, uint16_t *length, uint8_t index);
+void USBD_GetDescriptor_Configuration(uint8_t **ptr, uint16_t *length, uint8_t index);
+void USBD_GetDescriptor_String(uint8_t **ptr, uint16_t *length, uint8_t index);
+void USBD_GetDescriptor_HIDReport(uint8_t **ptr, uint16_t *length, uint8_t index);
 
 #endif  // USBD_H

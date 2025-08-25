@@ -27,7 +27,7 @@ static const uint32_t sense_high = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_P
                                    (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
 
 void SWITCHES_noop(uint32_t switches) {}
-void SWITCHES_PressedHandler(uint32_t switches) __attribute__((weak, alias("SWITCHES_noop")));
+void SWITCHES_ToggleHandler(uint32_t switches) __attribute__((weak, alias("SWITCHES_noop")));
 
 void init_switches(uint8_t pins[], size_t pins_size) {
   switch_pins_size = pins_size <= MAX_SWITCH_PINS_SIZE ? pins_size : MAX_SWITCH_PINS_SIZE;
@@ -86,6 +86,6 @@ void GPIOTE_IRQHandler() {
     // Clear potential PORT events that could have occurred during configuration.
     GPIOTE->EVENTS_PORT = 0;
 
-    SWITCHES_PressedHandler(switches);
+    SWITCHES_ToggleHandler(switches);
   }
 }

@@ -39,7 +39,7 @@ int example_radio_leds() {
 }
 
 #ifdef EXAMPLE_RADIO_LEDS
-void SWITCHES_PressedHandler(uint32_t switches) {
+void SWITCHES_ToggleHandler(uint32_t switches) {
   probe_pulse_times(probe_tag_switch_handler, 3);
   radio_send(&switches, sizeof(switches));
   leds_set_all(switches);

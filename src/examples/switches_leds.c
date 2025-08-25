@@ -23,5 +23,5 @@ int example_switches_leds() {
   }
 }
 #ifdef EXAMPLE_SWITCHES_LEDS
-void SWITCHES_PressedHandler(uint32_t switches) { leds_set_all(switches); }
+void SWITCHES_ToggleHandler(uint32_t switches) { leds_set_all(switches); }
 #endif

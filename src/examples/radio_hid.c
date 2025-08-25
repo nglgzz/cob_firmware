@@ -45,7 +45,7 @@ int example_radio_hid() {
 }
 
 #ifdef EXAMPLE_RADIO_HID
-void SWITCHES_PressedHandler(uint32_t switches) {
+void SWITCHES_ToggleHandler(uint32_t switches) {
   radio_send(&switches, sizeof(switches));
   leds_set_all(switches);
 }
