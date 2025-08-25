@@ -55,11 +55,11 @@ void radio_arq_send(void *src, size_t src_len) {
     int rec_status = radio_receive_timeout(&status, sizeof(status), 1500);
 
     probe_pulse_times(probe_tag_radio_payload, send_status + 1);
-    timer_sleep_us(TIMER0, 90);
+    timer_sleep_us(90);
     probe_pulse_times(probe_tag_radio_payload, rec_status + 1);
-    timer_sleep_us(TIMER0, 90);
+    timer_sleep_us(90);
     probe_pulse_times(probe_tag_radio_payload, status.type + 1);
-    timer_sleep_us(TIMER0, 90);
+    timer_sleep_us(90);
     probe_pulse_times(probe_tag_radio_payload, status.status + 1);
 
     if (status.type == ARQ_PACKET_TYPE_STATUS && status.status == 1) {

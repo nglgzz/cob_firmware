@@ -39,19 +39,21 @@ void init_timer(timer_t *const timer) {
   timer->INTENSET = TIMER_INTENSET_COMPARE0_Msk;
 }
 
-void timer_sleep_us(timer_t *const timer, uint32_t us) {
-  timer->TASKS_STOP = 1;
-  timer->TASKS_CLEAR = 1;
+void timer_sleep_us(uint32_t us) {
+  TIMER0->TASKS_STOP = 1;
+  TIMER0->TASKS_CLEAR = 1;
 
-  timer->EVENTS_COMPARE[0] = 0;
-  timer->CC[0] = us;  // because 1 tick = 1 us
+  TIMER0->EVENTS_COMPARE[0] = 0;
+  TIMER0->CC[0] = us;  // because 1 tick = 1 us
 
-  timer->TASKS_START = 1;
-  while (timer->EVENTS_COMPARE[0] == 0);
-  timer->EVENTS_COMPARE[0] = 0;
+  TIMER0->TASKS_START = 1;
+  while (TIMER0->EVENTS_COMPARE[0] == 0);
+  TIMER0->EVENTS_COMPARE[0] = 0;
 
-  timer->TASKS_STOP = 1;
+  TIMER0->TASKS_STOP = 1;
 }
+
+inline void timer_sleep_ms(uint32_t ms) { timer_sleep_us(ms * 1000); }
 
 void timer_start_timeout(timer_t *const timer, uint32_t us) {
   timer->TASKS_STOP = 1;

@@ -96,6 +96,8 @@ void init_radio() {
   // interrupts.
   //
   // NVIC_EnableIRQ(RADIO_IRQn);
+
+  init_timer(TIMER1);
 }
 
 static bool radio_busy = false;

@@ -47,10 +47,10 @@ void leds_set_all(uint32_t leds) {
   }
 }
 
-void leds_blink(uint32_t duration) {
+void leds_blink() {
   for (int i = 0; i < led_pins_size; i++) {
     leds_set(i, 1);
-    delay(duration);
+    delay(500000);
     leds_set(i, 0);
   }
 }

@@ -15,7 +15,7 @@ int example_switches_leds() {
   init_leds(led_pins, led_pins_size);
   init_switches(switch_pins, switch_pins_size);
 
-  leds_blink(500000);
+  leds_blink();
 
   while (1) {
     leds_set(0, 0);

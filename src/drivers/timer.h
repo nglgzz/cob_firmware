@@ -48,17 +48,17 @@ typedef struct {
   volatile uint32_t CC[6];
 } timer_t;
 
-// Used for probes
+// TIMER0 is used for sleep, while all others should be used for timeouts.
 extern timer_t *const TIMER0;
-// Used for radio
+// TIMER1 is used for RADIO timeouts.
 extern timer_t *const TIMER1;
-// Used for ARQ
 extern timer_t *const TIMER2;
 extern timer_t *const TIMER3;
 extern timer_t *const TIMER4;
 
 void init_timer(timer_t *const timer);
-void timer_sleep_us(timer_t *const timer, uint32_t us);
+void timer_sleep_us(uint32_t us);
+void timer_sleep_ms(uint32_t ms);
 void timer_start_timeout(timer_t *const timer, uint32_t us);
 bool timer_has_timeout_expired(timer_t *const timer);
 

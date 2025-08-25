@@ -20,7 +20,7 @@ int example_radio_leds() {
   init_leds(led_pins, led_pins_size);
   init_radio();
 
-  leds_blink(50000);
+  leds_blink();
 
 #ifdef RADIO_RX
   leds_set(0, 1);

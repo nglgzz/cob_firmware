@@ -26,7 +26,7 @@ int example_radio_hid() {
   init_switches(switch_pins, switch_pins_size);
   init_radio();
 
-  leds_blink(50000);
+  leds_blink();
 
 #ifdef RADIO_RX
   leds_set(0, 1);

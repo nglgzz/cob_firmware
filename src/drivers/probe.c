@@ -57,7 +57,7 @@ void probe_pulse(probe_tag_t tag) {
   if (pin < 0) return;
 
   gpio_out_pin(GPIO1, pin, true);
-  timer_sleep_us(TIMER0, 30);
+  timer_sleep_us(30);
   gpio_out_pin(GPIO1, pin, false);
 }
 
@@ -67,13 +67,13 @@ void probe_pulse_times(probe_tag_t tag, uint32_t count) {
 
   while (count--) {
     gpio_out_pin(GPIO1, pin, true);
-    timer_sleep_us(TIMER0, 30);
+    timer_sleep_us(30);
     gpio_out_pin(GPIO1, pin, false);
 
     if (count) {
       // This is to not have a redundant delay between the end of the
       // last pulse and the next instruction.
-      timer_sleep_us(TIMER0, 30);
+      timer_sleep_us(30);
     }
   }
 }
