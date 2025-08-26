@@ -1,4 +1,9 @@
-# USB Device (USBD)
+# USB Device (USBD) driver
+
+The USBD API provides low-level access to the USB peripheral on the nRF52840
+microcontroller. It handles USB device initialization, enumeration, and data
+transfers.
+
 - [USB Overview](#usb-overview)
   - [Key USB Concepts](#key-usb-concepts)
 - [USBD API Reference](#usbd-api-reference)
@@ -53,9 +58,6 @@ For more detailed information on USB concepts:
 
 ## USBD API Reference
 
-The USBD API provides low-level access to the USB peripheral on the nRF52840
-microcontroller. It handles USB device initialization, enumeration, and data
-transfers.
 
 ### State Management
 

@@ -1,6 +1,10 @@
 # Radio ARQ Protocol
 
-- [Overview](#overview)
+The Radio ARQ (Automatic Repeat Query) protocol provides reliable message
+delivery over an unreliable radio link. It implements a simple stop-and-wait ARQ
+mechanism where the sender transmits a packet and waits for an acknowledgment
+before proceeding.
+
 - [Packet Structure](#packet-structure)
 - [Protocol Operation](#protocol-operation)
 - [API Reference](#api-reference)
@@ -10,10 +14,6 @@
 - [Limitations](#limitations)
 - [Example Usage](#example-usage)
 
-
-## Overview
-
-The Radio ARQ (Automatic Repeat Query) protocol provides reliable message delivery over an unreliable radio link. It implements a simple stop-and-wait ARQ mechanism where the sender transmits a packet and waits for an acknowledgment before proceeding.
 
 ## Packet Structure
 
@@ -150,7 +150,8 @@ radio_arq_receive(&received_data, sizeof(received_data));
 ## Implementation Details
 
 - The protocol uses a 3-retry mechanism for reliability
-- The implementation is not thread-safe - concurrent calls to send/receive are prevented with a busy flag
+- The implementation is not thread-safe - concurrent calls to send/receive are
+  prevented with a busy flag
 - Timeout for waiting for acknowledgment is set to 1500 microseconds
 - The protocol has minimal overhead (1-4 bytes per packet depending on type)
 - Debug information is available through probe signals for troubleshooting
@@ -182,4 +183,5 @@ radio_arq_receive(&received, sizeof(received));
 update_leds(received);
 ```
 
-The protocol ensures that the data is delivered reliably despite potential packet loss or corruption in the radio channel.
+The protocol ensures that the data is delivered reliably despite potential
+packet loss or corruption in the radio channel.
