@@ -1,0 +1,186 @@
+#ifndef DEVICE_H
+#define DEVICE_H
+
+#include <stdint.h>
+
+#include "usb_hid.h"
+
+#define MAX_LAYERS 16
+#define MAX_SWITCHES 32
+
+typedef struct {
+  uint8_t n_layers;
+  uint8_t n_switches;
+
+  // Bitmap of active layers, bit 0 is ignored, as layer 0 (default layer) is
+  // always active.
+  uint16_t active_layers;
+
+  // Previous physical state, used to detect key releases.
+  uint32_t previous_state;
+
+  // Array of layers, which each layer being an array of switches. A switch is represented with
+  // a 16bit code, with the following structure:
+  // bits 0-7: HID keycode
+  // bits 8-15:
+  uint16_t layers[MAX_LAYERS][MAX_SWITCHES];
+} device_state_t;
+
+void init_device(uint8_t device_id, device_state_t device);
+hid_report_keyboard_t device_update_state(uint8_t device_id, uint32_t switches);
+
+#define KC_TRNS 0x00
+#define _______ 0x00
+
+#define MOD_LCTRL 0x0101
+#define MOD_LSFT 0x0102
+#define MOD_LALT 0x0104
+#define MOD_LGUI 0x0108
+
+#define MOD_RCTRL 0x0110
+#define MOD_RSFT 0x0120
+#define MOD_RALT 0x0140
+#define MOD_RGUI 0x0180
+
+#define KC_A 0x04
+#define KC_B 0x05
+#define KC_C 0x06
+#define KC_D 0x07
+#define KC_E 0x08
+#define KC_F 0x09
+#define KC_G 0x0A
+#define KC_H 0x0B
+#define KC_I 0x0C
+#define KC_J 0x0D
+#define KC_K 0x0E
+#define KC_L 0x0F
+#define KC_M 0x10
+#define KC_N 0x11
+#define KC_O 0x12
+#define KC_P 0x13
+#define KC_Q 0x14
+#define KC_R 0x15
+#define KC_S 0x16
+#define KC_T 0x17
+#define KC_U 0x18
+#define KC_V 0x19
+#define KC_W 0x1A
+#define KC_X 0x1B
+#define KC_Y 0x1C
+#define KC_Z 0x1D
+
+#define KC_1 0x1E
+#define KC_2 0x1F
+#define KC_3 0x20
+#define KC_4 0x21
+#define KC_5 0x22
+#define KC_6 0x23
+#define KC_7 0x24
+#define KC_8 0x25
+#define KC_9 0x26
+#define KC_0 0x27
+
+#define KC_ENTER 0x28
+#define KC_ENT 0x28
+#define KC_ESCAPE 0x29
+#define KC_ESC 0x29
+#define KC_BACKSPACE 0x2A
+#define KC_BSPC 0x2A
+#define KC_TAB 0x2B
+#define KC_SPACE 0x2C
+#define KC_SPC 0x2C
+#define KC_MINUS 0x2D
+#define KC_MINS 0x2D
+#define KC_EQUAL
+#define KC_EQL
+#define KC_LEFT_BRACKET
+#define KC_LBRC
+#define KC_RIGHT_BRACKET
+#define KC_RBRC
+#define KC_BACKSLASH 0x31
+#define KC_BSLS 0x31
+#define KC_NONUS_HASH 0x32
+#define KC_NUHS 0x32
+#define KC_SEMICOLON 0x33
+#define KC_SEMI 0x33
+#define KC_QUOTE 0x34
+#define KC_QUOT 0x34
+#define KC_GRAVE 0x35
+#define KC_GRV 0x35
+#define KC_COMMA 0x36
+#define KC_COMM 0x36
+#define KC_DOT 0x37
+#define KC_SLASH 0x38
+#define KC_SLSH 0x38
+#define KC_CAPS_LOCK 0x39
+#define KC_CAPS 0x39
+
+#define KC_F1 0x3A
+#define KC_F2 0x3B
+#define KC_F3 0x3C
+#define KC_F4 0x3D
+#define KC_F5 0x3E
+#define KC_F6 0x3F
+#define KC_F7 0x40
+#define KC_F8 0x41
+#define KC_F9 0x42
+#define KC_F10 0x43
+#define KC_F11 0x44
+#define KC_F12 0x45
+
+#define KC_PRINT_SCREEN 0x46
+#define KC_PSCR 0x46
+#define KC_SCROL_LOCK 0x47
+#define KC_SCRL 0x47
+#define KC_PAUSE 0x48
+#define KC_PAUS 0x48
+#define KC_INSERT 0x49
+#define KC_INS 0x49
+#define KC_HOME 0x4A
+#define KC_PAGE_UP 0x4B
+#define KC_PGUP 0x4B
+#define KC_DELETE 0x4C
+#define KC_DEL 0x4C
+#define KC_END 0x4D
+#define KC_PAGE_DOWN 0x4E
+#define KC_PGDN 0x4E
+#define KC_RIGHT 0x4F
+#define KC_RGHT 0x4F
+#define KC_LEFT 0x50
+#define KC_DOWN 0x51
+#define KC_UP 0x52
+#define KC_NUM_LOCK 0x53
+#define KC_NUM 0x53
+
+#define KC_KP_SLASH 0x54
+#define KC_PSLS 0x54
+#define KC_KP_ASTERISK 0x55
+#define KC_PAST 0x55
+#define KC_KP_MINUS 0x56
+#define KC_PMNS 0x56
+#define KC_KP_PLUS 0x57
+#define KC_PPLS 0x57
+#define KC_KP_ENTER 0x58
+#define KC_PENT 0x58
+#define KC_KP_1 0x59
+#define KC_P1 0x59
+#define KC_KP_2 0x5A
+#define KC_P2 0x5A
+#define KC_KP_3 0x5B
+#define KC_P3 0x5B
+#define KC_KP_4 0x5C
+#define KC_P4 0x5C
+#define KC_KP_5 0x5D
+#define KC_P5 0x5D
+#define KC_KP_6 0x5E
+#define KC_P6 0x5E
+#define KC_KP_7 0x5F
+#define KC_P7 0x5F
+#define KC_KP_8 0x60
+#define KC_P8 0x60
+#define KC_KP_9 0x61
+#define KC_P9 0x61
+#define KC_KP_0 0x62
+#define KC_P0 0x62
+
+#endif  // DEVICE_H

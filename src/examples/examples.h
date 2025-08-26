@@ -30,4 +30,6 @@ int example_radio_auto_tx();
 // the corresponding keypress via USB HID.
 int example_radio_hid();
 
+// Send keypresses for the current pressed switches via USB HID.
+int example_simple_hid();
 #endif  // EXAMPLES_H

@@ -217,3 +217,11 @@ void hid_send_report(uint32_t switches) {
     usbd_epin_start(1, (uint32_t)&hid_report_mouse, sizeof(hid_report_mouse));
   }
 }
+
+void hid_send_kb_report(hid_report_keyboard_t* report) {
+  if (!(usbd_state.usbd_ready && usbd_state.vbus_detected && usbd_state.usb_power_ready)) {
+    return;
+  }
+
+  usbd_epin_start(1, (uint32_t)report, sizeof(hid_report_keyboard));
+}

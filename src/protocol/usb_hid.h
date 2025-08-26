@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-void hid_send_report(uint32_t switches);
-
 typedef struct __attribute__((packed, aligned(4))) {
   uint8_t report_id;
   uint8_t modifiers;
@@ -26,5 +24,8 @@ extern uint32_t current_switches;
 
 extern uint8_t hid_report_desc[];
 extern uint16_t hid_report_desc_length;
+
+void hid_send_report(uint32_t switches);
+void hid_send_kb_report(hid_report_keyboard_t* report);
 
 #endif  // USBD_HID_H
