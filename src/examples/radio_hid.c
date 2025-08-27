@@ -2,9 +2,9 @@
 #include <stdint.h>
 
 #include "examples.h"
+#include "keyscan.h"
 #include "leds.h"
 #include "radio.h"
-#include "switches.h"
 #include "usb_hid.h"
 #include "usbd.h"
 #include "utils.h"
@@ -23,7 +23,7 @@ int example_radio_hid() {
 #endif
 
   init_leds(led_pins, led_pins_size);
-  init_switches(switch_pins, switch_pins_size);
+  init_keyscan(switch_pins, switch_pins_size);
   init_radio();
 
   leds_blink();
@@ -45,7 +45,7 @@ int example_radio_hid() {
 }
 
 #ifdef EXAMPLE_RADIO_HID
-void SWITCHES_ToggleHandler(uint32_t switches) {
+void KEYSCAN_ToggleHandler(uint32_t switches) {
   radio_send(&switches, sizeof(switches));
   leds_set_all(switches);
 }

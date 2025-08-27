@@ -4,7 +4,7 @@
     "stdint.h": "c",
     "stddef.h": "c",
     "gpio.h": "c",
-    "switches.h": "c",
+    "keyscan.h": "c",
     "core.h": "c",
     "string_view": "c",
     "stdbool.h": "c",

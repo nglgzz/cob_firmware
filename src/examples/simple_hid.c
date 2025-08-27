@@ -3,8 +3,8 @@
 
 #include "device.h"
 #include "examples.h"
+#include "keyscan.h"
 #include "leds.h"
-#include "switches.h"
 #include "usb_hid.h"
 #include "usbd.h"
 
@@ -32,7 +32,7 @@ int example_simple_hid() {
   init_device(0, device1);
 
   init_leds(led_pins, led_pins_size);
-  init_switches(switch_pins, switch_pins_size);
+  init_keyscan(switch_pins, switch_pins_size);
 
   leds_blink();
 
@@ -43,7 +43,7 @@ int example_simple_hid() {
 }
 
 #ifdef EXAMPLE_SIMPLE_HID
-void SWITCHES_ToggleHandler(uint32_t switches) {
+void KEYSCAN_ToggleHandler(uint32_t switches) {
   hid_report_keyboard_t report = device_update_state(0, switches);
   hid_send_kb_report(&report);
   leds_set_all(switches);

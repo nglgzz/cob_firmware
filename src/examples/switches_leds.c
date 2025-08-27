@@ -2,8 +2,8 @@
 #include <stdint.h>
 
 #include "examples.h"
+#include "keyscan.h"
 #include "leds.h"
-#include "switches.h"
 
 static uint8_t switch_pins[] = {SW_PIN_2, SW_PIN_4, SW_PIN_3, SW_PIN_1};
 static size_t switch_pins_size = sizeof(switch_pins) / sizeof(uint8_t);
@@ -13,7 +13,7 @@ static size_t led_pins_size = sizeof(led_pins) / sizeof(uint8_t);
 
 int example_switches_leds() {
   init_leds(led_pins, led_pins_size);
-  init_switches(switch_pins, switch_pins_size);
+  init_keyscan(switch_pins, switch_pins_size);
 
   leds_blink();
 
@@ -23,5 +23,5 @@ int example_switches_leds() {
   }
 }
 #ifdef EXAMPLE_SWITCHES_LEDS
-void SWITCHES_ToggleHandler(uint32_t switches) { leds_set_all(switches); }
+void KEYSCAN_ToggleHandler(uint32_t switches) { leds_set_all(switches); }
 #endif

@@ -9,7 +9,7 @@ through a callback mechanism.
 ### Initialization
 
 ```c
-void init_switches(uint8_t pins[], size_t pins_size);
+void init_keyscan(uint8_t pins[], size_t pins_size);
 ```
 Initializes the specified GPIO pins as switch inputs with pull-up resistors and
 interrupt detection.
@@ -31,7 +31,7 @@ interrupt detection.
 ### Callback Registration
 
 ```c
-void SWITCHES_ToggleHandler(uint32_t switches);
+void KEYSCAN_ToggleHandler(uint32_t switches);
 ```
 
 This is a weak-linked callback function that you must implement in your
@@ -48,7 +48,7 @@ Parameters:
 Example Implementation:
 
 ```c
-void SWITCHES_ToggleHandler(uint32_t switches) {
+void KEYSCAN_ToggleHandler(uint32_t switches) {
     // Check if first switch is pressed
     if (switches & 0x01) {
         // Handle first switch press
@@ -81,7 +81,7 @@ void SWITCHES_ToggleHandler(uint32_t switches) {
 ## Usage Example
 
 ```c
-#include "switches.h"
+#include "keyscan.h"
 #include "leds.h"
 
 // Define switch and LED pins
@@ -91,7 +91,7 @@ static uint8_t led_pins[] = {17, 18, 19, 20}; // GPIO pins connected to LEDs
 int main(void) {
     // Initialize LEDs and switches
     init_leds(led_pins, 4);
-    init_switches(switch_pins, 4);
+    init_keyscan(switch_pins, 4);
 
     // Main loop
     while(1) {
@@ -101,7 +101,7 @@ int main(void) {
 }
 
 // Implement the switch handler callback
-void SWITCHES_ToggleHandler(uint32_t switches) {
+void KEYSCAN_ToggleHandler(uint32_t switches) {
     // Mirror switch states to LEDs
     leds_set_all(switches);
 

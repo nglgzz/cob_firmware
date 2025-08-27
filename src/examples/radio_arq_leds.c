@@ -2,11 +2,11 @@
 #include <stdint.h>
 
 #include "examples.h"
+#include "keyscan.h"
 #include "leds.h"
 #include "probe.h"
 #include "radio.h"
 #include "radio_arq.h"
-#include "switches.h"
 #include "utils.h"
 
 static uint8_t switch_pins[] = {SW_PIN_2, SW_PIN_4, SW_PIN_3, SW_PIN_1};
@@ -31,7 +31,7 @@ int example_radio_arq_leds() {
     leds_set_all(report);
   }
 #endif
-  init_switches(switch_pins, switch_pins_size);
+  init_keyscan(switch_pins, switch_pins_size);
 
   while (1) {
     leds_set(3, 1);
@@ -40,7 +40,7 @@ int example_radio_arq_leds() {
 }
 
 #ifdef EXAMPLE_RADIO_ARQ_LEDS
-void SWITCHES_ToggleHandler(uint32_t switches) {
+void KEYSCAN_ToggleHandler(uint32_t switches) {
   probe_pulse_times(probe_tag_switch_handler, 3);
   radio_arq_send(&switches, sizeof(switches));
   leds_set_all(switches);

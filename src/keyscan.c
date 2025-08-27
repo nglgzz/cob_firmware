@@ -3,7 +3,7 @@
  *    - Max number of switches is determined by MAX_SWITCH_PINS_SIZE.
  *    - All switches need to be on GPIO port 0.
  */
-#include "switches.h"
+#include "keyscan.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -30,10 +30,10 @@ static const uint32_t sense_high = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_P
                                    (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos) |
                                    (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
 
-void SWITCHES_noop(uint32_t switches) {}
-void SWITCHES_ToggleHandler(uint32_t switches) __attribute__((weak, alias("SWITCHES_noop")));
+void KEYSCAN_noop(uint32_t switches) {}
+void KEYSCAN_ToggleHandler(uint32_t switches) __attribute__((weak, alias("KEYSCAN_noop")));
 
-void init_switches(uint8_t pins[], size_t pins_size) {
+void init_keyscan(uint8_t pins[], size_t pins_size) {
   switch_pins_size = pins_size <= MAX_SWITCH_PINS_SIZE ? pins_size : MAX_SWITCH_PINS_SIZE;
   memcpy(switch_pins, pins, switch_pins_size);
 
@@ -105,6 +105,6 @@ void GPIOTE_IRQHandler() {
       timer_start_timeout(TIMER2, DEBOUNCE_DELAY_US);
     }
 
-    SWITCHES_ToggleHandler(switches);
+    KEYSCAN_ToggleHandler(switches);
   }
 }
