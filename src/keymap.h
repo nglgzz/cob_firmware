@@ -1,5 +1,5 @@
-#ifndef DEVICE_H
-#define DEVICE_H
+#ifndef KEYMAP_H
+#define KEYMAP_H
 
 #include <stdint.h>
 
@@ -24,9 +24,9 @@ typedef struct {
   // bits 0-7: HID keycode
   // bits 8-15:
   uint16_t layers[MAX_LAYERS][MAX_SWITCHES];
-} device_state_t;
+} keymap_state_t;
 
-void init_device(uint8_t device_id, device_state_t device);
+void init_device(uint8_t device_id, keymap_state_t device);
 hid_report_keyboard_t device_update_state(uint8_t device_id, uint32_t switches);
 
 #define KC_TRNS 0x00
@@ -183,4 +183,4 @@ hid_report_keyboard_t device_update_state(uint8_t device_id, uint32_t switches);
 #define KC_KP_0 0x62
 #define KC_P0 0x62
 
-#endif  // DEVICE_H
+#endif  // KEYMAP_H

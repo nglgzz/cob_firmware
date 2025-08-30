@@ -1,8 +1,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "device.h"
 #include "examples.h"
+#include "keymap.h"
 #include "keyscan.h"
 #include "leds.h"
 #include "usb_hid.h"
@@ -15,7 +15,7 @@ static size_t led_gpios_len = sizeof(led_gpios) / sizeof(uint8_t);
 #define N_SWITCHES 4
 #define N_COLUMNS 2
 
-static device_state_t device1 = {.n_layers = N_LAYERS,
+static keymap_state_t device1 = {.n_layers = N_LAYERS,
                                  .n_switches = N_SWITCHES,
                                  .layers =
                                      {

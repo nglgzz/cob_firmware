@@ -1,14 +1,14 @@
-#include "device.h"
+#include "keymap.h"
 
 #include <stdint.h>
 
 #include "usb_hid.h"
 
-static device_state_t devices[8] = {};
+static keymap_state_t devices[8] = {};
 
-void init_device(uint8_t device_id, device_state_t device) { devices[device_id] = device; }
+void init_device(uint8_t device_id, keymap_state_t device) { devices[device_id] = device; }
 
-uint16_t get_keycode(device_state_t* device, uint32_t key) {
+uint16_t get_keycode(keymap_state_t* device, uint32_t key) {
   uint16_t keycode = 0x0;
   uint16_t current_layer = 15;
 
@@ -58,7 +58,7 @@ hid_report_keyboard_t device_update_state(uint8_t device_id, uint32_t switches) 
   };
   uint8_t keys_index = 0;
 
-  device_state_t* device = &devices[device_id];
+  keymap_state_t* device = &devices[device_id];
 
   uint32_t pressed = (~device->previous_state) & switches;
   uint32_t released = device->previous_state & (~switches);
