@@ -24,12 +24,12 @@ int example_radio_arq_leds();
 
 // Send values on the radio at an interval, and show the corresponding received values with
 // LEDs.
-int example_radio_auto_tx();
+int example_radio_arq_auto_tx();
 
 // Send the current pressed switches via radio, turn on/off the corresponding LEDs, and send
 // the corresponding keypress via USB HID.
-int example_radio_hid();
+int example_radio_arq_hid();
 
-// Send keypresses for the current pressed switches via USB HID.
-int example_simple_hid();
+// Translate scanned keypressed into keycodes and send them via USB HID.
+int example_keymap_hid();
 #endif  // EXAMPLES_H

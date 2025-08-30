@@ -46,12 +46,12 @@ int main(void) {
   example_radio_leds();
 #elif defined(EXAMPLE_RADIO_ARQ_LEDS)
   example_radio_arq_leds();
-#elif defined(EXAMPLE_RADIO_AUTO_TX)
-  example_radio_auto_tx();
-#elif defined(EXAMPLE_RADIO_HID)
-  example_radio_hid();
-#elif defined(EXAMPLE_SIMPLE_HID)
-  example_simple_hid();
+#elif defined(EXAMPLE_RADIO_ARQ_AUTO_TX)
+  example_radio_arq_auto_tx();
+#elif defined(EXAMPLE_RADIO_ARQ_HID)
+  example_radio_arq_hid();
+#elif defined(EXAMPLE_KEYMAP_HID)
+  example_keymap_hid();
 #endif
 
   while (1) {

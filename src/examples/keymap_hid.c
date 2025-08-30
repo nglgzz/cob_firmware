@@ -28,7 +28,7 @@ static device_state_t device1 = {.n_layers = N_LAYERS,
                                  .active_layers = 0x2,
                                  .previous_state = 0x0};
 
-int example_simple_hid() {
+int example_keymap_hid() {
   init_usbd();
   init_device(0, device1);
 
@@ -43,7 +43,7 @@ int example_simple_hid() {
   }
 }
 
-#ifdef EXAMPLE_SIMPLE_HID
+#ifdef EXAMPLE_KEYMAP_HID
 void KEYSCAN_EventHandler(keyscan_t keyscan) {
   // This is a hack until update_states accepts keyscan_t
   uint32_t rows = keyscan.rows[0] | (keyscan.rows[1] << N_COLUMNS);

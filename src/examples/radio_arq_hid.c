@@ -5,6 +5,7 @@
 #include "keyscan.h"
 #include "leds.h"
 #include "radio.h"
+#include "radio_arq.h"
 #include "usb_hid.h"
 #include "usbd.h"
 #include "utils.h"
@@ -17,7 +18,7 @@ static size_t led_gpios_size = sizeof(led_gpios) / sizeof(uint8_t);
 
 static uint32_t report;
 
-int example_radio_hid() {
+int example_radio_arq_hid() {
 #ifdef RADIO_RX
   init_usbd();
 #endif
@@ -32,7 +33,7 @@ int example_radio_hid() {
   leds_set(0, 1);
 
   while (1) {
-    radio_receive(&report, sizeof(report));
+    radio_arq_receive(&report, sizeof(report));
     leds_set_all(report);
     hid_send_report(report);
   }
@@ -44,9 +45,9 @@ int example_radio_hid() {
   }
 }
 
-#ifdef EXAMPLE_RADIO_HID
+#ifdef EXAMPLE_RADIO_ARQ_HID
 void KEYSCAN_EventHandler(keyscan_t keyscan) {
-  radio_send(&keyscan.rows[0], sizeof(keyscan.rows[0]));
+  radio_arq_send(&keyscan.rows[0], sizeof(keyscan.rows[0]));
   leds_set_all(keyscan.rows[0]);
 }
 #endif
