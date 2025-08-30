@@ -11,19 +11,33 @@
 // ports than GPIO0.
 #define MAX_GPIOS 32
 
-typedef struct {
-  uint8_t n_rows;
-  uint8_t n_cols;
+#define DIODE_DIRECTION_Unset 0
+#define DIODE_DIRECTION_RowToCol 1
+#define DIODE_DIRECTION_ColToRow 2
 
+typedef struct {
+  uint8_t diode_direction;
+
+  uint8_t cols_len;
+  uint8_t cols[MAX_COLS];
+
+  uint8_t rows_len;
+  uint8_t rows[MAX_ROWS];
+
+  uint8_t gpios_len;
+  uint8_t gpios[MAX_GPIOS];
+} keyscan_config_t;
+
+typedef struct {
   // Array of bitmaps representing the state of the switches in each row.
   uint32_t rows[MAX_ROWS];
   uint32_t previous_rows[MAX_ROWS];
-} keyscan_t;
+} keyscan_state_t;
 
-void init_keyscan_direct(uint8_t gpios[], uint8_t gpios_len, uint8_t n_cols);
-void init_keyscan_matrix(uint8_t rows[], uint8_t rows_len, uint8_t cols[], uint8_t cols_len,
-                         uint8_t diode_direction);
+//  Required fields for direct connections are `gpios`, `gpios_len`, `n_cols`
+void init_keyscan_direct(uint8_t config_id, keyscan_config_t* config);
+void init_keyscan_matrix(uint8_t config_id, keyscan_config_t* config);
 
-void KEYSCAN_EventHandler(keyscan_t keyscan);
+void KEYSCAN_EventHandler(uint8_t config_id, keyscan_state_t state);
 
 #endif  // SWITCH_H

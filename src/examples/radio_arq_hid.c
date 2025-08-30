@@ -10,13 +10,15 @@
 #include "usbd.h"
 #include "utils.h"
 
-static uint8_t switch_gpios[] = {SW_PIN_2, SW_PIN_4, SW_PIN_3, SW_PIN_1};
-static size_t switch_gpios_size = sizeof(switch_gpios) / sizeof(uint8_t);
-
 static uint8_t led_gpios[] = {LED_PIN_2, LED_PIN_4, LED_PIN_3, LED_PIN_1};
 static size_t led_gpios_size = sizeof(led_gpios) / sizeof(uint8_t);
 
 static uint32_t report;
+
+static keyscan_config_t config = {
+    .gpios = {SW_PIN_1, SW_PIN_2, SW_PIN_3, SW_PIN_4},
+    .gpios_len = 4,
+};
 
 int example_radio_arq_hid() {
 #ifdef RADIO_RX
@@ -24,7 +26,7 @@ int example_radio_arq_hid() {
 #endif
 
   init_leds(led_gpios, led_gpios_size);
-  init_keyscan_direct(switch_gpios, switch_gpios_size, switch_gpios_size);
+  init_keyscan_direct(0, &config);
   init_radio();
 
   leds_blink();
@@ -46,8 +48,8 @@ int example_radio_arq_hid() {
 }
 
 #ifdef EXAMPLE_RADIO_ARQ_HID
-void KEYSCAN_EventHandler(keyscan_t keyscan) {
-  radio_arq_send(&keyscan.rows[0], sizeof(keyscan.rows[0]));
-  leds_set_all(keyscan.rows[0]);
+void KEYSCAN_EventHandler(uint8_t keyscan_id, keyscan_state_t state) {
+  radio_arq_send(&state.rows[0], sizeof(state.rows[0]));
+  leds_set_all(state.rows[0]);
 }
 #endif

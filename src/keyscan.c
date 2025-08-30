@@ -27,21 +27,35 @@ static const uint32_t sense_high = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_P
                                    (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos) |
                                    (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
 
-uint8_t keyscan_gpios[MAX_GPIOS];
-size_t keyscan_gpios_len;
-keyscan_t keyscan_state = {};
+keyscan_config_t configs[4];
+keyscan_state_t state[4];
 
-void KEYSCAN_noop(keyscan_t keyscan) {}
-void KEYSCAN_EventHandler(keyscan_t keyscan) __attribute__((weak, alias("KEYSCAN_noop")));
+void KEYSCAN_noop(uint8_t config_id, keyscan_state_t state) {}
+void KEYSCAN_EventHandler(uint8_t config_id, keyscan_state_t state)
+    __attribute__((weak, alias("KEYSCAN_noop")));
 
-void init_keyscan_direct(uint8_t gpios[], uint8_t gpios_len, uint8_t n_cols) {
-  keyscan_gpios_len = gpios_len <= MAX_GPIOS ? gpios_len : MAX_GPIOS;
+void init_keyscan_direct(uint8_t config_id, keyscan_config_t* config) {
+  keyscan_config_t* _config = &configs[config_id];
 
-  uint8_t computed_n_rows = divide_ceil(keyscan_gpios_len, n_cols);
-  keyscan_state.n_rows = computed_n_rows < MAX_ROWS ? computed_n_rows : MAX_ROWS;
-  keyscan_state.n_cols = n_cols < MAX_COLS ? n_cols : MAX_COLS;
+  _config->gpios_len = min(config->gpios_len, MAX_GPIOS);
 
-  memcpy(keyscan_gpios, gpios, keyscan_gpios_len * sizeof(gpios[0]));
+  if (config->cols_len == 0) {
+    // If the number of columns columns is not specified, assume the max number of columns.
+    _config->cols_len = MAX_COLS;
+  } else {
+    _config->cols_len = min(config->cols_len, MAX_COLS);
+  }
+
+  if (config->rows_len == 0) {
+    // If the number of rows is not specified compute the rows based on the number of columns
+    // and the number of GPIOs.
+    uint8_t computed_n_rows = divide_ceil(_config->gpios_len, _config->cols_len);
+    _config->rows_len = min(computed_n_rows, MAX_ROWS);
+  } else {
+    _config->rows_len = min(config->rows_len, MAX_ROWS);
+  }
+
+  memcpy(_config->gpios, config->gpios, _config->gpios_len * sizeof(_config->gpios[0]));
 
   // Enable the GPIOTE interrupt request handler. If this is not set, the
   // peripheral can still generate interrupts, but they end up permanently
@@ -60,9 +74,9 @@ void init_keyscan_direct(uint8_t gpios[], uint8_t gpios_len, uint8_t n_cols) {
    */
   GPIOTE->INTENCLR |= GPIOTE_INTENCLR_PORT_Msk;
 
-  for (int i = 0; i < keyscan_gpios_len; i++) {
-    GPIO0->DIRCLR = (GPIO_DIRCLR_PIN0_Clear << gpios[i]);
-    GPIO0->PIN_CNF[gpios[i]] = sense_low;
+  for (int i = 0; i < _config->gpios_len; i++) {
+    GPIO0->DIRCLR = (GPIO_DIRCLR_PIN0_Clear << _config->gpios[i]);
+    GPIO0->PIN_CNF[_config->gpios[i]] = sense_low;
   }
 
   // Clear PORT events
@@ -72,62 +86,80 @@ void init_keyscan_direct(uint8_t gpios[], uint8_t gpios_len, uint8_t n_cols) {
   GPIOTE->INTENSET |= GPIOTE_INTENSET_PORT_Msk;
 }
 
-void init_keyscan_matrix(uint8_t rows[], uint8_t rows_len, uint8_t cols[], uint8_t cols_len,
-                         uint8_t diode_direction) {
+void init_keyscan_matrix(uint8_t id, keyscan_config_t* config) {
   // TODO: this is a stub
 }
 
 bool debounceTimeoutStarted = false;
-uint32_t previousValue = 0;
+// Returns true if the debounced action should be skipped, false otherwise.
+static inline bool keyscan_debounce() {
+  // Ignore new events during debounce time window
+  if (debounceTimeoutStarted && !timer_has_timeout_expired(TIMER2)) return true;
+
+  // Start debounce timer if needed
+  if (!debounceTimeoutStarted || timer_has_timeout_expired(TIMER2)) {
+    timer_start_timeout(TIMER2, DEBOUNCE_DELAY_US);
+    // debounceTimeoutStarted = true;
+  }
+
+  return false;
+}
+
+// Returns true if there is a key change, false otherwise.
+static bool keyscan_direct(uint8_t config_id) {
+  keyscan_config_t* _config = &configs[config_id];
+  keyscan_state_t* _state = &state[config_id];
+
+  memcpy(_state->previous_rows, _state->rows, _config->rows_len * sizeof(_state->rows[0]));
+
+  for (int i = 0; i < _config->gpios_len; i++) {
+    uint16_t gpio_pin = _config->gpios[i];
+    uint32_t gpio_value = GPIO0->IN & (GPIO_IN_PIN0_High << gpio_pin);
+
+    uint8_t row = i / _config->cols_len;
+    uint8_t col = i % _config->cols_len;
+
+    // The values are flipped because the switches are pulled up (i.e. 1 is
+    // low and 0 is high).
+    if (gpio_value) {
+      _state->rows[row] &= ~(1U << col);
+      GPIO0->PIN_CNF[gpio_pin] = sense_low;
+    } else {
+      _state->rows[row] |= 1U << col;
+      GPIO0->PIN_CNF[gpio_pin] = sense_high;
+    }
+  }
+
+  // Ignore duplicate events
+  bool duplicate_scan = true;
+  for (int i = 0; i < _config->rows_len; i++) {
+    if (_state->rows[i] != _state->previous_rows[i]) {
+      duplicate_scan = false;
+      break;
+    }
+  }
+  if (duplicate_scan) return false;
+
+  // Ignore events during debounce window
+  if (keyscan_debounce()) return false;
+
+  return true;
+}
 
 void GPIOTE_IRQHandler() {
   if (GPIOTE->EVENTS_PORT) {
     // Clear PORT events
     GPIOTE->EVENTS_PORT = 0;
 
-    memcpy(keyscan_state.previous_rows,
-           keyscan_state.rows,
-           keyscan_state.n_rows * sizeof(keyscan_state.rows[0]));
+    for (int i = 0; i < 4; i++) {
+      if (configs[i].gpios_len == 0) {
+        continue;
+      }
 
-    for (int i = 0; i < keyscan_gpios_len; i++) {
-      uint16_t pin = keyscan_gpios[i];
-      uint32_t pinValue = GPIO0->IN & (GPIO_IN_PIN0_High << pin);
-
-      uint8_t row = i / keyscan_state.n_cols;
-      uint8_t col = i % keyscan_state.n_cols;
-
-      // The values are flipped because the switches are pulled up (i.e. 1 is
-      // low and 0 is high).
-      if (pinValue) {
-        keyscan_state.rows[row] &= ~(1U << col);
-        GPIO0->PIN_CNF[keyscan_gpios[i]] = sense_low;
-
-      } else {
-        keyscan_state.rows[row] |= 1U << col;
-        GPIO0->PIN_CNF[keyscan_gpios[i]] = sense_high;
+      if (keyscan_direct(i)) {
+        KEYSCAN_EventHandler(i, state[i]);
       }
     }
-    // Clear potential PORT events that could have occurred during configuration.
     GPIOTE->EVENTS_PORT = 0;
-
-    // Ignore duplicate events
-    bool duplicate_scan = true;
-    for (int i = 0; i < keyscan_state.n_rows; i++) {
-      if (keyscan_state.rows[i] != keyscan_state.previous_rows[i]) {
-        duplicate_scan = false;
-        break;
-      }
-    }
-    if (duplicate_scan) return;
-
-    // Ignore new events during debounce time window
-    if (debounceTimeoutStarted && !timer_has_timeout_expired(TIMER2)) return;
-
-    // Start debounce timer if needed
-    if (!debounceTimeoutStarted || timer_has_timeout_expired(TIMER2)) {
-      timer_start_timeout(TIMER2, DEBOUNCE_DELAY_US);
-    }
-
-    KEYSCAN_EventHandler(keyscan_state);
   }
 }
