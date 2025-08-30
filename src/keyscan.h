@@ -30,8 +30,8 @@ typedef struct {
 
 typedef struct {
   // Array of bitmaps representing the state of the switches in each row.
-  uint32_t rows[MAX_ROWS];
-  uint32_t previous_rows[MAX_ROWS];
+  uint32_t matrix[MAX_ROWS];
+  uint32_t previous_matrix[MAX_ROWS];
 } keyscan_state_t;
 
 //  Required fields for direct connections are `gpios`, `gpios_len`, `n_cols`

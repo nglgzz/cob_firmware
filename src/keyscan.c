@@ -110,7 +110,8 @@ static bool keyscan_direct(uint8_t config_id) {
   keyscan_config_t* _config = &configs[config_id];
   keyscan_state_t* _state = &state[config_id];
 
-  memcpy(_state->previous_rows, _state->rows, _config->rows_len * sizeof(_state->rows[0]));
+  memcpy(
+      _state->previous_matrix, _state->matrix, _config->rows_len * sizeof(_state->matrix[0]));
 
   for (int i = 0; i < _config->gpios_len; i++) {
     uint16_t gpio_pin = _config->gpios[i];
@@ -122,10 +123,10 @@ static bool keyscan_direct(uint8_t config_id) {
     // The values are flipped because the switches are pulled up (i.e. 1 is
     // low and 0 is high).
     if (gpio_value) {
-      _state->rows[row] &= ~(1U << col);
+      _state->matrix[row] &= ~(1U << col);
       GPIO0->PIN_CNF[gpio_pin] = sense_low;
     } else {
-      _state->rows[row] |= 1U << col;
+      _state->matrix[row] |= 1U << col;
       GPIO0->PIN_CNF[gpio_pin] = sense_high;
     }
   }
@@ -133,7 +134,7 @@ static bool keyscan_direct(uint8_t config_id) {
   // Ignore duplicate events
   bool duplicate_scan = true;
   for (int i = 0; i < _config->rows_len; i++) {
-    if (_state->rows[i] != _state->previous_rows[i]) {
+    if (_state->matrix[i] != _state->previous_matrix[i]) {
       duplicate_scan = false;
       break;
     }
