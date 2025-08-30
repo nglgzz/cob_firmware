@@ -1,82 +1,103 @@
-# Switches
+# Keyscan
 
-
-This module configures GPIO pins as inputs with pull-up resistors and interrupt
-capabilities, allowing your application to respond to switch state changes
-through a callback mechanism.
+This module provides key scanning functionality with support for both direct
+wiring and matrix layouts. It stores key states in matrix format (bitmap array)
+regardless of the physical wiring to simplify keymap translation and provide a
+consistent interface.
 
 ## API Reference
 ### Initialization
 
 ```c
-void init_keyscan(uint8_t pins[], size_t pins_size);
+void init_keyscan_direct(uint8_t gpios[], uint8_t gpios_len, uint8_t n_cols);
 ```
-Initializes the specified GPIO pins as switch inputs with pull-up resistors and
-interrupt detection.
+
+Initializes GPIO pins for a direct-wired keyboard, with keys organized logically as a matrix.
 
 **Parameters**:
 
-- `pins[]`: Array of GPIO pin numbers to configure as switch inputs
-- `pins_size`: Number of pins in the array (maximum 32)
+- `gpios[]`: Array of GPIO pin numbers to configure as switch inputs
+- `gpios_len`: Number of pins in the array (maximum 32)
+- `n_cols`: Number of columns in the logical key matrix
 
 **Notes**:
 
 - All pins must be on GPIO port 0
-- Pins are configured with internal pull-up resistors (switches should connect
-  to ground)
-- The function enables GPIOTE interrupts and configures pins for low-level
-  detection
+- Pins are configured with internal pull-up resistors (switches should connect to ground)
+- The function enables GPIOTE interrupts and configures pins for low-level detection
+- The module automatically calculates the number of rows based on total pins and specified columns
+- Although pins are directly connected to switches, the state is stored in a matrix format
+
+```c
+void init_keyscan_matrix(uint8_t rows[], uint8_t rows_len, uint8_t cols[], uint8_t cols_len, uint8_t diode_direction);
+```
+
+**Note**: This function is a placeholder for future implementation of true matrix scanning.
 
 
 ### Callback Registration
 
 ```c
-void KEYSCAN_ToggleHandler(uint32_t switches);
+void KEYSCAN_EventHandler(keyscan_t keyscan);
 ```
 
 This is a weak-linked callback function that you must implement in your
-application code to handle switch state changes.
+application code to handle key matrix state changes.
 
-Parameters:
+**Parameters**:
 
-- `switches`: A bit field where each bit represents the state of a switch
-    - `Bit 0` corresponds to the first pin in your initialization array, `Bit 1`
-      corresponds to the second pin, and so on.
-    - A value of 1 indicates the switch is pressed (connected to ground), while
-      a value of 0 indicates the switch is released.
+- `keyscan`: A structure containing the current state of the key matrix
+  - `n_rows`: Number of rows in the matrix
+  - `n_cols`: Number of columns in the matrix
+  - `rows[]`: Array of bitmaps where each element represents a row's state
+  - `previous_rows[]`: Array of bitmaps containing the previous state
 
-Example Implementation:
+**Note on Matrix Format**:
+The key states are stored in a matrix format, where:
+- Each element in the `rows[]` array represents one row of keys
+- Within each row bitmap, each bit represents one key in that row
+- The bit position corresponds to the column in the matrix
+- A value of 1 indicates the key is pressed (connected to ground)
+- A value of 0 indicates the key is released
+
+**Example Implementation**:
 
 ```c
-void KEYSCAN_ToggleHandler(uint32_t switches) {
-    // Check if first switch is pressed
-    if (switches & 0x01) {
-        // Handle first switch press
+void KEYSCAN_EventHandler(keyscan_t keyscan) {
+    // Check if key at row 0, column 0 is pressed
+    if (keyscan.rows[0] & (1 << 0)) {
+        // Handle key press
     }
 
-    // Check if second switch is pressed
-    if (switches & 0x02) {
-        // Handle second switch press
+    // Check if key at row 1, column 2 is pressed
+    if (keyscan.rows[1] & (1 << 2)) {
+        // Handle key press
     }
 
-    // Set LEDs based on switch states
-    leds_set_all(switches);
+    // Detect key releases by comparing with previous state
+    if ((keyscan.previous_rows[0] & 0x01) && !(keyscan.rows[0] & 0x01)) {
+        // Key at row 0, column 0 was released
+    }
 }
 ```
 
-## Features
+## Implementation Features
 
-- Debounce protection: The module includes built-in debounce protection with a
-  500 microsecond delay between valid trigger events. This prevents multiple
+- **Debounce Protection**: The module includes built-in debounce protection with
+  a 500 microsecond delay between valid trigger events. This prevents multiple
   callbacks from being triggered by a single physical button press.
 
-- Edge detection: The module automatically configures each pin to detect both
-  rising and falling edges by dynamically changing the sense configuration: when
-  a pin is high, it's configured to detect low signals, when a pin is low, it's
-  configured to detect high signals.
+- **Edge Detection**: The module automatically configures each pin to detect
+  both rising and falling edges by dynamically changing the sense configuration:
+  when a pin is high, it's configured to detect low signals, when a pin is low,
+  it's configured to detect high signals.
 
-- Duplicate event prevention: The handler ignores consecutive events with
+- **Duplicate Event Prevention**: The handler ignores consecutive events with
   identical switch states to prevent redundant processing.
+
+- **Matrix Mapping**: Each physical switch is mapped to a row and column
+  position based on its index in the input array and the configured number of
+  columns.
 
 ## Usage Example
 
@@ -84,35 +105,37 @@ void KEYSCAN_ToggleHandler(uint32_t switches) {
 #include "keyscan.h"
 #include "leds.h"
 
-// Define switch and LED pins
-static uint8_t switch_pins[] = {1, 2, 3, 4};  // GPIO pins connected to switches
-static uint8_t led_pins[] = {17, 18, 19, 20}; // GPIO pins connected to LEDs
+static uint8_t switch_gpios[] = {1, 2, 3, 4};
+static uint8_t led_gpios[] = {17, 18, 19, 20};
 
 int main(void) {
-    // Initialize LEDs and switches
-    init_leds(led_pins, 4);
-    init_keyscan(switch_pins, 4);
+    init_leds(led_gpios, 4);
+    // Initialize as a 2x2 matrix (2 rows, 2 columns)
+    init_keyscan_direct(switch_gpios, 4, 2);
 
-    // Main loop
     while(1) {
-        // The switch handler will be called automatically when switches change state
-        __WFI(); // Wait for interrupt (low power mode)
+        // The key matrix handler will be called automatically when key states change
+        __asm__("WFI");
     }
 }
 
-// Implement the switch handler callback
-void KEYSCAN_ToggleHandler(uint32_t switches) {
-    // Mirror switch states to LEDs
-    leds_set_all(switches);
+void KEYSCAN_EventHandler(keyscan_t keyscan) {
+    // Mirror switch states from first row to LEDs
+    leds_set_all(keyscan.rows[0]);
 
-    // Perform actions based on specific switches
-    if (switches & 0x01) {
-        // First switch is pressed
+    // Perform actions based on specific key positions
+    if (keyscan.rows[0] & 0x01) {
+        // Key at row 0, column 0 is pressed
         play_sound();
     }
 
-    if ((switches & 0x03) == 0x03) {
-        // Both first and second switches are pressed
+    if (keyscan.rows[1] & 0x01) {
+        // Key at row 1, column 0 is pressed
+        adjust_volume();
+    }
+
+    // Check for combination: keys at (0,0) and (0,1) are both pressed
+    if ((keyscan.rows[0] & 0x03) == 0x03) {
         enter_config_mode();
     }
 }

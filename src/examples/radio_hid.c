@@ -9,11 +9,11 @@
 #include "usbd.h"
 #include "utils.h"
 
-static uint8_t switch_pins[] = {SW_PIN_2, SW_PIN_4, SW_PIN_3, SW_PIN_1};
-static size_t switch_pins_size = sizeof(switch_pins) / sizeof(uint8_t);
+static uint8_t switch_gpios[] = {SW_PIN_2, SW_PIN_4, SW_PIN_3, SW_PIN_1};
+static size_t switch_gpios_size = sizeof(switch_gpios) / sizeof(uint8_t);
 
-static uint8_t led_pins[] = {LED_PIN_2, LED_PIN_4, LED_PIN_3, LED_PIN_1};
-static size_t led_pins_size = sizeof(led_pins) / sizeof(uint8_t);
+static uint8_t led_gpios[] = {LED_PIN_2, LED_PIN_4, LED_PIN_3, LED_PIN_1};
+static size_t led_gpios_size = sizeof(led_gpios) / sizeof(uint8_t);
 
 static uint32_t report;
 
@@ -22,8 +22,8 @@ int example_radio_hid() {
   init_usbd();
 #endif
 
-  init_leds(led_pins, led_pins_size);
-  init_keyscan(switch_pins, switch_pins_size);
+  init_leds(led_gpios, led_gpios_size);
+  init_keyscan_direct(switch_gpios, switch_gpios_size, switch_gpios_size);
   init_radio();
 
   leds_blink();
@@ -45,8 +45,8 @@ int example_radio_hid() {
 }
 
 #ifdef EXAMPLE_RADIO_HID
-void KEYSCAN_ToggleHandler(uint32_t switches) {
-  radio_send(&switches, sizeof(switches));
-  leds_set_all(switches);
+void KEYSCAN_EventHandler(keyscan_t keyscan) {
+  radio_send(&keyscan.rows[0], sizeof(keyscan.rows[0]));
+  leds_set_all(keyscan.rows[0]);
 }
 #endif

@@ -8,18 +8,18 @@
 #include "timer.h"
 #include "utils.h"
 
-static uint8_t profiler_pins[] = {PP_D0, PP_D1, PP_D2, PP_D3, PP_D4, PP_D5, PP_D6, PP_D7};
-static uint8_t profiler_pins_len = sizeof(profiler_pins) / sizeof(profiler_pins[0]);
+static uint8_t profiler_gpios[] = {PP_D0, PP_D1, PP_D2, PP_D3, PP_D4, PP_D5, PP_D6, PP_D7};
+static uint8_t profiler_gpios_len = sizeof(profiler_gpios) / sizeof(profiler_gpios[0]);
 static probe_tag_t profiler_tags[8];
 bool probes_initialized = false;
 
 void init_probes(probe_tag_t tags[], size_t size) {
   memcpy(profiler_tags, tags, size);
-  profiler_pins_len = min(size, profiler_pins_len);
+  profiler_gpios_len = min(size, profiler_gpios_len);
 
-  for (int i = 0; i < profiler_pins_len; i++) {
-    gpio_dir_pin_output(GPIO1, profiler_pins[i]);
-    gpio_out_pin(GPIO1, profiler_pins[i], false);
+  for (int i = 0; i < profiler_gpios_len; i++) {
+    gpio_dir_pin_output(GPIO1, profiler_gpios[i]);
+    gpio_out_pin(GPIO1, profiler_gpios[i], false);
   }
 
   init_timer(TIMER0);
@@ -29,9 +29,9 @@ void init_probes(probe_tag_t tags[], size_t size) {
 static inline int find_tag_pin(probe_tag_t tag) {
   if (!probes_initialized) return -1;
 
-  for (int i = 0; i < profiler_pins_len; i++) {
+  for (int i = 0; i < profiler_gpios_len; i++) {
     if (profiler_tags[i] == tag) {
-      return profiler_pins[i];
+      return profiler_gpios[i];
     }
   }
 

@@ -1,6 +1,6 @@
 /**
  * NOTES:
- *    - Max number of switches is determined by MAX_SWITCH_PINS_SIZE.
+ *    - Max number of switches is determined by MAX_GPIOS.
  *    - All switches need to be on GPIO port 0.
  */
 #include "keyscan.h"
@@ -15,9 +15,6 @@
 #include "timer.h"
 #include "utils.h"
 
-uint8_t switch_pins[MAX_SWITCH_PINS_SIZE];
-size_t switch_pins_size;
-
 #define DEBOUNCE_DELAY_US 500
 
 static const uint32_t sense_low = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos) |
@@ -30,12 +27,21 @@ static const uint32_t sense_high = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_P
                                    (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos) |
                                    (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
 
-void KEYSCAN_noop(uint32_t switches) {}
-void KEYSCAN_ToggleHandler(uint32_t switches) __attribute__((weak, alias("KEYSCAN_noop")));
+uint8_t keyscan_gpios[MAX_GPIOS];
+size_t keyscan_gpios_len;
+keyscan_t keyscan_state = {};
 
-void init_keyscan(uint8_t pins[], size_t pins_size) {
-  switch_pins_size = pins_size <= MAX_SWITCH_PINS_SIZE ? pins_size : MAX_SWITCH_PINS_SIZE;
-  memcpy(switch_pins, pins, switch_pins_size);
+void KEYSCAN_noop(keyscan_t keyscan) {}
+void KEYSCAN_EventHandler(keyscan_t keyscan) __attribute__((weak, alias("KEYSCAN_noop")));
+
+void init_keyscan_direct(uint8_t gpios[], uint8_t gpios_len, uint8_t n_cols) {
+  keyscan_gpios_len = gpios_len <= MAX_GPIOS ? gpios_len : MAX_GPIOS;
+
+  uint8_t computed_n_rows = divide_ceil(keyscan_gpios_len, n_cols);
+  keyscan_state.n_rows = computed_n_rows < MAX_ROWS ? computed_n_rows : MAX_ROWS;
+  keyscan_state.n_cols = n_cols < MAX_COLS ? n_cols : MAX_COLS;
+
+  memcpy(keyscan_gpios, gpios, keyscan_gpios_len * sizeof(gpios[0]));
 
   // Enable the GPIOTE interrupt request handler. If this is not set, the
   // peripheral can still generate interrupts, but they end up permanently
@@ -54,9 +60,9 @@ void init_keyscan(uint8_t pins[], size_t pins_size) {
    */
   GPIOTE->INTENCLR |= GPIOTE_INTENCLR_PORT_Msk;
 
-  for (int i = 0; i < switch_pins_size; i++) {
-    GPIO0->DIRCLR = (GPIO_DIRCLR_PIN0_Clear << switch_pins[i]);
-    GPIO0->PIN_CNF[switch_pins[i]] = sense_low;
+  for (int i = 0; i < keyscan_gpios_len; i++) {
+    GPIO0->DIRCLR = (GPIO_DIRCLR_PIN0_Clear << gpios[i]);
+    GPIO0->PIN_CNF[gpios[i]] = sense_low;
   }
 
   // Clear PORT events
@@ -66,6 +72,11 @@ void init_keyscan(uint8_t pins[], size_t pins_size) {
   GPIOTE->INTENSET |= GPIOTE_INTENSET_PORT_Msk;
 }
 
+void init_keyscan_matrix(uint8_t rows[], uint8_t rows_len, uint8_t cols[], uint8_t cols_len,
+                         uint8_t diode_direction) {
+  // TODO: this is a stub
+}
+
 bool debounceTimeoutStarted = false;
 uint32_t previousValue = 0;
 
@@ -73,29 +84,41 @@ void GPIOTE_IRQHandler() {
   if (GPIOTE->EVENTS_PORT) {
     // Clear PORT events
     GPIOTE->EVENTS_PORT = 0;
-    uint32_t switches = 0x00;
 
-    for (int i = 0; i < switch_pins_size; i++) {
-      uint16_t pin = switch_pins[i];
+    memcpy(keyscan_state.previous_rows,
+           keyscan_state.rows,
+           keyscan_state.n_rows * sizeof(keyscan_state.rows[0]));
+
+    for (int i = 0; i < keyscan_gpios_len; i++) {
+      uint16_t pin = keyscan_gpios[i];
       uint32_t pinValue = GPIO0->IN & (GPIO_IN_PIN0_High << pin);
-      // TODO: debounce read
 
-      // The values are flipped because the switches are pulled up (i.e. 1 is low and 0 is
-      // high).
-      switches |= (pinValue ? 0U : 1U) << i;
+      uint8_t row = i / keyscan_state.n_cols;
+      uint8_t col = i % keyscan_state.n_cols;
 
+      // The values are flipped because the switches are pulled up (i.e. 1 is
+      // low and 0 is high).
       if (pinValue) {
-        GPIO0->PIN_CNF[switch_pins[i]] = sense_low;
+        keyscan_state.rows[row] &= ~(1U << col);
+        GPIO0->PIN_CNF[keyscan_gpios[i]] = sense_low;
+
       } else {
-        GPIO0->PIN_CNF[switch_pins[i]] = sense_high;
+        keyscan_state.rows[row] |= 1U << col;
+        GPIO0->PIN_CNF[keyscan_gpios[i]] = sense_high;
       }
     }
     // Clear potential PORT events that could have occurred during configuration.
     GPIOTE->EVENTS_PORT = 0;
 
     // Ignore duplicate events
-    if (switches == previousValue) return;
-    previousValue = switches;
+    bool duplicate_scan = true;
+    for (int i = 0; i < keyscan_state.n_rows; i++) {
+      if (keyscan_state.rows[i] != keyscan_state.previous_rows[i]) {
+        duplicate_scan = false;
+        break;
+      }
+    }
+    if (duplicate_scan) return;
 
     // Ignore new events during debounce time window
     if (debounceTimeoutStarted && !timer_has_timeout_expired(TIMER2)) return;
@@ -105,6 +128,6 @@ void GPIOTE_IRQHandler() {
       timer_start_timeout(TIMER2, DEBOUNCE_DELAY_US);
     }
 
-    KEYSCAN_ToggleHandler(switches);
+    KEYSCAN_EventHandler(keyscan_state);
   }
 }

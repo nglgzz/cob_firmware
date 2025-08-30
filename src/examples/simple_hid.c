@@ -8,14 +8,15 @@
 #include "usb_hid.h"
 #include "usbd.h"
 
-static uint8_t switch_pins[] = {SW_PIN_1, SW_PIN_2, SW_PIN_3, SW_PIN_4};
-static size_t switch_pins_size = sizeof(switch_pins) / sizeof(uint8_t);
+static uint8_t switch_gpios[] = {SW_PIN_1, SW_PIN_2, SW_PIN_3, SW_PIN_4};
+static size_t switch_gpios_len = sizeof(switch_gpios) / sizeof(uint8_t);
 
-static uint8_t led_pins[] = {LED_PIN_1, LED_PIN_2, LED_PIN_3, LED_PIN_4};
-static size_t led_pins_size = sizeof(led_pins) / sizeof(uint8_t);
+static uint8_t led_gpios[] = {LED_PIN_1, LED_PIN_2, LED_PIN_3, LED_PIN_4};
+static size_t led_gpios_len = sizeof(led_gpios) / sizeof(uint8_t);
 
 #define N_LAYERS 2
 #define N_SWITCHES 4
+#define N_COLUMNS 2
 
 static device_state_t device1 = {.n_layers = N_LAYERS,
                                  .n_switches = N_SWITCHES,
@@ -31,21 +32,25 @@ int example_simple_hid() {
   init_usbd();
   init_device(0, device1);
 
-  init_leds(led_pins, led_pins_size);
-  init_keyscan(switch_pins, switch_pins_size);
+  init_leds(led_gpios, led_gpios_len);
+  init_keyscan_direct(switch_gpios, switch_gpios_len, N_COLUMNS);
 
   leds_blink();
+  leds_set(1, 1);
 
   while (1) {
-    leds_set(1, 1);
     __asm__("WFI");
   }
 }
 
 #ifdef EXAMPLE_SIMPLE_HID
-void KEYSCAN_ToggleHandler(uint32_t switches) {
-  hid_report_keyboard_t report = device_update_state(0, switches);
+void KEYSCAN_EventHandler(keyscan_t keyscan) {
+  // This is a hack until update_states accepts keyscan_t
+  uint32_t rows = keyscan.rows[0] | (keyscan.rows[1] << N_COLUMNS);
+  hid_report_keyboard_t report = device_update_state(0, rows);
+  leds_set_all(rows);
+
   hid_send_kb_report(&report);
-  leds_set_all(switches);
 }
 #endif
+

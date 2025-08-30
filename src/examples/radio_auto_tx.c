@@ -12,8 +12,8 @@
 #include "radio_arq.h"
 #include "timer.h"
 
-static uint8_t led_pins[] = {LED_PIN_2, LED_PIN_4, LED_PIN_3, LED_PIN_1};
-static size_t led_pins_size = sizeof(led_pins) / sizeof(uint8_t);
+static uint8_t led_gpios[] = {LED_PIN_2, LED_PIN_4, LED_PIN_3, LED_PIN_1};
+static size_t led_gpios_size = sizeof(led_gpios) / sizeof(uint8_t);
 
 static uint32_t report;
 
@@ -21,7 +21,7 @@ void send(uint32_t switches);
 
 int example_radio_auto_tx() {
   init_timer(TIMER0);
-  init_leds(led_pins, led_pins_size);
+  init_leds(led_gpios, led_gpios_size);
   init_radio();
 
   leds_blink();
