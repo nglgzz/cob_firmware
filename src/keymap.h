@@ -3,53 +3,59 @@
 
 #include <stdint.h>
 
+#include "keyscan.h"
 #include "usb_hid.h"
 
 #define MAX_LAYERS 16
-#define MAX_SWITCHES 32
 
+// Layout key
 #define L(device, matrix, row, col)                                                      \
   (((device << 24) & 0xFF000000) | ((matrix << 16) & 0xFF0000) | ((row << 8) & 0xFF00) | \
    (col & 0xFF))
 
-#define L0(device, row, col) L(device, 0, row, col)
+// Layout key, assumes device 0, matrix 0
+#define LD0(row, col) L(0, 0, row, col)
+
+// Array representing the translation between the indexes of the physical
+// switches and the logical keymap indexes. The reason this is here and not in
+// the keyscan layer, is that one layout could be composed of multiple devices /
+// matrixes.
+//
+// An element in this array has the following bit structure:
+//
+// ```
+// Bit number | ID
+//  31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+//               D  D  D  D              C  C  C  C  B  B  B  B  B  B B B A A A A A A A A
+//
+// A: Column index
+// B: Row index
+// C: Matrix ID (one device can have multiple matrix configs)
+// D: Device ID
+// ```
+typedef const uint32_t keymap_layout_t[][MAX_COLS];
+
+// Array that represents the mapping between the layout indexes and their
+// corresponding key actions. In this array, each element represents a layer,
+// and each layer is also an array, with each element being a 16 bit keycode
+// representing an action.
+//
+// ```
+// Bit number | 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+// ID         |                     M A A A A A A A A
+//
+// A: HID keycode
+// M: Modifier flag
+// ```
+typedef const uint16_t keymap_keymap_t[][MAX_ROWS][MAX_COLS];
 
 typedef struct {
-  uint8_t layout_len;
-
-  // Pointer to array representing the translation between the indexes of the physical switches
-  // and the logical keymap indexes. The reason this is here and not in the keyscan layer, is
-  // that one layout could be composed of multiple devices / matrixes.
-  //
-  // An element in that array has the following bit structure:
-  //
-  // ```
-  // Bit number | ID
-  //  31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-  //               D  D  D  D              C  C  C  C  B  B  B  B  B  B B B A A A A A A A A
-  //
-  // A: Column index
-  // B: Row index
-  // C: Matrix ID (one device can have multiple)
-  // D: Device ID
-  // ```
-  uint32_t* layout;
-
+  uint8_t rows_len;
+  uint8_t cols_len;
   uint8_t layers_len;
 
-  // Array that represents the mapping between the layout indexes and their
-  // corresponding key actions. In this array, each element represents a layer,
-  // and each layer is also an array, with each element being a 16 bit keycode
-  // representing an action.
-  //
-  // ```
-  // Bit number | 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-  // ID         |                     M A A A A A A A A
-  //
-  // A: HID keycode
-  // M: Modifier
-  // ```
-  uint16_t* layers;
+  const keymap_layout_t* layout;
+  const keymap_keymap_t* keymap;
 } keymap_config_t;
 
 typedef struct {
@@ -57,15 +63,18 @@ typedef struct {
   // always active.
   uint16_t active_layers;
 
-  uint32_t* layout_state;
+  // Array of bitmaps
+  keyscan_matrix_t layout_state;
 
   // Previous physical state, used to detect key releases.
-  uint32_t* layout_previous_state;
-
+  keyscan_matrix_t layout_previous_state;
 } keymap_state_t;
 
-void init_device(uint8_t config_id, keymap_config_t config);
-hid_report_keyboard_t device_update_state(uint8_t device_id, uint32_t switches);
+void keymap_register_config(uint8_t config_id, uint8_t rows_len, uint8_t cols_len,
+                            uint8_t layers_len, const keymap_layout_t* layout,
+                            const keymap_keymap_t* keymap);
+
+hid_report_keyboard_t device_update_state(uint8_t device_id, keyscan_matrix_t* matrix);
 
 #define KC_TRNS 0x00
 #define _______ 0x00
