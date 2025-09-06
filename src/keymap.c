@@ -1,5 +1,6 @@
 #include "keymap.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "keyscan.h"
@@ -64,9 +65,8 @@ uint16_t get_keycode(uint8_t config_id, uint8_t row, uint8_t col) {
  *      - On release, KC (tap) if no other keys have been pressed
  * - MOD_KC - (tap) keycode + modifier (?)
  */
-hid_report_keyboard_t device_update_state(uint8_t config_id, keyscan_matrix_t* matrix) {
-  // TODO figure out a guard for uninitialized devices
-  // if (configs[device_id] == NULL) return;
+hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
+                                          uint8_t matrix_id, keyscan_state_t* keyscan) {
   hid_report_keyboard_t report = {
       .report_id = 1,
       .modifiers = 0,
@@ -79,14 +79,20 @@ hid_report_keyboard_t device_update_state(uint8_t config_id, keyscan_matrix_t* m
   keymap_state_t* _state = &state[config_id];
 
   for (int row = 0; row < _config->rows_len; row++) {
-    // TODO mapping between device / matrix / layout
-    uint32_t pressed = (~_state->layout_previous_state[row]) & (*matrix)[row];
-    uint32_t released = _state->layout_previous_state[row] & (~(*matrix)[row]);
-    uint32_t still_pressed = _state->layout_previous_state[row] & (*matrix)[row];
-
     for (int col = 0; col < _config->cols_len; col++) {
-      if (pressed & (0x01 << col)) {
-        // Key pressed
+      uint8_t layout_col = (*_config->layout)[row][col] & 0x0F;
+      uint8_t layout_row = ((*_config->layout)[row][col] >> 8) & 0x0F;
+      uint8_t layout_matrix_id = ((*_config->layout)[row][col] >> 16) & 0x0F;
+      uint8_t layout_device_id = ((*_config->layout)[row][col] >> 24) & 0x0F;
+
+      if (layout_device_id != device_id || layout_matrix_id != matrix_id) {
+        continue;
+      }
+
+      bool was_key_pressed = keyscan->previous_matrix[layout_row] & (1 << layout_col);
+      bool is_key_pressed = keyscan->matrix[layout_row] & (1 << layout_col);
+
+      if (is_key_pressed) {
         uint16_t keycode = get_keycode(config_id, row, col);
         if (keycode == 0) continue;
 
@@ -96,39 +102,18 @@ hid_report_keyboard_t device_update_state(uint8_t config_id, keyscan_matrix_t* m
           keys_index = (keys_index + 1) % 5;
         } else if ((keycode >> 8) == 1) {
           // Modifier
-          report.modifiers |= (keycode & 0x00FF);
+          report.modifiers |= (uint8_t)(keycode & 0xFF);
         }
       }
 
-      if (still_pressed & (0x01 << col)) {
-        // Key pressed from previous state
-        uint16_t keycode = get_keycode(config_id, row, col);
-        if (keycode == 0) continue;
-
-        if ((keycode >> 8) == 0) {
-          // KC
-          report.keys[keys_index] = (uint8_t)(keycode & 0xFF);
-          keys_index = (keys_index + 1) % 5;
-        } else if ((keycode >> 8) == 1) {
-          // Modifier
-          report.modifiers |= (keycode & 0x00FF);
-        }
+      if (was_key_pressed && is_key_pressed) {
+        // still pressed
       }
 
-      // if (released & (0x01 << col)) {
-      //   // Key released
-      //   uint16_t keycode = get_keycode(config_id, row, col);
-      //   if (keycode == 0) continue;
-
-      //   if ((keycode >> 8) == 1) {
-      //     report.modifiers &= ~(keycode & 0x00FF);
-      //   }
-      // }
+      if (was_key_pressed && !is_key_pressed) {
+        // key released
+      }
     }
-
-    // TODO: This is weird, shouldn't it be
-    //      _state->layout_previous_state[row] = _state->layout_state[row];
-    _state->layout_previous_state[row] = (*matrix)[row];
   }
 
   return report;

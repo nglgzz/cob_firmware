@@ -16,6 +16,13 @@
 // Layout key, assumes device 0, matrix 0
 #define LD0(row, col) L(0, 0, row, col)
 
+typedef struct __attribute__((packed)) {
+  uint8_t device_id;
+  uint8_t matrix_id;
+  uint8_t row;
+  uint8_t col;
+} keymap_layout_key_t;
+
 // Array representing the translation between the indexes of the physical
 // switches and the logical keymap indexes. The reason this is here and not in
 // the keyscan layer, is that one layout could be composed of multiple devices /
@@ -33,7 +40,7 @@
 // C: Matrix ID (one device can have multiple matrix configs)
 // D: Device ID
 // ```
-typedef const uint32_t keymap_layout_t[][MAX_COLS];
+typedef const uint32_t keymap_layout_t[MAX_ROWS][MAX_COLS];
 
 // Array that represents the mapping between the layout indexes and their
 // corresponding key actions. In this array, each element represents a layer,
@@ -74,7 +81,10 @@ void keymap_register_config(uint8_t config_id, uint8_t rows_len, uint8_t cols_le
                             uint8_t layers_len, const keymap_layout_t* layout,
                             const keymap_keymap_t* keymap);
 
-hid_report_keyboard_t device_update_state(uint8_t device_id, keyscan_matrix_t* matrix);
+// Config ID is the config that the change should be applied to. The rest is
+// information about the source event.
+hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
+                                          uint8_t matrix_id, keyscan_state_t* keyscan);
 
 #define KC_TRNS 0x00
 #define _______ 0x00

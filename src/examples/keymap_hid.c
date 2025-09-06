@@ -60,9 +60,9 @@ int example_keymap_hid() {
 }
 
 void KEYSCAN_EventHandler(uint8_t keyscan_id, keyscan_state_t state) {
-  // This is a hack until update_states accepts keyscan_state_t
+  hid_report_keyboard_t report = keymap_update_state(0, 0, 0, &state);
+
   uint32_t matrix = state.matrix[0] | (state.matrix[1] << cols_len);
-  hid_report_keyboard_t report = device_update_state(0, &state.matrix);
   leds_set_all(matrix);
 
   hid_send_kb_report(&report);
