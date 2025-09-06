@@ -15,9 +15,9 @@ static size_t led_gpios_size = sizeof(led_gpios) / sizeof(uint8_t);
 
 static uint32_t report;
 
-static keyscan_config_t config = {
-    .gpios = {SW_PIN_1, SW_PIN_2, SW_PIN_3, SW_PIN_4},
-    .gpios_len = 4,
+static keyscan_gpios_t matrix = {
+    .direct = {SW_PIN_1, SW_PIN_2, SW_PIN_3, SW_PIN_4},
+    .direct_len = 4,
 };
 
 int example_radio_arq_hid() {
@@ -26,7 +26,7 @@ int example_radio_arq_hid() {
 #endif
 
   init_leds(led_gpios, led_gpios_size);
-  init_keyscan_direct(0, &config);
+  init_keyscan_direct(0, &matrix);
   init_radio();
 
   leds_blink();

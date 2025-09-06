@@ -15,9 +15,10 @@ static size_t led_gpios_len = sizeof(led_gpios) / sizeof(uint8_t);
 #define N_SWITCHES 4
 #define N_COLUMNS 2
 
-static keyscan_config_t scan_config = {
-    .gpios = {SW_PIN_1, SW_PIN_2, SW_PIN_3, SW_PIN_4},
-    .gpios_len = 4,
+static keyscan_gpios_t matrix = {
+    .direct_len = 4,
+    .direct = {SW_PIN_1, SW_PIN_2, SW_PIN_3, SW_PIN_4},
+    // optional
     .cols_len = 2,
 };
 
@@ -48,7 +49,7 @@ int example_keymap_hid() {
   init_device(0, keymap_config);
 
   init_leds(led_gpios, led_gpios_len);
-  init_keyscan_direct(0, &scan_config);
+  init_keyscan_direct(0, &matrix);
 
   leds_blink();
   leds_set(1, 1);

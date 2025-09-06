@@ -27,20 +27,20 @@ static const uint32_t sense_high = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_P
                                    (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos) |
                                    (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
 
-keyscan_config_t configs[4];
+keyscan_gpios_t configs[4];
 keyscan_state_t state[4];
 
-void KEYSCAN_noop(uint8_t config_id, keyscan_state_t state) {}
-void KEYSCAN_EventHandler(uint8_t config_id, keyscan_state_t state)
+void KEYSCAN_noop(uint8_t matrix_id, keyscan_state_t state) {}
+void KEYSCAN_EventHandler(uint8_t matrix_id, keyscan_state_t state)
     __attribute__((weak, alias("KEYSCAN_noop")));
 
-void init_keyscan_direct(uint8_t config_id, keyscan_config_t* config) {
-  keyscan_config_t* _config = &configs[config_id];
+void init_keyscan_direct(uint8_t matrix_id, keyscan_gpios_t* config) {
+  keyscan_gpios_t* _config = &configs[matrix_id];
 
-  _config->gpios_len = min(config->gpios_len, MAX_GPIOS);
+  _config->direct_len = min(config->direct_len, MAX_GPIOS);
 
   if (config->cols_len == 0) {
-    // If the number of columns columns is not specified, assume the max number of columns.
+    // If the number of columns is not specified, assume the max number of columns.
     _config->cols_len = MAX_COLS;
   } else {
     _config->cols_len = min(config->cols_len, MAX_COLS);
@@ -49,13 +49,13 @@ void init_keyscan_direct(uint8_t config_id, keyscan_config_t* config) {
   if (config->rows_len == 0) {
     // If the number of rows is not specified compute the rows based on the number of columns
     // and the number of GPIOs.
-    uint8_t computed_n_rows = divide_ceil(_config->gpios_len, _config->cols_len);
+    uint8_t computed_n_rows = divide_ceil(_config->direct_len, _config->cols_len);
     _config->rows_len = min(computed_n_rows, MAX_ROWS);
   } else {
     _config->rows_len = min(config->rows_len, MAX_ROWS);
   }
 
-  memcpy(_config->gpios, config->gpios, _config->gpios_len * sizeof(_config->gpios[0]));
+  memcpy(_config->direct, config->direct, _config->direct_len * sizeof(_config->direct[0]));
 
   // Enable the GPIOTE interrupt request handler. If this is not set, the
   // peripheral can still generate interrupts, but they end up permanently
@@ -74,9 +74,9 @@ void init_keyscan_direct(uint8_t config_id, keyscan_config_t* config) {
    */
   GPIOTE->INTENCLR |= GPIOTE_INTENCLR_PORT_Msk;
 
-  for (int i = 0; i < _config->gpios_len; i++) {
-    GPIO0->DIRCLR = (GPIO_DIRCLR_PIN0_Clear << _config->gpios[i]);
-    GPIO0->PIN_CNF[_config->gpios[i]] = sense_low;
+  for (int i = 0; i < _config->direct_len; i++) {
+    GPIO0->DIRCLR = (GPIO_DIRCLR_PIN0_Clear << _config->direct[i]);
+    GPIO0->PIN_CNF[_config->direct[i]] = sense_low;
   }
 
   // Clear PORT events
@@ -86,7 +86,7 @@ void init_keyscan_direct(uint8_t config_id, keyscan_config_t* config) {
   GPIOTE->INTENSET |= GPIOTE_INTENSET_PORT_Msk;
 }
 
-void init_keyscan_matrix(uint8_t id, keyscan_config_t* config) {
+void init_keyscan_matrix(uint8_t matrix_id, keyscan_gpios_t* config) {
   // TODO: this is a stub
 }
 
@@ -106,15 +106,15 @@ static inline bool keyscan_debounce() {
 }
 
 // Returns true if there is a key change, false otherwise.
-static bool keyscan_direct(uint8_t config_id) {
-  keyscan_config_t* _config = &configs[config_id];
-  keyscan_state_t* _state = &state[config_id];
+static bool keyscan_direct(uint8_t matrix_id) {
+  keyscan_gpios_t* _config = &configs[matrix_id];
+  keyscan_state_t* _state = &state[matrix_id];
 
   memcpy(
       _state->previous_matrix, _state->matrix, _config->rows_len * sizeof(_state->matrix[0]));
 
-  for (int i = 0; i < _config->gpios_len; i++) {
-    uint16_t gpio_pin = _config->gpios[i];
+  for (int i = 0; i < _config->direct_len; i++) {
+    uint16_t gpio_pin = _config->direct[i];
     uint32_t gpio_value = GPIO0->IN & (GPIO_IN_PIN0_High << gpio_pin);
 
     uint8_t row = i / _config->cols_len;
@@ -153,7 +153,7 @@ void GPIOTE_IRQHandler() {
     GPIOTE->EVENTS_PORT = 0;
 
     for (int i = 0; i < 4; i++) {
-      if (configs[i].gpios_len == 0) {
+      if (configs[i].direct_len == 0) {
         continue;
       }
 
