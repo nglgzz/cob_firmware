@@ -4,10 +4,17 @@
 #include <stdint.h>
 
 #include "keyscan.h"
+#include "timer.h"
 #include "usb_hid.h"
+
+#define TAPPING_TERM_MS 250
 
 static keymap_config_t configs[8] = {};
 static keymap_state_t state[8] = {};
+
+void KEYMAP_noop(hid_report_keyboard_t report) {}
+void KEYMAP_ReportHandler(hid_report_keyboard_t report)
+    __attribute__((weak, alias("KEYMAP_noop")));
 
 void keymap_register_config(uint8_t config_id, uint8_t rows_len, uint8_t cols_len,
                             uint8_t layers_len, const keymap_layout_t* layout,
@@ -86,8 +93,8 @@ uint16_t get_action(uint8_t config_id, uint8_t row, uint8_t col) {
  *      - On release, KC (tap) if no other keys have been pressed
  * - MOD_KC - (tap) keycode + modifier (?)
  */
-hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
-                                          uint8_t matrix_id, keyscan_state_t* keyscan) {
+void keymap_update_state(uint8_t config_id, uint8_t device_id, uint8_t matrix_id,
+                         keyscan_state_t* keyscan) {
   keymap_config_t* _config = &configs[config_id];
   keymap_state_t* _state = &state[config_id];
 
@@ -133,7 +140,8 @@ hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
       .keys = {0},
   };
   uint8_t report_keys_index = 0;
-  uint8_t n_keys_pressed = 0;
+  bool has_tapped = false;
+  uint8_t tapped_key_index = 0;
 
   // Compute actions
   for (int row = 0; row < _config->rows_len; row++) {
@@ -182,7 +190,7 @@ hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
           case 2:  // Layer tap
           case 3:  // Modifier tap
             _state->is_tapping = 1 << 16 | (row & 0xFF) << 8 | (col & 0xFF);
-            // TODO: start timer
+            timer_start_timeout(TIMER2, TAPPING_TERM_MS * 1000);
             break;
 
           default:
@@ -195,29 +203,24 @@ hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
         // key released
         switch (action_type) {
           case 2:
-            if (_state->is_tapping >> 16) {
-              // TODO: and timer not expired
-              report.keys[report_keys_index] = (action & 0xFF);
-              report_keys_index = (report_keys_index + 1) % 5;
-              // TODO: trigger another report for keyrelease
-            }
-
             // Layer tap
             _state->active_layers &= ~(1 << ((action >> 8) & 0xF));
-            // TODO: stop timer
             break;
 
           case 3:
-            if (_state->is_tapping >> 16) {
-              // TODO: and timer not expired
-              report.keys[report_keys_index] = (action & 0xFF);
-              report_keys_index = (report_keys_index + 1) % 5;
-              // TODO: trigger another report for keyrelease
-            }
-
             // Modifier tap
             report.modifiers &= ~((action >> 8) & 0xF);
             break;
+        }
+
+        if ((action_type == 2 || action_type == 3) && (_state->is_tapping >> 16) &&
+            !timer_has_timeout_expired(TIMER2)) {
+          // Used to send keyrelease report
+          has_tapped = true;
+          tapped_key_index = report_keys_index;
+
+          report.keys[report_keys_index] = (action & 0xFF);
+          report_keys_index = (report_keys_index + 1) % 5;
         }
 
         _state->is_tapping = 0;
@@ -226,5 +229,11 @@ hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
     }
   }
 
-  return report;
+  KEYMAP_ReportHandler(report);
+
+  if (has_tapped) {
+    timer_sleep_ms(10);
+    report.keys[tapped_key_index] = 0;
+    KEYMAP_ReportHandler(report);
+  }
 };

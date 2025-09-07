@@ -87,8 +87,10 @@ void keymap_register_config(uint8_t config_id, uint8_t rows_len, uint8_t cols_le
 
 // Config ID is the config that the change should be applied to. The rest is
 // information about the source event.
-hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
-                                          uint8_t matrix_id, keyscan_state_t* keyscan);
+void keymap_update_state(uint8_t config_id, uint8_t device_id, uint8_t matrix_id,
+                         keyscan_state_t* keyscan);
+
+void KEYMAP_ReportHandler(hid_report_keyboard_t report);
 
 // ----------------
 // LAYOUT

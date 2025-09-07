@@ -5,6 +5,7 @@
 #include "keymap.h"
 #include "keyscan.h"
 #include "leds.h"
+#include "timer.h"
 #include "usb_hid.h"
 #include "usbd.h"
 
@@ -51,6 +52,9 @@ int example_keymap_hid() {
   init_usbd();
   init_leds(led_gpios, led_gpios_len);
 
+  // TODO: move this into keymap initialization
+  init_timer(TIMER2);
+
   init_keyscan_direct(0, &matrix);
   init_keyscan_direct(1, &matrix2);
 
@@ -65,13 +69,13 @@ int example_keymap_hid() {
 }
 
 void KEYSCAN_EventHandler(uint8_t matrix_id, keyscan_state_t state) {
-  hid_report_keyboard_t report = keymap_update_state(0, 0, matrix_id, &state);
+  keymap_update_state(0, 0, matrix_id, &state);
 
   uint32_t matrix = state.matrix[0] | (state.matrix[1] << cols_len);
   leds_set_all(matrix);
-
-  hid_send_kb_report(&report);
 }
+
+void KEYMAP_ReportHandler(hid_report_keyboard_t report) { hid_send_kb_report(&report); }
 #ifdef EXAMPLE_KEYMAP_HID
 #endif
 

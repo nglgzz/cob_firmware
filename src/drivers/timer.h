@@ -52,6 +52,7 @@ typedef struct {
 extern timer_t *const TIMER0;
 // TIMER1 is used for RADIO timeouts.
 extern timer_t *const TIMER1;
+// TIMER2 is used for KEYMAP timeouts.
 extern timer_t *const TIMER2;
 extern timer_t *const TIMER3;
 extern timer_t *const TIMER4;
