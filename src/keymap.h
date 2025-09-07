@@ -6,19 +6,6 @@
 #include "keyscan.h"
 #include "usb_hid.h"
 
-#define MAX_LAYERS 16
-
-// Layout key
-#define L(device, matrix, row, col)                                                      \
-  (((device << 24) & 0xFF000000) | ((matrix << 16) & 0xFF0000) | ((row << 8) & 0xFF00) | \
-   (col & 0xFF))
-
-// Layout key, assumes device 0, matrix 0
-#define LD0(row, col) L(0, 0, row, col)
-
-// Layout key, assumes device 0, matrix 1
-#define LD1(row, col) L(0, 1, row, col)
-
 // Struct used to read elements in the keymap_layout_t matrix.
 typedef struct __attribute__((packed)) {
   uint8_t col;
@@ -53,12 +40,18 @@ typedef const uint32_t keymap_layout_t[MAX_ROWS][MAX_COLS];
 //
 // ```
 // Bit number | 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-// ID         |                     M A A A A A A A A
+// ID         |  C  C  C  C  B  B B B A A A A A A A A
 //
 // A: HID keycode
-// M: Modifier flag
+// B: Modifier / Layer (depending on the action type)
+// C: Action type
+//          0 = keycode
+//          1 = modifier
+//          2 = layer tap
+//          3 = mod tap
+//          4 = mod + keycode
 // ```
-typedef const uint16_t keymap_keymap_t[][MAX_ROWS][MAX_COLS];
+typedef const uint16_t keymap_actions_t[][MAX_ROWS][MAX_COLS];
 
 typedef struct {
   uint8_t rows_len;
@@ -66,7 +59,7 @@ typedef struct {
   uint8_t layers_len;
 
   const keymap_layout_t* layout;
-  const keymap_keymap_t* keymap;
+  const keymap_actions_t* actions;
 } keymap_config_t;
 
 typedef struct {
@@ -74,31 +67,60 @@ typedef struct {
   // always active.
   uint16_t active_layers;
 
-  // Array of bitmaps
-  uint32_t layout_state[MAX_ROWS];
+  // bits 0-7: col
+  // bits 8-15: row
+  // bit 16: is_tapping
+  uint32_t is_tapping;
+
+  // Matrix representing the logical state, for each key, the first 4 bits
+  // represent the layer in which the key was pressed, and the 5th bit
+  // represents whether the key is currently pressed.
+  uint8_t layout_state[MAX_ROWS][MAX_COLS];
 
   // Previous physical state, used to detect key releases.
-  uint32_t layout_previous_state[MAX_ROWS];
+  uint8_t layout_previous_state[MAX_ROWS][MAX_COLS];
 } keymap_state_t;
 
 void keymap_register_config(uint8_t config_id, uint8_t rows_len, uint8_t cols_len,
                             uint8_t layers_len, const keymap_layout_t* layout,
-                            const keymap_keymap_t* keymap);
+                            const keymap_actions_t* actions);
 
 // Config ID is the config that the change should be applied to. The rest is
 // information about the source event.
 hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
                                           uint8_t matrix_id, keyscan_state_t* keyscan);
 
-#define MOD_LCTRL 0x0101
-#define MOD_LSFT 0x0102
-#define MOD_LALT 0x0104
-#define MOD_LGUI 0x0108
+// ----------------
+// LAYOUT
+// ----------------
+// Layout key
+#define L(device, matrix, row, col)                                                      \
+  (((device << 24) & 0xFF000000) | ((matrix << 16) & 0xFF0000) | ((row << 8) & 0xFF00) | \
+   (col & 0xFF))
 
-#define MOD_RCTRL 0x0110
-#define MOD_RSFT 0x0120
-#define MOD_RALT 0x0140
-#define MOD_RGUI 0x0180
+// Layout key, assumes device 0, matrix 0
+#define LD0(row, col) L(0, 0, row, col)
+
+// Layout key, assumes device 0, matrix 1
+#define LD1(row, col) L(0, 1, row, col)
+
+// ----------------
+// ACTIONS
+// ----------------
+
+#define LT(layer, keycode) (0x2 << 12 | (layer & 0xF) << 8 | (keycode & 0xFF))
+#define MT(modifier, keycode) (0x3 << 12 | ((modifier) & 0xF) << 8 | (keycode & 0xFF))
+#define M(modifier, keycode) (0x4 << 12 | ((modifier) & 0xF) << 8 | (keycode & 0xFF))
+
+#define MOD_LCTRL 0x1001
+#define MOD_LSFT 0x1002
+#define MOD_LALT 0x1004
+#define MOD_LGUI 0x1008
+
+#define MOD_RCTRL 0x1010
+#define MOD_RSFT 0x1020
+#define MOD_RALT 0x1040
+#define MOD_RGUI 0x1080
 
 #define KC_TRNS 0x00
 #define _______ 0x00

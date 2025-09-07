@@ -28,17 +28,17 @@ static keymap_layout_t layout = {
     {LD0(0, 1), LD1(0, 1)},
 };
 
-static const keymap_keymap_t keymap = {
+static const keymap_actions_t keymap = {
     // Layer 0
     {
         {KC_A, KC_S},
-        {KC_D, MOD_LSFT},
+        {LT(1, KC_D), MOD_LSFT},
     },
 
     // Layer 1
     {
-        {KC_Q, KC_W},
-        {_______, MOD_LSFT},
+        {KC_F, M(MOD_LSFT, KC_1)},
+        {_______, KC_E},
     },
 };
 

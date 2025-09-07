@@ -11,36 +11,60 @@ static keymap_state_t state[8] = {};
 
 void keymap_register_config(uint8_t config_id, uint8_t rows_len, uint8_t cols_len,
                             uint8_t layers_len, const keymap_layout_t* layout,
-                            const keymap_keymap_t* keymap) {
+                            const keymap_actions_t* actions) {
   keymap_config_t* _config = &configs[config_id];
   _config->rows_len = rows_len;
   _config->cols_len = cols_len;
   _config->layers_len = layers_len;
   _config->layout = layout;
-  _config->keymap = keymap;
+  _config->actions = actions;
 }
 
-uint16_t get_keycode(uint8_t config_id, uint8_t row, uint8_t col) {
+// Return the topmost active layer for a key (and with a valid action)
+uint16_t get_top_layer(uint8_t config_id, uint8_t row, uint8_t col) {
   keymap_config_t* _config = &configs[config_id];
   keymap_state_t* _state = &state[config_id];
 
-  uint16_t keycode = 0x0;
+  uint16_t action = 0x0;
   uint16_t current_layer = _config->layers_len;
 
-  while (!keycode) {
+  while (!action) {
     if (current_layer != 0 && (_state->active_layers & (1 << current_layer)) == 0) {
       // This layer is not active, go to lower layer.
       current_layer--;
       continue;
     }
 
-    keycode = (*_config->keymap)[current_layer][row][col];
-    if (current_layer == 0) break;
+    action = (*_config->actions)[current_layer][row][col];
+    if (current_layer == 0 || action) break;
 
     current_layer--;
   }
 
-  return keycode;
+  return current_layer;
+}
+
+uint16_t get_action(uint8_t config_id, uint8_t row, uint8_t col) {
+  keymap_config_t* _config = &configs[config_id];
+  keymap_state_t* _state = &state[config_id];
+
+  uint16_t action = 0x0;
+  uint16_t current_layer = _state->layout_state[row][col] & 0xF;
+
+  while (!action) {
+    if (current_layer != 0 && (_state->active_layers & (1 << current_layer)) == 0) {
+      // This layer is not active, go to lower layer.
+      current_layer--;
+      continue;
+    }
+
+    action = (*_config->actions)[current_layer][row][col];
+    if (current_layer == 0 || action) break;
+
+    current_layer--;
+  }
+
+  return action;
 }
 
 /**
@@ -68,8 +92,10 @@ hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
   keymap_state_t* _state = &state[config_id];
 
   // Move current state to previous state
-  for (int i = 0; i < _config->rows_len; i++) {
-    _state->layout_previous_state[i] = _state->layout_state[i];
+  for (int row = 0; row < _config->rows_len; row++) {
+    for (int col = 0; col < _config->cols_len; col++) {
+      _state->layout_previous_state[row][col] = _state->layout_state[row][col];
+    }
   }
 
   // Update logical state from physical state.
@@ -86,10 +112,16 @@ hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
       }
 
       bool is_key_pressed = keyscan->matrix[key->row] & (1 << key->col);
+
       if (is_key_pressed) {
-        _state->layout_state[row] |= 1 << col;
+        if (_state->layout_previous_state[row][col] == 0) {
+          // Update the state only if the key is newly pressed, otherwise keep
+          // the layer/keypress information from the previous state.
+          uint8_t active_layer = get_top_layer(config_id, row, col);
+          _state->layout_state[row][col] = 0x10 | (active_layer & 0xF);
+        }
       } else {
-        _state->layout_state[row] &= ~(1 << col);
+        _state->layout_state[row][col] = 0;
       }
     }
   }
@@ -106,30 +138,90 @@ hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
   // Compute actions
   for (int row = 0; row < _config->rows_len; row++) {
     for (int col = 0; col < _config->cols_len; col++) {
-      bool was_key_pressed = state->layout_previous_state[row] & (1 << col);
-      bool is_key_pressed = state->layout_state[row] & (1 << col);
+      bool was_key_pressed = _state->layout_previous_state[row][col];
+      bool is_key_pressed = _state->layout_state[row][col];
+
+      uint16_t action = get_action(config_id, row, col);
+      if (action == 0) continue;
+      uint8_t action_type = (action >> 12) & 0xF;
 
       if (is_key_pressed) {
-        n_keys_pressed++;
-        uint16_t keycode = get_keycode(config_id, row, col);
-        if (keycode == 0) continue;
+        switch (action_type) {
+          case 0:
+            // Keycode
+            report.keys[report_keys_index] = (action & 0xFF);
+            report_keys_index = (report_keys_index + 1) % 5;
+            break;
+          case 1:
+            // Modifier
+            report.modifiers |= (action & 0xFF);
+            break;
 
-        if ((keycode >> 8) == 0) {
-          // KC
-          report.keys[report_keys_index] = (uint8_t)(keycode & 0xFF);
-          report_keys_index = (report_keys_index + 1) % 5;
-        } else if ((keycode >> 8) == 1) {
-          // Modifier
-          report.modifiers |= (uint8_t)(keycode & 0xFF);
+          case 2:
+            // Layer tap
+            _state->active_layers |= 1 << ((action >> 8) & 0xF);
+            break;
+
+          case 3:
+            // Modifier tap
+            report.modifiers |= ((action >> 8) & 0xF);
+            break;
+
+          case 4:
+            // Modifier + keycode
+            report.modifiers |= ((action >> 8) & 0xF);
+            report.keys[report_keys_index] = (action & 0xFF);
+            report_keys_index = (report_keys_index + 1) % 5;
+            break;
         }
       }
 
-      if (was_key_pressed && is_key_pressed) {
-        // still pressed
+      if (!was_key_pressed && is_key_pressed) {
+        // new keypress
+        switch (action_type) {
+          case 2:  // Layer tap
+          case 3:  // Modifier tap
+            _state->is_tapping = 1 << 16 | (row & 0xFF) << 8 | (col & 0xFF);
+            // TODO: start timer
+            break;
+
+          default:
+            _state->is_tapping = 0;
+            // TODO: stop timer
+        }
       }
 
       if (was_key_pressed && !is_key_pressed) {
         // key released
+        switch (action_type) {
+          case 2:
+            if (_state->is_tapping >> 16) {
+              // TODO: and timer not expired
+              report.keys[report_keys_index] = (action & 0xFF);
+              report_keys_index = (report_keys_index + 1) % 5;
+              // TODO: trigger another report for keyrelease
+            }
+
+            // Layer tap
+            _state->active_layers &= ~(1 << ((action >> 8) & 0xF));
+            // TODO: stop timer
+            break;
+
+          case 3:
+            if (_state->is_tapping >> 16) {
+              // TODO: and timer not expired
+              report.keys[report_keys_index] = (action & 0xFF);
+              report_keys_index = (report_keys_index + 1) % 5;
+              // TODO: trigger another report for keyrelease
+            }
+
+            // Modifier tap
+            report.modifiers &= ~((action >> 8) & 0xF);
+            break;
+        }
+
+        _state->is_tapping = 0;
+        // TODO stop timer
       }
     }
   }
