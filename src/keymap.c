@@ -18,9 +18,6 @@ void keymap_register_config(uint8_t config_id, uint8_t rows_len, uint8_t cols_le
   _config->layers_len = layers_len;
   _config->layout = layout;
   _config->keymap = keymap;
-
-  // TODO: temporary
-  state[config_id].active_layers = 2;
 }
 
 uint16_t get_keycode(uint8_t config_id, uint8_t row, uint8_t col) {
@@ -67,39 +64,60 @@ uint16_t get_keycode(uint8_t config_id, uint8_t row, uint8_t col) {
  */
 hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
                                           uint8_t matrix_id, keyscan_state_t* keyscan) {
+  keymap_config_t* _config = &configs[config_id];
+  keymap_state_t* _state = &state[config_id];
+
+  // Move current state to previous state
+  for (int i = 0; i < _config->rows_len; i++) {
+    _state->layout_previous_state[i] = _state->layout_state[i];
+  }
+
+  // Update logical state from physical state.
+  //
+  // The logical state is the complete state of the layout, coming from all
+  // configured devices and matrixes; while the physical state is the output of a
+  // keyscan for a specific device and matrix.
+  for (int row = 0; row < _config->rows_len; row++) {
+    for (int col = 0; col < _config->cols_len; col++) {
+      keymap_layout_key_t* key = (keymap_layout_key_t*)&((*_config->layout)[row][col]);
+
+      if (key->device_id != device_id || key->matrix_id != matrix_id) {
+        continue;
+      }
+
+      bool is_key_pressed = keyscan->matrix[key->row] & (1 << key->col);
+      if (is_key_pressed) {
+        _state->layout_state[row] |= 1 << col;
+      } else {
+        _state->layout_state[row] &= ~(1 << col);
+      }
+    }
+  }
+
   hid_report_keyboard_t report = {
       .report_id = 1,
       .modifiers = 0,
       ._reserved = 0,
       .keys = {0},
   };
-  uint8_t keys_index = 0;
+  uint8_t report_keys_index = 0;
+  uint8_t n_keys_pressed = 0;
 
-  keymap_config_t* _config = &configs[config_id];
-  keymap_state_t* _state = &state[config_id];
-
+  // Compute actions
   for (int row = 0; row < _config->rows_len; row++) {
     for (int col = 0; col < _config->cols_len; col++) {
-      uint8_t layout_col = (*_config->layout)[row][col] & 0x0F;
-      uint8_t layout_row = ((*_config->layout)[row][col] >> 8) & 0x0F;
-      uint8_t layout_matrix_id = ((*_config->layout)[row][col] >> 16) & 0x0F;
-      uint8_t layout_device_id = ((*_config->layout)[row][col] >> 24) & 0x0F;
-
-      if (layout_device_id != device_id || layout_matrix_id != matrix_id) {
-        continue;
-      }
-
-      bool was_key_pressed = keyscan->previous_matrix[layout_row] & (1 << layout_col);
-      bool is_key_pressed = keyscan->matrix[layout_row] & (1 << layout_col);
+      bool was_key_pressed = state->layout_previous_state[row] & (1 << col);
+      bool is_key_pressed = state->layout_state[row] & (1 << col);
 
       if (is_key_pressed) {
+        n_keys_pressed++;
         uint16_t keycode = get_keycode(config_id, row, col);
         if (keycode == 0) continue;
 
         if ((keycode >> 8) == 0) {
           // KC
-          report.keys[keys_index] = (uint8_t)(keycode & 0xFF);
-          keys_index = (keys_index + 1) % 5;
+          report.keys[report_keys_index] = (uint8_t)(keycode & 0xFF);
+          report_keys_index = (report_keys_index + 1) % 5;
         } else if ((keycode >> 8) == 1) {
           // Modifier
           report.modifiers |= (uint8_t)(keycode & 0xFF);

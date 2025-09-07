@@ -16,11 +16,15 @@
 // Layout key, assumes device 0, matrix 0
 #define LD0(row, col) L(0, 0, row, col)
 
+// Layout key, assumes device 0, matrix 1
+#define LD1(row, col) L(0, 1, row, col)
+
+// Struct used to read elements in the keymap_layout_t matrix.
 typedef struct __attribute__((packed)) {
-  uint8_t device_id;
-  uint8_t matrix_id;
-  uint8_t row;
   uint8_t col;
+  uint8_t row;
+  uint8_t matrix_id;
+  uint8_t device_id;
 } keymap_layout_key_t;
 
 // Array representing the translation between the indexes of the physical
@@ -71,10 +75,10 @@ typedef struct {
   uint16_t active_layers;
 
   // Array of bitmaps
-  keyscan_matrix_t layout_state;
+  uint32_t layout_state[MAX_ROWS];
 
   // Previous physical state, used to detect key releases.
-  keyscan_matrix_t layout_previous_state;
+  uint32_t layout_previous_state[MAX_ROWS];
 } keymap_state_t;
 
 void keymap_register_config(uint8_t config_id, uint8_t rows_len, uint8_t cols_len,
@@ -86,9 +90,6 @@ void keymap_register_config(uint8_t config_id, uint8_t rows_len, uint8_t cols_le
 hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
                                           uint8_t matrix_id, keyscan_state_t* keyscan);
 
-#define KC_TRNS 0x00
-#define _______ 0x00
-
 #define MOD_LCTRL 0x0101
 #define MOD_LSFT 0x0102
 #define MOD_LALT 0x0104
@@ -98,6 +99,9 @@ hid_report_keyboard_t keymap_update_state(uint8_t config_id, uint8_t device_id,
 #define MOD_RSFT 0x0120
 #define MOD_RALT 0x0140
 #define MOD_RGUI 0x0180
+
+#define KC_TRNS 0x00
+#define _______ 0x00
 
 #define KC_A 0x04
 #define KC_B 0x05
