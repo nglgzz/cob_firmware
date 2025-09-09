@@ -62,5 +62,6 @@ void timer_sleep_us(uint32_t us);
 void timer_sleep_ms(uint32_t ms);
 void timer_start_timeout(timer_t *const timer, uint32_t us);
 bool timer_has_timeout_expired(timer_t *const timer);
+void timer_stop_timeout(timer_t *const timer);
 
 #endif  // TIMER_H

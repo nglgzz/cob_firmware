@@ -195,7 +195,7 @@ void keymap_update_state(uint8_t config_id, uint8_t device_id, uint8_t matrix_id
 
           default:
             _state->is_tapping = 0;
-            // TODO: stop timer
+            timer_stop_timeout(TIMER2);
         }
       }
 
@@ -213,8 +213,11 @@ void keymap_update_state(uint8_t config_id, uint8_t device_id, uint8_t matrix_id
             break;
         }
 
-        if ((action_type == 2 || action_type == 3) && (_state->is_tapping >> 16) &&
-            !timer_has_timeout_expired(TIMER2)) {
+        uint8_t tapping_col = _state->is_tapping & 0xFF;
+        uint8_t tapping_row = (_state->is_tapping >> 8) & 0xFF;
+        bool is_tapping =
+            ((_state->is_tapping >> 16) & 0x01) && tapping_col == col && tapping_row == row;
+        if (is_tapping && !timer_has_timeout_expired(TIMER2)) {
           // Used to send keyrelease report
           has_tapped = true;
           tapped_key_index = report_keys_index;
@@ -224,7 +227,7 @@ void keymap_update_state(uint8_t config_id, uint8_t device_id, uint8_t matrix_id
         }
 
         _state->is_tapping = 0;
-        // TODO stop timer
+        timer_stop_timeout(TIMER2);
       }
     }
   }

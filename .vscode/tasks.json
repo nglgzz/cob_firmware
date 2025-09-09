@@ -18,6 +18,13 @@
       "command": "make flash1"
     },
     {
+      "label": "test",
+      "detail": "Run tests",
+      "type": "shell",
+      "group": "build",
+      "command": "make test"
+    },
+    {
       "label": "flash2",
       "detail": "Build & Flash (2)",
       "type": "shell",

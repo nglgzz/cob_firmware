@@ -55,9 +55,11 @@ void timer_sleep_us(uint32_t us) {
 
 inline void timer_sleep_ms(uint32_t ms) { timer_sleep_us(ms * 1000); }
 
+static bool timeout_expired = false;
 void timer_start_timeout(timer_t *const timer, uint32_t us) {
   timer->TASKS_STOP = 1;
   timer->TASKS_CLEAR = 1;
+  timeout_expired = false;
 
   // A value of zero is used to represent an infinite timeout, in such case we
   // clear the timer and don't start it, so the expired check will always be false.
@@ -70,11 +72,22 @@ void timer_start_timeout(timer_t *const timer, uint32_t us) {
 }
 
 bool timer_has_timeout_expired(timer_t *const timer) {
+  if (timeout_expired) {
+    return true;
+  }
+
   if (timer->EVENTS_COMPARE[0]) {
     timer->TASKS_STOP = 1;
     timer->EVENTS_COMPARE[0] = 0;
+    timeout_expired = true;
     return true;
   }
 
   return false;
+}
+
+void timer_stop_timeout(timer_t *const timer) {
+  timer->TASKS_STOP = 1;
+  timer->EVENTS_COMPARE[0] = 0;
+  timeout_expired = true;
 }
