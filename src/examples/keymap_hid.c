@@ -69,7 +69,7 @@ int example_keymap_hid() {
 }
 
 void KEYSCAN_EventHandler(uint8_t matrix_id, keyscan_state_t state) {
-  keymap_update_state(0, 0, matrix_id, &state);
+  keymap_update_state(0, 0, matrix_id, state.matrix);
 
   uint32_t matrix = state.matrix[0] | (state.matrix[1] << cols_len);
   leds_set_all(matrix);

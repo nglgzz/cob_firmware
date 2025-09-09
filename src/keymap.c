@@ -94,7 +94,7 @@ uint16_t get_action(uint8_t config_id, uint8_t row, uint8_t col) {
  * - MOD_KC - (tap) keycode + modifier (?)
  */
 void keymap_update_state(uint8_t config_id, uint8_t device_id, uint8_t matrix_id,
-                         keyscan_state_t* keyscan) {
+                         keyscan_matrix_t keyscan_matrix) {
   keymap_config_t* _config = &configs[config_id];
   keymap_state_t* _state = &state[config_id];
 
@@ -118,7 +118,7 @@ void keymap_update_state(uint8_t config_id, uint8_t device_id, uint8_t matrix_id
         continue;
       }
 
-      bool is_key_pressed = keyscan->matrix[key->row] & (1 << key->col);
+      bool is_key_pressed = keyscan_matrix[key->row] & (1 << key->col);
 
       if (is_key_pressed) {
         if (_state->layout_previous_state[row][col] == 0) {
