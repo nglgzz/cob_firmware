@@ -12,8 +12,7 @@ timer_t *const TIMER3 = (timer_t *)TIMER3_BASE;
 timer_t *const TIMER4 = (timer_t *)TIMER4_BASE;
 
 void init_timer(timer_t *const timer) {
-  CLOCK->TASKS_HFCLKSTART = 1;
-  while (CLOCK->EVENTS_HFCLKSTARTED == 0);
+  clock_start_hfclk();
 
   timer->TASKS_STOP = 1;
   timer->TASKS_CLEAR = 1;

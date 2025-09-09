@@ -9,9 +9,7 @@ rtc_t *const RTC1 = (rtc_t *)RTC1_BASE;
 rtc_t *const RTC2 = (rtc_t *)RTC2_BASE;
 
 void init_rtc() {
-  CLOCK->TASKS_LFCLKSTART = 1;
-  while (CLOCK->EVENTS_LFCLKSTARTED == 0);
-  CLOCK->EVENTS_LFCLKSTARTED = 0;
+  clock_start_lfclk();
 
   RTC0->TASKS_STOP = 1;
   RTC0->TASKS_CLEAR = 1;

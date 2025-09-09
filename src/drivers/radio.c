@@ -37,8 +37,7 @@ static radio_packet_t tx_packet = {.len = PAYLOAD_LEN, .data = {0}};
 static radio_packet_t rx_packet = {.len = PAYLOAD_LEN, .data = {0}};
 
 void init_radio() {
-  CLOCK->TASKS_HFCLKSTART = 1;
-  while (CLOCK->EVENTS_HFCLKSTARTED == 0);
+  clock_start_hfclk();
 
   // The radio is on by default, but doesn't hurt to be explicit.
   RADIO->POWER = 1;

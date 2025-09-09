@@ -30,8 +30,7 @@ void USBD_GetDescriptor_HIDReport(uint8_t **ptr, uint16_t *length, uint8_t index
     __attribute__((weak, alias("USBD_DefaultHandler")));
 
 void init_usbd() {
-  CLOCK->TASKS_HFCLKSTART = 1;
-  while (CLOCK->EVENTS_HFCLKSTARTED == 0);
+  clock_start_hfclk();
 
   POWER_INTENSET = POWER_INTENSET_USBDETECTED_Msk | POWER_INTENSET_USBREMOVED_Msk |
                    POWER_INTENSET_USBPWRRDY_Msk;
