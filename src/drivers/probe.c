@@ -23,7 +23,7 @@ void init_probes(probe_tag_t tags[], size_t size) {
     gpio_write(1, profiler_gpios[i], 0);
   }
 
-  init_timer(TIMER0);
+  init_timer(timer_id_sleep);
   probes_initialized = true;
 }
 

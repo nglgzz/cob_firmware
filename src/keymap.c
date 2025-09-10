@@ -190,12 +190,12 @@ void keymap_update_state(uint8_t config_id, uint8_t device_id, uint8_t matrix_id
           case 2:  // Layer tap
           case 3:  // Modifier tap
             _state->is_tapping = 1 << 16 | (row & 0xFF) << 8 | (col & 0xFF);
-            timer_start_timeout(TIMER2, TAPPING_TERM_MS * 1000);
+            timer_start_timeout(timer_id_keymap, TAPPING_TERM_MS * 1000);
             break;
 
           default:
             _state->is_tapping = 0;
-            timer_stop_timeout(TIMER2);
+            timer_stop_timeout(timer_id_keymap);
         }
       }
 
@@ -217,7 +217,7 @@ void keymap_update_state(uint8_t config_id, uint8_t device_id, uint8_t matrix_id
         uint8_t tapping_row = (_state->is_tapping >> 8) & 0xFF;
         bool is_tapping =
             ((_state->is_tapping >> 16) & 0x01) && tapping_col == col && tapping_row == row;
-        if (is_tapping && !timer_has_timeout_expired(TIMER2)) {
+        if (is_tapping && !timer_has_timeout_expired(timer_id_keymap)) {
           // Used to send keyrelease report
           has_tapped = true;
           tapped_key_index = report_keys_index;
@@ -227,7 +227,7 @@ void keymap_update_state(uint8_t config_id, uint8_t device_id, uint8_t matrix_id
         }
 
         _state->is_tapping = 0;
-        timer_stop_timeout(TIMER2);
+        timer_stop_timeout(timer_id_keymap);
       }
     }
   }

@@ -90,11 +90,11 @@ bool debounceTimeoutStarted = false;
 // Returns true if the debounced action should be skipped, false otherwise.
 static inline bool keyscan_debounce() {
   // Ignore new events during debounce time window
-  if (debounceTimeoutStarted && !timer_has_timeout_expired(TIMER2)) return true;
+  if (debounceTimeoutStarted && !timer_has_timeout_expired(timer_id_keyscan)) return true;
 
   // Start debounce timer if needed
-  if (!debounceTimeoutStarted || timer_has_timeout_expired(TIMER2)) {
-    timer_start_timeout(TIMER2, DEBOUNCE_DELAY_US);
+  if (!debounceTimeoutStarted || timer_has_timeout_expired(timer_id_keyscan)) {
+    timer_start_timeout(timer_id_keyscan, DEBOUNCE_DELAY_US);
     // debounceTimeoutStarted = true;
   }
 

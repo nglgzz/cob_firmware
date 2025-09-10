@@ -96,7 +96,7 @@ void init_radio() {
   //
   // NVIC_EnableIRQ(RADIO_IRQn);
 
-  init_timer(TIMER1);
+  init_timer(timer_id_radio);
 }
 
 static bool radio_busy = false;
@@ -125,8 +125,8 @@ int radio_receive_timeout(void *dest, size_t dest_len, uint32_t timeout_us) {
   probe_on(probe_tag_radio_rx);
   RADIO->TASKS_RXEN = 1;
 
-  timer_start_timeout(TIMER1, timeout_us);
-  while (!timer_has_timeout_expired(TIMER1) && RADIO->EVENTS_END == 0);
+  timer_start_timeout(timer_id_radio, timeout_us);
+  while (!timer_has_timeout_expired(timer_id_radio) && RADIO->EVENTS_END == 0);
 
   if (RADIO->EVENTS_END) {
     RADIO->EVENTS_END = 0;
@@ -181,8 +181,8 @@ int radio_send(void *src, size_t src_len) {
   probe_on(probe_tag_radio_tx);
   RADIO->TASKS_TXEN = 1;
 
-  timer_start_timeout(TIMER1, 3e3);
-  while (!timer_has_timeout_expired(TIMER1) && RADIO->EVENTS_END == 0);
+  timer_start_timeout(timer_id_radio, 3e3);
+  while (!timer_has_timeout_expired(timer_id_radio) && RADIO->EVENTS_END == 0);
 
   if (RADIO->EVENTS_END) {
     RADIO->EVENTS_END = 0;

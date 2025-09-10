@@ -53,7 +53,7 @@ int example_keymap_hid() {
   init_leds(led_gpios, led_gpios_len);
 
   // TODO: move this into keymap initialization
-  init_timer(TIMER2);
+  init_timer(timer_id_keymap);
 
   init_keyscan_direct(0, &matrix);
   init_keyscan_direct(1, &matrix2);

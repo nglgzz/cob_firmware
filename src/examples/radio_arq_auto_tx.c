@@ -20,7 +20,7 @@ static uint32_t report;
 void send(uint32_t switches);
 
 int example_radio_arq_auto_tx() {
-  init_timer(TIMER0);
+  init_timer(timer_id_sleep);
   init_leds(led_gpios, led_gpios_size);
   init_radio();
 
