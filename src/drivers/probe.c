@@ -4,6 +4,7 @@
 
 #include "gpio.h"
 #include "leds.h"
+#include "nrf52840_bitfields.h"
 #include "rtc.h"
 #include "timer.h"
 #include "utils.h"
@@ -18,8 +19,8 @@ void init_probes(probe_tag_t tags[], size_t size) {
   profiler_gpios_len = min(size, profiler_gpios_len);
 
   for (int i = 0; i < profiler_gpios_len; i++) {
-    gpio_dir_pin_output(GPIO1, profiler_gpios[i]);
-    gpio_out_pin(GPIO1, profiler_gpios[i], false);
+    gpio_mode(1, profiler_gpios[i], GPIO_DIR_PIN0_Output);
+    gpio_write(1, profiler_gpios[i], 0);
   }
 
   init_timer(TIMER0);
@@ -42,23 +43,23 @@ void probe_on(probe_tag_t tag) {
   int pin = find_tag_pin(tag);
   if (pin < 0) return;
 
-  gpio_out_pin(GPIO1, pin, true);
+  gpio_write(1, pin, 1);
 }
 
 void probe_off(probe_tag_t tag) {
   int pin = find_tag_pin(tag);
   if (pin < 0) return;
 
-  gpio_out_pin(GPIO1, pin, false);
+  gpio_write(1, pin, 0);
 }
 
 void probe_pulse(probe_tag_t tag) {
   int pin = find_tag_pin(tag);
   if (pin < 0) return;
 
-  gpio_out_pin(GPIO1, pin, true);
+  gpio_write(1, pin, 1);
   timer_sleep_us(30);
-  gpio_out_pin(GPIO1, pin, false);
+  gpio_write(1, pin, 0);
 }
 
 void probe_pulse_times(probe_tag_t tag, uint32_t count) {
@@ -66,9 +67,9 @@ void probe_pulse_times(probe_tag_t tag, uint32_t count) {
   if (pin < 0) return;
 
   while (count--) {
-    gpio_out_pin(GPIO1, pin, true);
+    gpio_write(1, pin, 1);
     timer_sleep_us(30);
-    gpio_out_pin(GPIO1, pin, false);
+    gpio_write(1, pin, 0);
 
     if (count) {
       // This is to not have a redundant delay between the end of the

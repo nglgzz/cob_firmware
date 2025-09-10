@@ -75,8 +75,8 @@ void init_keyscan_direct(uint8_t matrix_id, keyscan_gpios_t* config) {
   GPIOTE->INTENCLR |= GPIOTE_INTENCLR_PORT_Msk;
 
   for (int i = 0; i < _config->direct_len; i++) {
-    GPIO0->DIRCLR = (GPIO_DIRCLR_PIN0_Clear << _config->direct[i]);
-    GPIO0->PIN_CNF[_config->direct[i]] = sense_low;
+    gpio_mode(0, _config->direct[i], GPIO_DIR_PIN0_Input);
+    gpio_set_cnf(0, _config->direct[i], sense_low);
   }
 
   // Clear PORT events
@@ -115,7 +115,7 @@ static bool keyscan_direct(uint8_t matrix_id) {
 
   for (int i = 0; i < _config->direct_len; i++) {
     uint16_t gpio_pin = _config->direct[i];
-    uint32_t gpio_value = GPIO0->IN & (GPIO_IN_PIN0_High << gpio_pin);
+    uint8_t gpio_value = gpio_read(0, gpio_pin);
 
     uint8_t row = i / _config->cols_len;
     uint8_t col = i % _config->cols_len;
@@ -124,10 +124,10 @@ static bool keyscan_direct(uint8_t matrix_id) {
     // low and 0 is high).
     if (gpio_value) {
       _state->matrix[row] &= ~(1U << col);
-      GPIO0->PIN_CNF[gpio_pin] = sense_low;
+      gpio_set_cnf(0, gpio_pin, sense_low);
     } else {
       _state->matrix[row] |= 1U << col;
-      GPIO0->PIN_CNF[gpio_pin] = sense_high;
+      gpio_set_cnf(0, gpio_pin, sense_high);
     }
   }
 

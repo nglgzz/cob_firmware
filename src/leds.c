@@ -20,20 +20,18 @@ void init_leds(uint8_t pins[], size_t pins_size) {
   memcpy(led_gpios, pins, led_gpios_size);
 
   for (int i = 0; i < led_gpios_size; i++) {
-    // toggling GPIO_DIR at pin number (led_gpios[i]) to high
-    // which makes all led_gpios output pins.
-    GPIO0->DIRSET = (GPIO_DIRSET_PIN0_Set << led_gpios[i]);
-    // Clear LED.
-    GPIO0->OUTSET = (GPIO_OUTSET_PIN0_Set << led_gpios[i]);
+    gpio_mode(0, led_gpios[i], GPIO_DIR_PIN0_Output);
+    // Clear LED, setting pin to high as the LED is pulled up.
+    gpio_write(0, led_gpios[i], 1);
   }
 }
 
 // State is 1 = on, 0 = off
 void leds_set(int index, int on) {
   if (on) {
-    GPIO0->OUTCLR = (GPIO_OUTCLR_PIN0_Clear << led_gpios[index % led_gpios_size]);
+    gpio_write(0, led_gpios[index % led_gpios_size], 0);
   } else {
-    GPIO0->OUTSET = (GPIO_OUTSET_PIN0_Set << led_gpios[index % led_gpios_size]);
+    gpio_write(0, led_gpios[index % led_gpios_size], 1);
   }
 }
 
