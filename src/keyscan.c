@@ -72,18 +72,14 @@ void init_keyscan_direct(uint8_t matrix_id, keyscan_gpios_t* config) {
    * configuration (write '0' to EVENTS_PORT).
    *   4. Enable interrupts (through INTENSET.PORT).
    */
-  GPIOTE->INTENCLR |= GPIOTE_INTENCLR_PORT_Msk;
+  gpiote_disable_port_events();
 
   for (int i = 0; i < _config->direct_len; i++) {
     gpio_mode(0, _config->direct[i], GPIO_DIR_PIN0_Input);
     gpio_set_cnf(0, _config->direct[i], sense_low);
   }
 
-  // Clear PORT events
-  GPIOTE->EVENTS_PORT = 0;
-
-  // Enable interrupts
-  GPIOTE->INTENSET |= GPIOTE_INTENSET_PORT_Msk;
+  gpiote_enable_port_events();
 }
 
 void init_keyscan_matrix(uint8_t matrix_id, keyscan_gpios_t* config) {
@@ -147,20 +143,14 @@ static bool keyscan_direct(uint8_t matrix_id) {
   return true;
 }
 
-void GPIOTE_IRQHandler() {
-  if (GPIOTE->EVENTS_PORT) {
-    // Clear PORT events
-    GPIOTE->EVENTS_PORT = 0;
-
-    for (int i = 0; i < 4; i++) {
-      if (configs[i].direct_len == 0) {
-        continue;
-      }
-
-      if (keyscan_direct(i)) {
-        KEYSCAN_EventHandler(i, state[i]);
-      }
+void GPIOTE_PortEventHandler() {
+  for (int i = 0; i < 4; i++) {
+    if (configs[i].direct_len == 0) {
+      continue;
     }
-    GPIOTE->EVENTS_PORT = 0;
+
+    if (keyscan_direct(i)) {
+      KEYSCAN_EventHandler(i, state[i]);
+    }
   }
 }
