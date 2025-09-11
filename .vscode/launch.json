@@ -16,23 +16,34 @@
       "configFiles": ["/usr/share/openocd/scripts/board/nordic_nrf52_dk.cfg"],
       "preLaunchTask": "flash1",
       "searchDir": [],
-      "runToEntryPoint": "main",
+      // "runToEntryPoint": "main",
       "showDevDebugOutput": "none"
     },
     {
       "cwd": "${workspaceRoot}",
-      "executable": "./build2/src/mmk_firmware.elf",
       "name": "Flash & Debug with OpenOCD (2)",
       "request": "launch",
       "type": "cortex-debug",
+      "executable": "./build2/src/mmk_firmware.elf",
       "servertype": "openocd",
       "serverArgs": ["-c", "jlink serial 1050276985"],
       "gdbPath": "gdb-multiarch",
       "configFiles": ["/usr/share/openocd/scripts/board/nordic_nrf52_dk.cfg"],
       "preLaunchTask": "flash2",
       "searchDir": [],
-      "runToEntryPoint": "main",
+      // "runToEntryPoint": "main",
       "showDevDebugOutput": "none"
+    },
+    {
+      "cwd": "${workspaceRoot}",
+      "name": "Run & Debug Tests",
+      "request": "launch",
+      "type": "cppdbg",
+      "program": "${workspaceFolder}/build_test/tests/tests",
+      "args": [],
+      "stopAtEntry": false,
+      "MIMode": "gdb",
+      "preLaunchTask": "build_test"
     }
   ]
 }

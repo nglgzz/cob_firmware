@@ -25,6 +25,12 @@
       "command": "make test"
     },
     {
+      "label": "build_test",
+      "detail": "Run tests",
+      "type": "shell",
+      "command": "make build_test"
+    },
+    {
       "label": "flash2",
       "detail": "Build & Flash (2)",
       "type": "shell",
