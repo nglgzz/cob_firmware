@@ -17,6 +17,18 @@ static keymap_layout_t layout = {
     {LD0(1, 1), LD0(1, 0)},
 };
 
+// Device 0 handles col 0, Device 1 handles col 1
+static keymap_layout_t layout_multi_device = {
+    {LD0(0, 0), LD1(0, 0)},
+    {LD0(0, 1), LD1(0, 1)},
+};
+
+// Matrix 1 handles row 1, col 1; everything else is handled by Matrix 0
+static keymap_layout_t layout_multi_matrix = {
+    {LD0(0, 1), L(0, 1, 0, 1)},
+    {LD0(1, 1), L(0, 1, 0, 0)},
+};
+
 static const keymap_actions_t actions = {
     // Layer 0
     {
@@ -52,23 +64,26 @@ typedef struct {
   uint8_t device_id;
   uint8_t matrix_id;
   keyscan_matrix_t matrix;
+  char* message;
 } test_keyscan_t;
 
 // --------------------------------------
 // TEST RUNNER
 // --------------------------------------
 
-int _keymap_run_test(uint8_t keyscans_len, test_keyscan_t keyscans[keyscans_len],
-                     uint8_t expected_reports_len,
+int _keymap_run_test(keymap_layout_t* layout, uint8_t keyscans_len,
+                     test_keyscan_t keyscans[keyscans_len], uint8_t expected_reports_len,
                      hid_report_keyboard_t expected_reports[expected_reports_len]) {
-  keymap_register_config(0, rows_len, cols_len, layers_len, &layout, &actions);
+  keymap_register_config(0, rows_len, cols_len, layers_len, layout, &actions);
   for (int i = 0; i < keyscans_len; i++) {
+    printf("\t\t%s\n", keyscans[i].message);
     keymap_update_state(keyscans[i].config_id,
                         keyscans[i].device_id,
                         keyscans[i].matrix_id,
                         keyscans[i].matrix);
   }
-  usleep(300e3);
+
+  usleep(100e3);
 
   ASSERT(expected_reports_len == reports_len,
          "\tExpected reports length of %d.\n\tFound %d instead.\n",
@@ -92,47 +107,77 @@ int _keymap_run_test(uint8_t keyscans_len, test_keyscan_t keyscans[keyscans_len]
   }
 
   // Cleanup actual reports
+  return PASS;
+}
+
+void _keymap_teardown() {
   for (int i = 0; i < reports_len; i++) {
     hid_report_keyboard_t rep = {};
     reports[i] = rep;
   }
-
-  return PASS;
+  reports_len = 0;
 }
 
 // --------------------------------------
 // TESTS
 // --------------------------------------
 
-// Tests keypress, mod + keycode, layer tap
 int test_keymap_single_device() {
   test_keyscan_t keyscans[] = {
       {
-          // Press S
+          .message = "Keycode:\t ↓S (KC_S)",
           .matrix = {0b01, 0b00},
       },
       {
-          // Release S
+          .message = "Keycode:\t ↑S",
           .matrix = {0b00, 0b00},
       },
       {
-          // Go to layer 1
+          .message = "Layer tap:\t ↓LT1 (activate layer 1)",
           .matrix = {0b00, 0b10},
       },
       {
-          // Press shift + 1
+          .message = "LT, Mod+KC:\t -LT1 ↓! (KC_1 + MOD_LSFT)",
           .matrix = {0b01, 0b10},
       },
       {
-          // Release shift + 1
+          .message = "LT, Mod+KC:\t ↑LT1 -!",
+          .matrix = {0b01, 0b00},
+      },
+      {
+          .message = "LT, Mod+KC:\t ↑!",
           .matrix = {0b00, 0b00},
       },
       {
-          // Press layer key
+          .message = "Layer tap:\t ↓LT1",
           .matrix = {0b00, 0b10},
       },
       {
-          // Release layer key
+          .message = "Layer tap:\t ↑LT1 (KC_D)",
+          .matrix = {0b00, 0b00},
+      },
+      {
+          .message = "Modifier:\t ↓Shift (MOD_LSFT)",
+          .matrix = {0b00, 0b01},
+      },
+      {
+          .message = "Mod, LT:\t -Shift ↓LT1 (MOD_LSFT)",
+          .matrix = {0b00, 0b11},
+      },
+      {
+          .message = "Mod, LT, KC:\t -Shift -LT1 ↓F (MOD_LSFT + KC_F)",
+          .matrix = {0b10, 0b11},
+      },
+      {
+          .message = "Mod, LT, KC:\t -Shift -LT1 ↑F (MOD_LSFT)",
+          .matrix = {0b00, 0b11},
+      },
+      {
+          .message = "Mod, LT:\t ↑Shift -LT1",
+          .matrix = {0b00, 0b10},
+      },
+      {
+          .message = "Layer tap:\t ↑LT1",
           .matrix = {0b00, 0b00},
       },
   };
@@ -143,18 +188,215 @@ int test_keymap_single_device() {
       {.keys = {}},
       {.keys = {}},
       {.keys = {KC_1}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {KC_1}, .modifiers = MOD_LSFT & 0xFF},
       {.keys = {}},
       {.keys = {}},
       {.keys = {KC_D}},
       {.keys = {}},
+      {.keys = {}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {KC_F}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {}},
+      {.keys = {}},
   };
   uint8_t expected_reports_len = sizeof(expected_reports) / sizeof(expected_reports[0]);
 
-  return _keymap_run_test(keyscans_len, keyscans, expected_reports_len, expected_reports);
+  return _keymap_run_test(
+      &layout, keyscans_len, keyscans, expected_reports_len, expected_reports);
+}
+
+int test_keymap_multi_device() {
+  test_keyscan_t keyscans[] = {
+      {
+          .message = "Keycode:\t ↓S (KC_S)",
+          .matrix = {0b01},
+          .device_id = 1,
+      },
+      {
+          .message = "Keycode:\t ↑S",
+          .matrix = {0b00},
+          .device_id = 1,
+      },
+      {
+          .message = "Layer tap:\t ↓LT1 (activate layer 1)",
+          .matrix = {0b10},
+          .device_id = 0,
+      },
+      {
+          .message = "LT, Mod+KC:\t -LT1 ↓! (KC_1 + MOD_LSFT)",
+          .matrix = {0b01},
+          .device_id = 1,
+      },
+      {
+          .message = "Mod+KC:\t ↑LT1 -!",
+          .matrix = {0b00},
+          .device_id = 0,
+      },
+      {
+          .message = "LT, Mod+KC:\t ↑!",
+          .matrix = {0b00},
+          .device_id = 1,
+      },
+      {
+          .message = "Layer tap:\t ↓LT1",
+          .matrix = {0b10},
+          .device_id = 0,
+      },
+      {
+          .matrix = {0b00},
+          .device_id = 0,
+          .message = "Layer tap:\t ↑LT1 (KC_D)",
+      },
+      {
+          .matrix = {0b10},
+          .device_id = 1,
+          .message = "Modifier:\t ↓Shift (MOD_LSFT)",
+      },
+      {
+          .matrix = {0b10},
+          .device_id = 0,
+          .message = "Mod, LT:\t -Shift ↓LT1 (MOD_LSFT)",
+      },
+      {
+          .matrix = {0b11},
+          .device_id = 0,
+          .message = "Mod, LT, KC:\t -Shift -LT1 ↓F (MOD_LSFT + KC_F)",
+      },
+      {
+          .matrix = {0b00},
+          .device_id = 0,
+          .message = "Mod, LT, KC:\t -Shift ↑LT1 ↑F",
+      },
+      {
+          .matrix = {0b00},
+          .device_id = 1,
+          .message = "Mod, LT, KC:\t ↑Shift",
+      },
+  };
+  uint8_t keyscans_len = sizeof(keyscans) / sizeof(keyscans[0]);
+
+  hid_report_keyboard_t expected_reports[] = {
+      {.keys = {KC_S}},
+      {.keys = {}},
+      {.keys = {}},
+      {.keys = {KC_1}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {KC_1}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {}},
+      {.keys = {}},
+      {.keys = {KC_D}},
+      {.keys = {}},
+      {.keys = {}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {KC_F}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {}},
+  };
+  uint8_t expected_reports_len = sizeof(expected_reports) / sizeof(expected_reports[0]);
+
+  return _keymap_run_test(
+      &layout_multi_device, keyscans_len, keyscans, expected_reports_len, expected_reports);
+}
+
+int test_keymap_multi_matrix() {
+  test_keyscan_t keyscans[] = {
+      {
+          .message = "Keycode:\t ↓S (KC_S)",
+          .matrix_id = 1,
+          .matrix = {0b10},
+      },
+      {
+          .message = "Keycode:\t ↑S",
+          .matrix_id = 1,
+          .matrix = {0b00},
+      },
+      {
+          .message = "Layer tap:\t ↓LT1 (activate layer 1)",
+          .matrix = {0b00, 0b10},
+      },
+      {
+          .message = "LT, Mod+KC:\t -LT1 ↓! (KC_1 + MOD_LSFT)",
+          .matrix_id = 1,
+          .matrix = {0b10},
+      },
+      {
+          .message = "LT, Mod+KC:\t ↑LT1 -!",
+          .matrix = {0b01, 0b00},
+      },
+      {
+          .message = "LT, Mod+KC:\t ↑!",
+          .matrix_id = 1,
+          .matrix = {0b00},
+      },
+      {
+          .message = "Layer tap:\t ↓LT1",
+          .matrix = {0b00, 0b10},
+      },
+      {
+          .message = "Layer tap:\t ↑LT1 (KC_D)",
+          .matrix = {0b00, 0b00},
+      },
+      {
+          .message = "Modifier:\t ↓Shift (MOD_LSFT)",
+          .matrix_id = 1,
+          .matrix = {0b01},
+      },
+      {
+          .message = "Mod, LT:\t -Shift ↓LT1 (MOD_LSFT)",
+          .matrix = {0b00, 0b11},
+      },
+      {
+          .message = "Mod, LT, KC:\t -Shift -LT1 ↓F (MOD_LSFT + KC_F)",
+          .matrix = {0b10, 0b11},
+      },
+      {
+          .message = "Mod, LT, KC:\t -Shift -LT1 ↑F (MOD_LSFT)",
+          .matrix = {0b00, 0b11},
+      },
+      {
+          .message = "Mod, LT:\t ↑Shift -LT1",
+          .matrix_id = 1,
+          .matrix = {0b00},
+      },
+      {
+          .message = "Layer tap:\t ↑LT1",
+          .matrix = {0b00, 0b00},
+      },
+  };
+  uint8_t keyscans_len = sizeof(keyscans) / sizeof(keyscans[0]);
+
+  hid_report_keyboard_t expected_reports[] = {
+      {.keys = {KC_S}},
+      {.keys = {}},
+      {.keys = {}},
+      {.keys = {KC_1}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {KC_1}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {}},
+      {.keys = {}},
+      {.keys = {KC_D}},
+      {.keys = {}},
+      {.keys = {}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {KC_F}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {}, .modifiers = MOD_LSFT & 0xFF},
+      {.keys = {}},
+      {.keys = {}},
+  };
+  uint8_t expected_reports_len = sizeof(expected_reports) / sizeof(expected_reports[0]);
+
+  return _keymap_run_test(
+      &layout_multi_matrix, keyscans_len, keyscans, expected_reports_len, expected_reports);
 }
 
 int test_keymap() {
-  run_test("Keymap single device (KC, LT, M + KC)", test_keymap_single_device);
+  run_test("Keymap single device", test_keymap_single_device);
+  _keymap_teardown();
+
+  run_test("Keymap multi device", test_keymap_multi_device);
+  _keymap_teardown();
+
+  run_test("Keymap multi matrix", test_keymap_multi_matrix);
+  _keymap_teardown();
 
   return PASS;
 }

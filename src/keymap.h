@@ -102,9 +102,10 @@ void KEYMAP_ReportHandler(hid_report_keyboard_t report);
 
 // Layout key, assumes device 0, matrix 0
 #define LD0(row, col) L(0, 0, row, col)
+#define LD0M1(row, col) L(0, 1, row, col)
 
 // Layout key, assumes device 0, matrix 1
-#define LD1(row, col) L(0, 1, row, col)
+#define LD1(row, col) L(1, 0, row, col)
 
 // ----------------
 // ACTIONS

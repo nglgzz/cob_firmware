@@ -20,11 +20,23 @@ void keymap_register_config(uint8_t config_id, uint8_t rows_len, uint8_t cols_le
                             uint8_t layers_len, const keymap_layout_t* layout,
                             const keymap_actions_t* actions) {
   keymap_config_t* _config = &configs[config_id];
+  keymap_state_t* _state = &state[config_id];
   _config->rows_len = rows_len;
   _config->cols_len = cols_len;
   _config->layers_len = layers_len;
   _config->layout = layout;
   _config->actions = actions;
+
+  // Cleanup state in case this config_id has already been initialized.
+  _state->active_layers = 1;
+  _state->is_tapping = 0;
+
+  for (int i = 0; i < MAX_ROWS; i++) {
+    for (int k = 0; k < MAX_COLS; k++) {
+      _state->layout_state[i][k] = 0;
+      _state->layout_previous_state[i][k] = 0;
+    }
+  }
 }
 
 // Return the topmost active layer for a key (and with a valid action)

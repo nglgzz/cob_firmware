@@ -7,7 +7,7 @@
 static int passed = 0;
 static int failed = 0;
 
-const char* test_names[] = {"keymap"};
+const char* test_names[] = {"keymap.c"};
 const int (*tests[])() = {test_keymap};
 const uint8_t tests_len = 1;
 
@@ -38,6 +38,21 @@ int main() {
     run_test(test_names[i], tests[i]);
   }
 
-  printf("\n%d of %d tests passed (%d failed)\n", passed, passed + failed, failed);
-  return failed ? 1 : 0;
+  if (failed == 0) {
+    printf("\n%s%d of %d tests passed (%d failed)%s\n",
+           ansi_bold_green,
+           passed,
+           passed + failed,
+           failed,
+           ansi_reset);
+  } else {
+    printf("\n%s%d of %d tests passed (%d failed)%s\n",
+           ansi_bold_red,
+           passed,
+           passed + failed,
+           failed,
+           ansi_reset);
+  }
+
+  return failed != 0;
 }

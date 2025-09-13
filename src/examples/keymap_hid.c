@@ -25,8 +25,8 @@ static keyscan_gpios_t matrix2 = {
 
 // DONGLE configuration
 static keymap_layout_t layout = {
-    {LD0(0, 0), LD1(0, 0)},
-    {LD0(0, 1), LD1(0, 1)},
+    {LD0(0, 0), LD0M1(0, 0)},
+    {LD0(0, 1), LD0M1(0, 1)},
 };
 
 static const keymap_actions_t keymap = {
