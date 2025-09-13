@@ -7,9 +7,9 @@
 static int passed = 0;
 static int failed = 0;
 
-const char* test_names[] = {"keymap.c"};
-const int (*tests[])() = {test_keymap};
-const uint8_t tests_len = 1;
+const char* TEST_NAMES[] = {"keymap.c", "keyscan.c"};
+const int (*TESTS[])() = {test_keymap, test_keyscan};
+const uint8_t TESTS_LEN = 2;
 
 static const char* ansi_bold = "\033[1m";
 static const char* ansi_bold_red = "\033[1;31m";
@@ -34,8 +34,8 @@ void run_test(const char* test_name, int (*test_fn)()) {
 int main() {
   printf("Running tests:\n\n");
 
-  for (int i = 0; i < tests_len; i++) {
-    run_test(test_names[i], tests[i]);
+  for (int i = 0; i < TESTS_LEN; i++) {
+    run_test(TEST_NAMES[i], TESTS[i]);
   }
 
   if (failed == 0) {

@@ -83,8 +83,6 @@ int _keymap_run_test(keymap_layout_t* layout, uint8_t keyscans_len,
                         keyscans[i].matrix);
   }
 
-  usleep(100e3);
-
   ASSERT(expected_reports_len == reports_len,
          "\tExpected reports length of %d.\n\tFound %d instead.\n",
          expected_reports_len,

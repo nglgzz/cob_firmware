@@ -13,6 +13,7 @@
 void run_test(const char* test_name, int (*test_fn)());
 
 // Tests
+int test_keyscan();
 int test_keymap();
 
 #endif  // TESTS_H

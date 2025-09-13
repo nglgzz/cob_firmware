@@ -3,6 +3,8 @@
 # Set source files
 file(GLOB_RECURSE TEST_SOURCES ABSOLUTE "${CMAKE_SOURCE_DIR}/tests/*.c")
 list(APPEND TEST_SOURCES "../src/keymap.c")
+list(APPEND TEST_SOURCES "../src/keyscan.c")
+list(APPEND TEST_SOURCES "../src/utils.c")
 
 # Set directories that contain header files
 include_directories(
