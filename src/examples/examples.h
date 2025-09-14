@@ -32,4 +32,7 @@ int example_radio_arq_hid();
 
 // Translate scanned keypressed into keycodes and send them via USB HID.
 int example_keymap_hid();
+
+// Read input from switches in a matrix, and turns on/off corresponding LEDs.
+int example_matrix_leds();
 #endif  // EXAMPLES_H

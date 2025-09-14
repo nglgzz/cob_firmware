@@ -10,9 +10,7 @@
 #define MAX_ROWS 8
 #define MAX_COLS 32
 
-// TODO: increase this value once it's possible to add GPIOs from different
-// ports than GPIO0.
-#define MAX_GPIOS 32
+#define MAX_GPIOS 64
 
 #define DIODE_DIRECTION_Unset 0
 #define DIODE_DIRECTION_RowToCol 1
@@ -22,13 +20,19 @@ typedef struct {
   uint8_t diode_direction;
 
   uint8_t cols_len;
-  uint8_t cols[MAX_COLS];
+  // Array of GPIOs, where the 8 LSb represent the pin number, while the 8MSb
+  // represent the port number.
+  uint16_t cols[MAX_COLS];
 
   uint8_t rows_len;
-  uint8_t rows[MAX_ROWS];
+  // Array of GPIOs, where the 8 LSb represent the pin number, while the 8MSb
+  // represent the port number.
+  uint16_t rows[MAX_ROWS];
 
   uint8_t direct_len;
-  uint8_t direct[MAX_GPIOS];
+  // Array of GPIOs, where the 8 LSb represent the pin number, while the 8MSb
+  // represent the port number.
+  uint16_t direct[MAX_GPIOS];
 } keyscan_gpios_t;
 
 typedef uint32_t keyscan_matrix_t[MAX_ROWS];

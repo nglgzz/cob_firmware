@@ -27,6 +27,18 @@ static const uint32_t sense_high = (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_P
                                    (GPIO_PIN_CNF_PULL_Pullup << GPIO_PIN_CNF_PULL_Pos) |
                                    (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
 
+static const uint32_t sense_high_pulldown =
+    (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos) |
+    (GPIO_PIN_CNF_INPUT_Connect << GPIO_PIN_CNF_INPUT_Pos) |
+    (GPIO_PIN_CNF_PULL_Pulldown << GPIO_PIN_CNF_PULL_Pos) |
+    (GPIO_PIN_CNF_SENSE_High << GPIO_PIN_CNF_SENSE_Pos);
+
+static const uint32_t sense_low_pulldown =
+    (GPIO_PIN_CNF_DIR_Input << GPIO_PIN_CNF_DIR_Pos) |
+    (GPIO_PIN_CNF_INPUT_Connect << GPIO_PIN_CNF_INPUT_Pos) |
+    (GPIO_PIN_CNF_PULL_Pulldown << GPIO_PIN_CNF_PULL_Pos) |
+    (GPIO_PIN_CNF_SENSE_Low << GPIO_PIN_CNF_SENSE_Pos);
+
 keyscan_gpios_t configs[4];
 keyscan_state_t state[4];
 
@@ -75,8 +87,11 @@ void init_keyscan_direct(uint8_t matrix_id, keyscan_gpios_t* config) {
   gpiote_disable_port_events();
 
   for (int i = 0; i < _config->direct_len; i++) {
-    gpio_mode(0, _config->direct[i], GPIO_DIR_PIN0_Input);
-    gpio_set_cnf(0, _config->direct[i], sense_low);
+    uint8_t gpio_pin = _config->direct[i] & 0xFF;
+    uint8_t gpio_port = _config->direct[i] >> 8;
+
+    gpio_mode(gpio_port, gpio_pin, GPIO_DIR_PIN0_Input);
+    gpio_set_cnf(gpio_port, gpio_pin, sense_low);
   }
 
   gpiote_enable_port_events();
@@ -101,6 +116,24 @@ static inline bool keyscan_debounce() {
   return false;
 }
 
+static inline bool keyscan_has_matrix_changed(keyscan_gpios_t* _config,
+                                              keyscan_state_t* _state) {
+  // Ignore duplicate events
+  bool matrix_changed = false;
+  for (int i = 0; i < _config->rows_len; i++) {
+    if (_state->matrix[i] != _state->previous_matrix[i]) {
+      matrix_changed = true;
+      break;
+    }
+  }
+  if (!matrix_changed) return false;
+
+  // Ignore events during debounce window
+  if (keyscan_debounce()) return false;
+
+  return true;
+}
+
 // Returns true if there is a key change, false otherwise.
 static bool keyscan_direct(uint8_t matrix_id) {
   keyscan_gpios_t* _config = &configs[matrix_id];
@@ -110,8 +143,9 @@ static bool keyscan_direct(uint8_t matrix_id) {
       _state->previous_matrix, _state->matrix, _config->rows_len * sizeof(_state->matrix[0]));
 
   for (int i = 0; i < _config->direct_len; i++) {
-    uint16_t gpio_pin = _config->direct[i];
-    uint8_t gpio_value = gpio_read(0, gpio_pin);
+    uint8_t gpio_pin = _config->direct[i] & 0xFF;
+    uint8_t gpio_port = _config->direct[i] >> 8;
+    uint8_t gpio_value = gpio_read(gpio_port, gpio_pin);
 
     uint8_t row = i / _config->cols_len;
     uint8_t col = i % _config->cols_len;
@@ -120,27 +154,14 @@ static bool keyscan_direct(uint8_t matrix_id) {
     // low and 0 is high).
     if (gpio_value) {
       _state->matrix[row] &= ~(1U << col);
-      gpio_set_cnf(0, gpio_pin, sense_low);
+      gpio_set_cnf(gpio_port, gpio_pin, sense_low);
     } else {
       _state->matrix[row] |= 1U << col;
-      gpio_set_cnf(0, gpio_pin, sense_high);
+      gpio_set_cnf(gpio_port, gpio_pin, sense_high);
     }
   }
 
-  // Ignore duplicate events
-  bool duplicate_scan = true;
-  for (int i = 0; i < _config->rows_len; i++) {
-    if (_state->matrix[i] != _state->previous_matrix[i]) {
-      duplicate_scan = false;
-      break;
-    }
-  }
-  if (duplicate_scan) return false;
-
-  // Ignore events during debounce window
-  if (keyscan_debounce()) return false;
-
-  return true;
+  return keyscan_has_matrix_changed(_config, _state);
 }
 
 void GPIOTE_PortEventHandler() {

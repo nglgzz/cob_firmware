@@ -52,6 +52,8 @@ int main(void) {
   example_radio_arq_hid();
 #elif defined(EXAMPLE_KEYMAP_HID)
   example_keymap_hid();
+#elif defined(EXAMPLE_MATRIX_LEDS)
+  example_matrix_leds();
 #endif
 
   while (1) {
