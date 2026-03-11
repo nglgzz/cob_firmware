@@ -28,8 +28,16 @@ if(DEFINED ENV{RADIO_RX})
     add_definitions(-DRADIO_RX)
 endif()
 
-# add_definitions(-D=EXAMPLE_RADIO_ARQ_HID)
-add_definitions(-D=EXAMPLE_KEYMAP_HID)
+if(DEFINED ENV{BOARD1})
+    add_definitions(-DBOARD1)
+endif()
+
+if(DEFINED ENV{BOARD2})
+    add_definitions(-DBOARD2)
+endif()
+
+add_definitions(-D=EXAMPLE_RADIO_ARQ_HID)
+# add_definitions(-D=EXAMPLE_RADIO_ARQ_AUTO_TX)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES})
 

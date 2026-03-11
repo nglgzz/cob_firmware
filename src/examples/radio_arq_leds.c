@@ -9,8 +9,13 @@
 #include "radio_arq.h"
 #include "utils.h"
 
+#ifdef RADIO_RX
+static uint8_t led_gpios[] = {29};
+static size_t led_gpios_size = sizeof(led_gpios) / sizeof(uint8_t);
+#else
 static uint8_t led_gpios[] = {LED_PIN_2, LED_PIN_4, LED_PIN_3, LED_PIN_1};
 static size_t led_gpios_size = sizeof(led_gpios) / sizeof(uint8_t);
+#endif
 
 static uint32_t report;
 
@@ -44,8 +49,8 @@ int example_radio_arq_leds() {
 #ifdef EXAMPLE_RADIO_ARQ_LEDS
 void KEYSCAN_EventHandler(uint8_t keyscan_id, keyscan_state_t state) {
   probe_pulse_times(probe_tag_switch_handler, 3);
-  radio_arq_send(&state.rows[0], sizeof(state.rows[0]));
-  leds_set_all(state.rows[0]);
+  radio_arq_send(&state.matrix[0], sizeof(state.matrix[0]));
+  leds_set_all(state.matrix[0]);
   probe_pulse_times(probe_tag_switch_handler, 1);
 }
 #endif

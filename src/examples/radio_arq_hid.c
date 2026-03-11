@@ -10,8 +10,13 @@
 #include "usbd.h"
 #include "utils.h"
 
+#ifdef BOARD2
+static uint8_t led_gpios[] = {29, 31};
+static size_t led_gpios_size = sizeof(led_gpios) / sizeof(uint8_t);
+#else
 static uint8_t led_gpios[] = {LED_PIN_2, LED_PIN_4, LED_PIN_3, LED_PIN_1};
 static size_t led_gpios_size = sizeof(led_gpios) / sizeof(uint8_t);
+#endif
 
 static uint32_t report;
 
@@ -49,7 +54,7 @@ int example_radio_arq_hid() {
 
 #ifdef EXAMPLE_RADIO_ARQ_HID
 void KEYSCAN_EventHandler(uint8_t keyscan_id, keyscan_state_t state) {
-  radio_arq_send(&state.rows[0], sizeof(state.rows[0]));
-  leds_set_all(state.rows[0]);
+  radio_arq_send(&state.matrix[0], sizeof(state.matrix[0]));
+  leds_set_all(state.matrix[0]);
 }
 #endif

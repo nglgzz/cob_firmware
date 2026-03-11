@@ -9,25 +9,28 @@ BOARD_2=1050276985
 
 all: build1 build2 flash1 flash2
 
-build1:
-	RADIO_RX=1 cmake -S . -B build1
-	make --no-print-directory -C ./build1 clean all
-build2:
-	RADIO_TX=1 cmake -S . -B build2
-	make --no-print-directory -C ./build2 clean all
-
 # build1:
-# 	RADIO_TX=1 cmake -S . -B build1
+# 	RADIO_RX=1 cmake -S . -B build1
 # 	make --no-print-directory -C ./build1 clean all
 # build2:
-# 	RADIO_RX=1 cmake -S . -B build2
+# 	RADIO_TX=1 cmake -S . -B build2
 # 	make --no-print-directory -C ./build2 clean all
+
+build1:
+	BOARD1=1 RADIO_TX=1 cmake -S . -B build1
+	make --no-print-directory -C ./build1 clean all
+build2:
+	BOARD2=1 RADIO_RX=1 cmake -S . -B build2
+	make --no-print-directory -C ./build2 clean all
 
 build_test:
 	cmake -S . -B build_test
 	make --no-print-directory -C ./build_test clean tests
 
 flash1: build1
+# 	nrfjprog --program build1/$(FILE_EXECUTABLE) --snr $(BOARD_1) \
+# 		--verify --sectorerase --clockspeed 1000 \
+# 		--reset
 	nrfutil device program  --serial-number $(BOARD_1) --firmware build1/$(FILE_EXECUTABLE)
 	nrfutil device reset --serial-number $(BOARD_1)
 flash2: build2

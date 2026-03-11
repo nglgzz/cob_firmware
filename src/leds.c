@@ -48,7 +48,7 @@ void leds_set_all(uint32_t leds) {
 void leds_blink() {
   for (int i = 0; i < led_gpios_size; i++) {
     leds_set(i, 1);
-    delay(500000);
+    delay(800000);
     leds_set(i, 0);
   }
 }
