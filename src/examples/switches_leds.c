@@ -26,6 +26,6 @@ int example_switches_leds() {
 }
 #ifdef EXAMPLE_SWITCHES_LEDS
 void KEYSCAN_EventHandler(uint8_t keyscan_id, keyscan_state_t state) {
-  leds_set_all(state.rows[0]);
+  leds_set_all(state.matrix[0]);
 }
 #endif
