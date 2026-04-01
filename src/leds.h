@@ -6,11 +6,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-void init_leds(uint8_t pins[], size_t pins_size);
+void init_leds(uint16_t pins[], size_t pins_len);
 void leds_set(int index, int state);
 void leds_set_all(uint32_t leds);
 void leds_blink();
 
-#define MAX_LED_PINS_SIZE 8
+#define MAX_LED_PINS_LEN 16
 
 #endif  // LED_H

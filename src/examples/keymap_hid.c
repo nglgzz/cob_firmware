@@ -9,8 +9,8 @@
 #include "usb_hid.h"
 #include "usbd.h"
 
-static uint8_t led_gpios[] = {LED_PIN_1, LED_PIN_2, LED_PIN_3, LED_PIN_4};
-static size_t led_gpios_len = sizeof(led_gpios) / sizeof(uint8_t);
+static uint16_t led_gpios[] = {LED_PIN_1, LED_PIN_2, LED_PIN_3, LED_PIN_4};
+static size_t led_gpios_len = sizeof(led_gpios) / sizeof(uint16_t);
 
 // DEVICE configuration
 static keyscan_gpios_t matrix = {

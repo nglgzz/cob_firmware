@@ -18,8 +18,8 @@ device.
 - [Usage Example](#usage-example)
 - [Limitations](#limitations)
 
-
 ## API Reference
+
 ### Data Structures
 
 ```c
@@ -39,7 +39,6 @@ typedef struct {
   uint32_t previous_rows[MAX_ROWS];
 } keyscan_state_t;
 ```
-
 
 ### Initialization
 
@@ -71,7 +70,6 @@ void init_keyscan_matrix(uint8_t config_id, keyscan_config_t* config);
 ```
 
 **Note**: This function is a placeholder for future implementation of true matrix scanning.
-
 
 ### Callback Registration
 
@@ -157,7 +155,7 @@ trigger the event handler independently.
 #include "leds.h"
 
 static uint8_t switch_gpios[] = {1, 2, 3, 4};
-static uint8_t led_gpios[] = {17, 18, 19, 20};
+static uint16_t led_gpios[] = {17, 18, 19, 20};
 
 int main(void) {
     init_leds(led_gpios, 4);

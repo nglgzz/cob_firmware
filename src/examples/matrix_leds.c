@@ -8,14 +8,14 @@
 #include "leds.h"
 #include "nrf52840_bitfields.h"
 
-static uint8_t led_gpios[] = {LED_PIN_2, LED_PIN_4, LED_PIN_3, LED_PIN_1};
-static size_t led_gpios_size = sizeof(led_gpios) / sizeof(uint8_t);
+static uint16_t led_gpios[] = {LED_PIN_2, LED_PIN_4, LED_PIN_3, LED_PIN_1};
+static size_t led_gpios_len = sizeof(led_gpios) / sizeof(uint16_t);
 
 static uint8_t col_pin = 10;
 static uint8_t row_pin = 5;
 
 int example_matrix_leds() {
-  init_leds(led_gpios, led_gpios_size);
+  init_leds(led_gpios, led_gpios_len);
 
   leds_blink();
   leds_set(0, 1);
