@@ -49,7 +49,7 @@ int example_radio_arq_hid() {
 
 #ifdef EXAMPLE_RADIO_ARQ_HID
 void KEYSCAN_EventHandler(uint8_t keyscan_id, keyscan_state_t state) {
-  radio_arq_send(&state.rows[0], sizeof(state.rows[0]));
-  leds_set_all(state.rows[0]);
+  radio_arq_send(&state.matrix[0], sizeof(state.matrix[0]));
+  leds_set_all(state.matrix[0]);
 }
 #endif

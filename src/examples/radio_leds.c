@@ -43,8 +43,8 @@ int example_radio_leds() {
 #ifdef EXAMPLE_RADIO_LEDS
 void KEYSCAN_EventHandler(uint8_t keyscan_id, keyscan_state_t state) {
   probe_pulse_times(probe_tag_switch_handler, 3);
-  radio_send(&state.rows[0], sizeof(state.rows[0]));
-  leds_set_all(state.rows[0]);
+  radio_send(&state.matrix[0], sizeof(state.matrix[0]));
+  leds_set_all(state.matrix[0]);
   probe_pulse_times(probe_tag_switch_handler, 1);
 }
 #endif

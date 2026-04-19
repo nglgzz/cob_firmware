@@ -68,6 +68,7 @@ int example_keymap_hid() {
   }
 }
 
+#ifdef EXAMPLE_KEYMAP_HID
 void KEYSCAN_EventHandler(uint8_t matrix_id, keyscan_state_t state) {
   keymap_update_state(0, 0, matrix_id, state.matrix);
 
@@ -76,6 +77,5 @@ void KEYSCAN_EventHandler(uint8_t matrix_id, keyscan_state_t state) {
 }
 
 void KEYMAP_ReportHandler(hid_report_keyboard_t report) { hid_send_kb_report(&report); }
-#ifdef EXAMPLE_KEYMAP_HID
 #endif
 
